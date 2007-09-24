@@ -40,8 +40,8 @@ class Nomograph:
       Axes may be chosen to be linear or logarithmic
 
     """
-    def __init__(self,nomo_type,nomo_height=20.0,nomo_width=10.0,
-                 functions):
+    def __init__(self,nomo_type,functions,nomo_height=20.0,nomo_width=10.0
+                 ):
         """
         @param nomo_type: This values describes the type of nomogram.
             allowed values are:
@@ -58,10 +58,11 @@ class Nomograph:
 
         @type nomo_type: string
         @param functions: dictionary with corresponding functions.
-            for examples if we plan to plot z=x*x+2*y, then we have
-            {'F1':lambda z:z,
-             'F2':lambda x:x*x,
-             'F3':lambda y:2*y}
+            for examples if we plan to plot z=x*x+2*y, then we have::
+                {'F1':lambda z:z,
+                 'F2':lambda x:x*x,
+                 'F3':lambda y:2*y}
+
         """
         self.functions=functions
         try:

@@ -136,9 +136,24 @@ class Nomograph:
 
     def init_general(self):
         """
-        Make initializations for nomogram in determinant form
+        Make initializations for nomogram in determinant form::
+                        -------------------------
+                        | f1(u) | g1(u) | h1(u) |
+                        -------------------------
+                        | f2(v) | g2(v) | h2(v) | = 0
+                        -------------------------
+                        | f3(w) | g3(w) | h3(w) |
+                        -------------------------
         """
-        pass
+        self.f1 = lambda u: self.functions['f1'](u)
+        self.g1 = lambda u: self.functions['g1'](u)
+        self.h1 = lambda u: self.functions['h1'](u)
+        self.f2 = lambda v: self.functions['f2'](v)
+        self.g2 = lambda v: self.functions['g2'](v)
+        self.h2 = lambda v: self.functions['h2'](v)
+        self.f3 = lambda w: self.functions['f3'](w)
+        self.g3 = lambda w: self.functions['g3'](w)
+        self.h3 = lambda w: self.functions['h3'](w)
 
 if __name__=='__main__':
     """
@@ -164,17 +179,17 @@ if __name__=='__main__':
     Example nomograph z=x*y
     """
     nomo_type='F2(v)=F1(u)*F3(w)'
-    functions={ 'filename':'nomogram2.pdf',
+    functions1={ 'filename':'nomogram2.pdf',
             'F2':lambda z:z,
             'v_start':1.0,
-            'v_stop':15.0,
+            'v_stop':10.0,
             'v_title':'z',
             'F1':lambda x:x,
             'u_start':1.0,
             'u_stop':3.0,
             'u_title':'x',
             'F3':lambda y:y,
-            'w_start':3.0,
-            'w_stop':0.0,
+            'w_start':1.0,
+            'w_stop':5.0,
             'w_title':'y'}
-    Nomograph(nomo_type=nomo_type,functions=functions)
+    Nomograph(nomo_type=nomo_type,functions=functions1)

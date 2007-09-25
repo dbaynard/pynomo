@@ -40,7 +40,7 @@ class Nomograph:
       Axes may be chosen to be linear or logarithmic
 
     """
-    def __init__(self,nomo_type,functions,nomo_height=20.0,nomo_width=10.0
+    def __init__(self,nomo_type,functions,nomo_height=15.0,nomo_width=10.0
                  ):
         """
         @param nomo_type: This values describes the type of nomogram.
@@ -97,7 +97,7 @@ class Nomograph:
         c = canvas.canvas()
         u_axis=Nomo_Axis(func_f=nomo.give_x1,func_g=nomo.give_y1,
                          start=self.functions['u_start'],stop=self.functions['u_stop'],
-                         turn=-1,title=self.functions['u_title'],canvas=c)
+                         turn=1,title=self.functions['u_title'],canvas=c)
         v_axis=Nomo_Axis(func_f=nomo.give_x2,func_g=nomo.give_y2,
                          start=self.functions['v_start'],stop=self.functions['v_stop'],
                          turn=1,title=self.functions['v_title'],canvas=c)
@@ -122,13 +122,20 @@ class Nomograph:
 
     def init_product_three(self):
         """
-        Make initializations for nomogram F2(u)=F1(v)*F3(w)
+        Make initializations for nomogram F2(u)=F1(v)*F3(w)::
+                        ----------------------------------
+                        |      1         | -F1(u)| 1     |
+                        ----------------------------------
+                        |      0         |  F2(v)| 1     | = 0
+                        ----------------------------------
+                        | F3(w)/(F3(w)+1)|   0   | 1     |
+                        ----------------------------------
         """
-        self.f1 = lambda u: 0.0
-        self.g1 = lambda u: self.functions['F1'](u)
+        self.f1 = lambda u: 1.0
+        self.g1 = lambda u: -self.functions['F1'](u)
         self.h1 = lambda u: 1.0
-        self.f2 = lambda v: 1.0
-        self.g2 = lambda v: -self.functions['F2'](v)
+        self.f2 = lambda v: 0.0
+        self.g2 = lambda v: self.functions['F2'](v)
         self.h2 = lambda v: 1.0
         self.f3 = lambda w: self.functions['F3'](w)/(self.functions['F3'](w)+1.0)
         self.g3 = lambda w: 0.0
@@ -182,11 +189,11 @@ if __name__=='__main__':
     functions1={ 'filename':'nomogram2.pdf',
             'F2':lambda z:z,
             'v_start':1.0,
-            'v_stop':10.0,
+            'v_stop':25.0,
             'v_title':'z',
             'F1':lambda x:x,
             'u_start':1.0,
-            'u_stop':3.0,
+            'u_stop':5.0,
             'u_title':'x',
             'F3':lambda y:y,
             'w_start':1.0,

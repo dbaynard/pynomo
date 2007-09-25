@@ -68,5 +68,5 @@ gg1=Nomo_Axis(func_f=nomograph.give_x1,func_g=nomograph.give_y1,start=0.5,stop=1
 gg1=Nomo_Axis(func_f=nomograph.give_x2,func_g=nomograph.give_y2,start=1.0,stop=0.75,
               turn=1,title='h',canvas=ccc,text_style='oldstyle')
 #gg2=Nomo_Axis(func_f=f4,func_g=g4,start=0.00001,stop=3,turn=1,title='log',canvas=ccc,type='log')
-ccc.writePDFfile("nomotest_font3")
+ccc.writePDFfile("nomotest_font5")
 # SVN test 6

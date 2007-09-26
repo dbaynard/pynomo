@@ -59,10 +59,10 @@ class Nomo_Axis:
         du=math.fabs(start-stop)*1e-4
         # which number to divide
         scale_max=math.pow(10,math.ceil(math.log10(math.fabs(start-stop))))
-        tick_min=scale_max/500
-        tick_max=scale_max/10
-        tick_1=scale_max/20
-        tick_2=scale_max/100
+        tick_min=scale_max/500.0
+        tick_max=scale_max/10.0
+        tick_1=scale_max/20.0
+        tick_2=scale_max/100.0
         texts=list([])
         steps=math.fabs(start-stop)/tick_min+1
         for u in scipy.linspace(start,stop,steps):

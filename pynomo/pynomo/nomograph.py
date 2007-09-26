@@ -46,7 +46,7 @@ class Nomograph:
         @param nomo_type: This values describes the type of nomogram.
             allowed values are:
                 - 'F2(v)=F1(u)+F3(w)'
-                - 'F2(v)=F1(u)*F3(w)'
+                - 'F2(v)=F3(w)/F1(u)'
                 - 'general3', a general eq in determinant form::
                         -------------------------
                         | f1(u) | g1(u) | h1(u) |
@@ -75,9 +75,11 @@ class Nomograph:
 
         """
         self.functions=functions
+        self.nomo_height=nomo_height
+        self.nomo_width=nomo_width
         try:
             {'F2(v)=F1(u)+F3(w)': self.init_sum_three,
-             'F2(v)=F1(u)*F3(w)': self.init_product_three,
+             'F2(v)=F3(w)/F1(u)': self.init_product_three,
              'general3': self.init_general}[nomo_type]()
         except KeyError:
             print "nomo_type not valid"
@@ -97,7 +99,7 @@ class Nomograph:
         c = canvas.canvas()
         u_axis=Nomo_Axis(func_f=nomo.give_x1,func_g=nomo.give_y1,
                          start=self.functions['u_start'],stop=self.functions['u_stop'],
-                         turn=1,title=self.functions['u_title'],canvas=c)
+                         turn=-1,title=self.functions['u_title'],canvas=c)
         v_axis=Nomo_Axis(func_f=nomo.give_x2,func_g=nomo.give_y2,
                          start=self.functions['v_start'],stop=self.functions['v_stop'],
                          turn=1,title=self.functions['v_title'],canvas=c)
@@ -122,23 +124,29 @@ class Nomograph:
 
     def init_product_three(self):
         """
-        Make initializations for nomogram F2(u)=F1(v)*F3(w)::
-                        ----------------------------------
-                        |      1         | -F1(u)| 1     |
-                        ----------------------------------
-                        |      0         |  F2(v)| 1     | = 0
-                        ----------------------------------
-                        | F3(w)/(F3(w)+1)|   0   | 1     |
-                        ----------------------------------
+        Make initializations for nomogram F2(v)=F3(w)/F1(u)::
+                        ------------------------------------
+                        |      1         | -F1(u)  | 1     |
+                        ------------------------------------
+                        | F2(v)/(F2(v)+1)|   0     | 1     | = 0
+                        ------------------------------------
+                        |      0         |  F3(w)  | 1     |
+                        ------------------------------------
         """
+        # u and w scales have to go in opposite directions in this nomograph
+        if ((self.functions['u_start']-self.functions['u_stop'])*
+        (self.functions['w_start']-self.functions['w_stop'])>0.0):
+            self.functions['w_start'],self.functions['w_stop']= \
+            self.functions['w_stop'],self.functions['w_start']
+
         self.f1 = lambda u: 1.0
         self.g1 = lambda u: -self.functions['F1'](u)
         self.h1 = lambda u: 1.0
-        self.f2 = lambda v: 0.0
-        self.g2 = lambda v: self.functions['F2'](v)
+        self.f2 = lambda v: self.functions['F2'](v)/(self.functions['F2'](v)+1.0)
+        self.g2 = lambda v: 0.0
         self.h2 = lambda v: 1.0
-        self.f3 = lambda w: self.functions['F3'](w)/(self.functions['F3'](w)+1.0)
-        self.g3 = lambda w: 0.0
+        self.f3 = lambda w: 0.0
+        self.g3 = lambda w: self.functions['F3'](w)
         self.h3 = lambda w: 1.0
 
     def init_general(self):
@@ -170,7 +178,7 @@ if __name__=='__main__':
     functions={ 'filename':'nomogram1.pdf',
             'F2':lambda z:z,
             'v_start':1.0,
-            'v_stop':5.0,
+            'v_stop':15.0,
             'v_title':'z',
             'F1':lambda x:x*x,
             'u_start':1.0,
@@ -183,20 +191,20 @@ if __name__=='__main__':
     Nomograph(nomo_type=nomo_type,functions=functions)
 
     """
-    Example nomograph z=x*y
+    Example nomograph z=y/x or y=x*z
     """
-    nomo_type='F2(v)=F1(u)*F3(w)'
+    nomo_type='F2(v)=F3(w)/F1(u)'
     functions1={ 'filename':'nomogram2.pdf',
             'F2':lambda z:z,
-            'v_start':1.0,
-            'v_stop':25.0,
+            'v_start':2.0,
+            'v_stop':0.5,
             'v_title':'z',
             'F1':lambda x:x,
             'u_start':1.0,
             'u_stop':5.0,
             'u_title':'x',
             'F3':lambda y:y,
-            'w_start':1.0,
-            'w_stop':5.0,
+            'w_start':5.0,
+            'w_stop':1.0,
             'w_title':'y'}
     Nomograph(nomo_type=nomo_type,functions=functions1)

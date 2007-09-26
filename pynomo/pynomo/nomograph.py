@@ -208,3 +208,28 @@ if __name__=='__main__':
             'w_stop':1.0,
             'w_title':'y'}
     Nomograph(nomo_type=nomo_type,functions=functions1)
+    """
+    Example nomograph from Allcock's book
+    """
+    nomo_type='general3'
+    functions2={ 'filename':'nomogram3.pdf',
+            'f1':lambda u:2*(u*u-1.0),
+            'g1':lambda u:3*u*(u+1.0),
+            'h1':lambda u:-u*(u-1.0),
+            'f2':lambda v:v,
+            'g2':lambda v:1.0,
+            'h2':lambda v:-v*v,
+            'f3':lambda w:2.0*(2.0*w+1.0),
+            'g3':lambda w:3.0*(w+1.0),
+            'h3':lambda w:-(w+1.0)*(2.0*w+1.0),
+            'u_start':0.5,
+            'u_stop':1.0,
+            'u_title':'p',
+            'v_start':1.0,
+            'v_stop':0.75,
+            'v_title':'h',
+            'w_start':1.0,
+            'w_stop':0.5,
+            'w_title':'L'}
+    Nomograph(nomo_type=nomo_type,functions=functions2)
+

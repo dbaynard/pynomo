@@ -209,7 +209,15 @@ if __name__=='__main__':
             'w_title':'y'}
     Nomograph(nomo_type=nomo_type,functions=functions1)
     """
-    Example nomograph from Allcock's book
+    Example nomograph from Allcock's book. Eq xx=xx in determinant form::
+              -----------------------------------------
+              | 2*(u*u-1) | 3*u*(u+1) | -u*(u-1.0)    |
+              -----------------------------------------
+              |      v    |     1     |    -v*v       | = 0
+              -----------------------------------------
+              | 2*(2*w+1) | 3*(w+1)   |-(w+1)*(2*w+1) |
+              -----------------------------------------
+
     """
     nomo_type='general3'
     functions2={ 'filename':'nomogram3.pdf',

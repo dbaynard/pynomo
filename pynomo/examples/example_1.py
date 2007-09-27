@@ -45,4 +45,4 @@ functions2={ 'filename':'nomogram3.pdf',
         'w_start':1.0,
         'w_stop':0.5,
         'w_title':'L'}
-Nomograph(nomo_type=nomo_type,functions=functions2)
+nomograph.Nomograph(nomo_type=nomo_type,functions=functions2)

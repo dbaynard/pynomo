@@ -20,3 +20,5 @@ Pynomo is a program to create (pdf) nomographs (nomograms)
 using Python interpreter. A nomograph (nomogram) is a graphical
 solution to an equation.
 """
+
+__all__ = ["nomograph", "nomo_axis", "nomograph3"]

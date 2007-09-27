@@ -28,7 +28,7 @@ setup(name='PyNomo',
       url='http://pynomo.org/',
       download_url='http://sourceforge.net/project/showfiles.php?group_id=201522',
       packages=['pynomo'],
-      data_files=[('../examples', ['example_1.py'])],
+      data_files=[('examples', ['*'])],
       license='GPL',
       platforms='OS Independent',
       classifiers=[

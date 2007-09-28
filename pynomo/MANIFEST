@@ -1,7 +1,14 @@
+AUTHORS.txt
+CHANGES.txt
+INSTALL.txt
+LICENSE.txt
+README.txt
 setup.py
 examples\example_1.py
+examples\example_2.py
+examples\example_3.py
 pynomo\__init__.py
 pynomo\nomo_axis.py
-pynomo\nomo_test4.py
+pynomo\nomo_low_level_ex.py
 pynomo\nomograph.py
 pynomo\nomograph3.py

@@ -1,0 +1,21 @@
+PyNomo
+
+0.1.0a1
+=======
+Three basic nomograms (three variable)
+--------------------------------------
+	* three parallel lines 'F2(v)=F1(u)+F3(w)'
+	* N nomograph 'F2(v)=F1(u)*F3(w)'
+	* general determinant
+              -------------------------
+              | f1(u) | g1(u) | h1(u) |
+              -------------------------
+              | f2(v) | g2(v) | h2(v) | = 0
+              -------------------------
+              | f3(w) | g3(w) | h3(w) |
+              -------------------------
+
+In general
+----------
+First distribution
+

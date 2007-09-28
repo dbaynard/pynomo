@@ -1,4 +1,5 @@
 setup.py
+examples\example_1.py
 pynomo\__init__.py
 pynomo\nomo_axis.py
 pynomo\nomo_test4.py

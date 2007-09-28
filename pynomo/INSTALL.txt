@@ -3,7 +3,7 @@ Installation
 
 Prerequisites
 -------------
-	Install following the packages:
+	Install the following packages:
 
 	TeX/LaTeX distribution:
 	-----------------------

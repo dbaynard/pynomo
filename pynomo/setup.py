@@ -32,12 +32,10 @@ setup(name='PyNomo',
       platforms='OS Independent',
       classifiers=[
           'Development Status :: 2 - Pre-Alpha',
-          'Intended Audience :: by Industry or Sector :: Science/Research',
           'Topic :: Scientific/Engineering :: Visualization',
           'Topic :: Multimedia :: Graphics',
           'Topic :: Software Development :: Libraries :: Python Modules',
-          'License :: OSI-Approved Open Source :: GNU General Public License (GPL)',
-          'Operating System :: Grouping and Descriptive Categories :: OS Independent (Written in an interpreted language)',
+          'License :: OSI Approved :: GNU General Public License (GPL)',
           'Programming Language :: Python',
           ],
       )

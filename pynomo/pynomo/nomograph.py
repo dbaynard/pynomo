@@ -253,6 +253,28 @@ if __name__=='__main__':
             'w_title':r'p \%',
             'w_scale_type':'linear',}
     Nomograph(nomo_type=nomo_type,functions=functions1)
+    """
+    Example nomograph of body-mass index BMI = weight (kg)/(height^2(m^2))
+    BMI = W/H^2
+    """
+    nomo_type='F2(v)=F3(w)/F1(u)'
+    functions1={ 'filename':'BMI.pdf',
+            'F2':lambda BMI:BMI,
+            'v_start':35.0,
+            'v_stop':15.0,
+            'v_title':r'BMI',
+            'v_scale_type':'linear',
+            'F1':lambda H:H**2,
+            'u_start':1.4,
+            'u_stop':2.2,
+            'u_title':'Height (m)',
+            'u_scale_type':'linear',
+            'F3':lambda W:W,
+            'w_start':30,
+            'w_stop':200.0,
+            'w_title':r'Weight (kg)',
+            'w_scale_type':'linear',}
+    Nomograph(nomo_type=nomo_type,functions=functions1)
 
 
     """

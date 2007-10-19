@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from nomo_axis import *
 from nomograph3 import *
+from math import *
 class Nomograph:
     """
     Main module for easy building of nomographs.
@@ -99,14 +100,18 @@ class Nomograph:
         c = canvas.canvas()
         u_axis=Nomo_Axis(func_f=nomo.give_x1,func_g=nomo.give_y1,
                          start=self.functions['u_start'],stop=self.functions['u_stop'],
-                         turn=-1,title=self.functions['u_title'],canvas=c)
+                         turn=-1,title=self.functions['u_title'],canvas=c,
+                         type=self.functions['u_scale_type'])
         v_axis=Nomo_Axis(func_f=nomo.give_x2,func_g=nomo.give_y2,
                          start=self.functions['v_start'],stop=self.functions['v_stop'],
-                         turn=1,title=self.functions['v_title'],canvas=c)
+                         turn=1,title=self.functions['v_title'],canvas=c,
+                         type=self.functions['v_scale_type'])
         w_axis=Nomo_Axis(func_f=nomo.give_x3,func_g=nomo.give_y3,
                          start=self.functions['w_start'],stop=self.functions['w_stop'],
-                         turn=-1,title=self.functions['w_title'],canvas=c)
+                         turn=-1,title=self.functions['w_title'],canvas=c,
+                         type=self.functions['w_scale_type'])
         c.writePDFfile(self.functions['filename'])
+        self.canvas=c
 
     def init_sum_three(self):
         """
@@ -134,8 +139,16 @@ class Nomograph:
                         ------------------------------------
         """
         # u and w scales have to go in opposite directions in this nomograph
-        if ((self.functions['u_start']-self.functions['u_stop'])*
-        (self.functions['w_start']-self.functions['w_stop'])>0.0):
+        u_start=self.functions['u_start']
+        u_stop=self.functions['u_stop']
+        u_start_fn_value=self.functions['F1'](u_start)
+        u_stop_fn_value=self.functions['F1'](u_stop)
+        w_start=self.functions['w_start']
+        w_stop=self.functions['w_stop']
+        w_start_fn_value=self.functions['F3'](w_start)
+        w_stop_fn_value=self.functions['F3'](w_stop)
+        if ((u_start_fn_value-u_stop_fn_value)*
+        (w_start_fn_value-w_stop_fn_value)>0.0):
             self.functions['w_start'],self.functions['w_stop']= \
             self.functions['w_stop'],self.functions['w_start']
 
@@ -180,14 +193,17 @@ if __name__=='__main__':
             'v_start':1.0,
             'v_stop':15.0,
             'v_title':'z',
+            'v_scale_type':'linear',
             'F1':lambda x:x*x,
             'u_start':1.0,
             'u_stop':3.0,
             'u_title':'x',
+            'u_scale_type':'linear',
             'F3':lambda y:2*y,
             'w_start':0.0,
             'w_stop':3.0,
-            'w_title':'y'}
+            'w_title':'y',
+            'w_scale_type':'linear',}
     Nomograph(nomo_type=nomo_type,functions=functions)
 
     """
@@ -199,15 +215,46 @@ if __name__=='__main__':
             'v_start':2.0,
             'v_stop':0.5,
             'v_title':'z',
+            'v_scale_type':'linear',
             'F1':lambda x:x,
             'u_start':1.0,
             'u_stop':5.0,
             'u_title':'x',
+            'u_scale_type':'linear',
             'F3':lambda y:y,
             'w_start':5.0,
             'w_stop':1.0,
-            'w_title':'y'}
+            'w_title':'y',
+            'w_scale_type':'linear',}
     Nomograph(nomo_type=nomo_type,functions=functions1)
+    """
+    Example nomograph of equation T=((1+p/100)^N-1)*100
+    N = years
+    p = interest rate as percentage
+    N = total interest after N years
+    equation in suitable form is
+    log(T/100+1)=N*log(1+p/100)
+    """
+    nomo_type='F2(v)=F3(w)/F1(u)'
+    functions1={ 'filename':'nomogram_interest.pdf',
+            'F2':lambda T:log(T/100.0+1.0),
+            'v_start':20.0,
+            'v_stop':900.0,
+            'v_title':r'Total interest \%',
+            'v_scale_type':'log',
+            'F1':lambda N:1/N,
+            'u_start':3.0,
+            'u_stop':20.0,
+            'u_title':'Years',
+            'u_scale_type':'linear',
+            'F3':lambda p:log(1.0+p/100.0),
+            'w_start':0.2,
+            'w_stop':20.0,
+            'w_title':r'p \%',
+            'w_scale_type':'linear',}
+    Nomograph(nomo_type=nomo_type,functions=functions1)
+
+
     """
     Example nomograph from Allcock's book. Eq xx=xx in determinant form::
               -----------------------------------------
@@ -233,11 +280,14 @@ if __name__=='__main__':
             'u_start':0.5,
             'u_stop':1.0,
             'u_title':'p',
+            'u_scale_type':'linear',
             'v_start':1.0,
             'v_stop':0.75,
             'v_title':'h',
+            'v_scale_type':'linear',
             'w_start':1.0,
             'w_stop':0.5,
-            'w_title':'L'}
+            'w_title':'L',
+            'w_scale_type':'linear',}
     Nomograph(nomo_type=nomo_type,functions=functions2)
 

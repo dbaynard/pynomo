@@ -23,7 +23,7 @@ import scipy
 
 class Nomo_Axis:
     def __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
-                 text_style='normal'):
+                 text_style='normal',title_x_shift=0,title_y_shift=0.25):
         self.func_f=func_f
         self.func_g=func_g
         self.start=start
@@ -31,6 +31,8 @@ class Nomo_Axis:
         self.turn=turn
         self.title=title
         self.canvas=canvas
+        self.title_x_shift=title_x_shift
+        self.title_y_shift=title_y_shift
         self.text_style=text_style
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
@@ -170,7 +172,13 @@ class Nomo_Axis:
         for text,x,y,attr in self.texts:
             c.text(x,y,text,attr)
         # make title
-        c.text(self.func_f(self.stop), self.func_g(self.stop)+0.25, self.title)
+        # find out if start or stop has higher y-value
+        if self.func_g(self.stop)>self.func_g(self.start):
+            c.text(self.func_f(self.stop)+self.title_x_shift,
+                    self.func_g(self.stop)+self.title_y_shift, self.title)
+        else:
+            c.text(self.func_f(self.start)+self.title_x_shift,
+                    self.func_g(self.start)+self.title_y_shift, self.title)
 
     def _put_text_(self,u):
         if self.text_style=='oldstyle':

@@ -324,7 +324,10 @@ if __name__=='__main__':
     nomo_bmi.canvas.writePDFfile('BMI1.pdf')
 
     """
-    Example nomograph from Allcock's book. Eq xx=xx in determinant form::
+    Retaining wall example nomograph from Allcock's book. Also found in O'Cagne:
+    Traité de Nomographie (1899).
+    Eq: (1+L)h^2-L*h*(1+p)-1/3*(1-L)*(1+2*p)=0
+    in determinant form::
               -----------------------------------------
               | 2*(u*u-1) | 3*u*(u+1) | -u*(u-1.0)    |
               -----------------------------------------

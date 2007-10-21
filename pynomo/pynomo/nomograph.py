@@ -75,7 +75,25 @@ class Nomograph:
                             'w_title','y'}
 
         """
-        self.functions=functions
+        # default parameters
+        self.functions_default={
+            'u_title':'f(u)',
+            'u_title_x_shift':0.0,
+            'u_title_y_shift':0.25,
+            'u_scale_type':'linear',
+            'u_tick_dir':-1,
+            'v_title':'f(v)',
+            'v_title_x_shift':0.0,
+            'v_title_y_shift':0.25,
+            'v_scale_type':'linear',
+            'v_tick_dir':1,
+            'w_title':'f(w)',
+            'w_title_x_shift':0.0,
+            'w_title_y_shift':0.25,
+            'w_scale_type':'linear',
+            'w_tick_dir':-1}
+        self.functions=self.functions_default
+        self.functions.update(functions)
         self.nomo_height=nomo_height
         self.nomo_width=nomo_width
         try:
@@ -100,16 +118,22 @@ class Nomograph:
         c = canvas.canvas()
         u_axis=Nomo_Axis(func_f=nomo.give_x1,func_g=nomo.give_y1,
                          start=self.functions['u_start'],stop=self.functions['u_stop'],
-                         turn=-1,title=self.functions['u_title'],canvas=c,
-                         type=self.functions['u_scale_type'])
+                         turn=self.functions['v_tick_dir'],title=self.functions['u_title'],
+                         canvas=c,type=self.functions['u_scale_type'],
+                         title_x_shift=self.functions['u_title_x_shift'],
+                         title_y_shift=self.functions['u_title_y_shift'])
         v_axis=Nomo_Axis(func_f=nomo.give_x2,func_g=nomo.give_y2,
                          start=self.functions['v_start'],stop=self.functions['v_stop'],
-                         turn=1,title=self.functions['v_title'],canvas=c,
-                         type=self.functions['v_scale_type'])
+                         turn=self.functions['v_tick_dir'],title=self.functions['v_title'],
+                         canvas=c,type=self.functions['v_scale_type'],
+                         title_x_shift=self.functions['v_title_x_shift'],
+                         title_y_shift=self.functions['v_title_y_shift'])
         w_axis=Nomo_Axis(func_f=nomo.give_x3,func_g=nomo.give_y3,
                          start=self.functions['w_start'],stop=self.functions['w_stop'],
-                         turn=-1,title=self.functions['w_title'],canvas=c,
-                         type=self.functions['w_scale_type'])
+                         turn=self.functions['w_tick_dir'],title=self.functions['w_title'],
+                         canvas=c,type=self.functions['w_scale_type'],
+                         title_x_shift=self.functions['w_title_x_shift'],
+                         title_y_shift=self.functions['w_title_y_shift'])
         c.writePDFfile(self.functions['filename'])
         self.canvas=c
 
@@ -251,6 +275,8 @@ if __name__=='__main__':
             'w_start':0.2,
             'w_stop':20.0,
             'w_title':r'p \%',
+            'w_title_x_shift':-1.0,
+            'w_title_y_shift':0.25,
             'w_scale_type':'linear',}
     Nomograph(nomo_type=nomo_type,functions=functions1)
     """
@@ -260,8 +286,8 @@ if __name__=='__main__':
     nomo_type='F2(v)=F3(w)/F1(u)'
     functions1={ 'filename':'BMI.pdf',
             'F2':lambda BMI:BMI,
-            'v_start':35.0,
-            'v_stop':15.0,
+            'v_start':15.0,
+            'v_stop':35.0,
             'v_title':r'BMI',
             'v_scale_type':'linear',
             'F1':lambda H:H**2,
@@ -270,8 +296,8 @@ if __name__=='__main__':
             'u_title':'Height (m)',
             'u_scale_type':'linear',
             'F3':lambda W:W,
-            'w_start':30,
-            'w_stop':200.0,
+            'w_start':200,
+            'w_stop':30.0,
             'w_title':r'Weight (kg)',
             'w_scale_type':'linear',}
     Nomograph(nomo_type=nomo_type,functions=functions1)
@@ -302,14 +328,11 @@ if __name__=='__main__':
             'u_start':0.5,
             'u_stop':1.0,
             'u_title':'p',
-            'u_scale_type':'linear',
             'v_start':1.0,
             'v_stop':0.75,
             'v_title':'h',
-            'v_scale_type':'linear',
             'w_start':1.0,
             'w_stop':0.5,
-            'w_title':'L',
-            'w_scale_type':'linear',}
+            'w_title':'L'}
     Nomograph(nomo_type=nomo_type,functions=functions2)
 

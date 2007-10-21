@@ -136,6 +136,7 @@ class Nomograph:
                          title_y_shift=self.functions['w_title_y_shift'])
         c.writePDFfile(self.functions['filename'])
         self.canvas=c
+        self.nomo=nomo
 
     def init_sum_three(self):
         """

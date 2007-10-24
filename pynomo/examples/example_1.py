@@ -15,7 +15,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from pynomo import *
 """
-Example nomograph from Allcock's book. Eq xx=xx in determinant form::
+    Retaining wall example nomograph from Allcock's book. Also found in O'Cagne:
+    Traité de Nomographie (1899).
+    Eq: (1+L)h^2-L*h*(1+p)-1/3*(1-L)*(1+2*p)=0
+    in determinant form::
           -----------------------------------------
           | 2*(u*u-1) | 3*u*(u+1) | -u*(u-1.0)    |
           -----------------------------------------
@@ -26,7 +29,7 @@ Example nomograph from Allcock's book. Eq xx=xx in determinant form::
 
 """
 nomo_type='general3'
-functions2={ 'filename':'nomogram3.pdf',
+functions2={ 'filename':'nomogram1.pdf',
         'f1':lambda u:2*(u*u-1.0),
         'g1':lambda u:3*u*(u+1.0),
         'h1':lambda u:-u*(u-1.0),

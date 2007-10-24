@@ -18,7 +18,7 @@ from pynomo import *
 Example nomograph z=x*x+2*y. It is of type F2(v)=F1(u)+F3(w)
 """
 nomo_type='F2(v)=F1(u)+F3(w)'
-functions={ 'filename':'nomogram1.pdf',
+functions={ 'filename':'nomogram3.pdf',
         'F2':lambda z:z,
         'v_start':1.0,
         'v_stop':15.0,

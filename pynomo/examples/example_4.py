@@ -37,7 +37,7 @@ functions1={ 'filename':'BMI.pdf',
         'w_stop':30.0,
         'w_title':r'Weight (kg)',
         'w_scale_type':'linear',}
-nomo_bmi=Nomograph(nomo_type=nomo_type,functions=functions1)
+nomo_bmi=nomograph.Nomograph(nomo_type=nomo_type,functions=functions1)
 # lets add additional scales for demonstration
 def feet2meter(feet):
     return feet*0.3048
@@ -45,12 +45,12 @@ def feet2meter(feet):
 def pound2kg(pound):
     return pound*0.45359237
 
-Nomo_Axis(func_f=(lambda h: nomo_bmi.nomo.give_x1(feet2meter(h))-0),
+nomo_axis.Nomo_Axis(func_f=(lambda h: nomo_bmi.nomo.give_x1(feet2meter(h))-0),
           func_g=(lambda h: nomo_bmi.nomo.give_y1(feet2meter(h))),
           start=4.6,stop=7.2,turn=-1,title='Height (ft)',
           title_x_shift=-2,
           canvas=nomo_bmi.canvas,type='linear')
-Nomo_Axis(func_f=(lambda h: nomo_bmi.nomo.give_x3(pound2kg(h))+0),
+nomo_axis.Nomo_Axis(func_f=(lambda h: nomo_bmi.nomo.give_x3(pound2kg(h))+0),
           func_g=(lambda h: nomo_bmi.nomo.give_y3(pound2kg(h))),
           start=70.0,stop=440.0,turn=1,title='Weight (lb)',
           title_x_shift=-2,

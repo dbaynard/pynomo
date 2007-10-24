@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from pynomo import *
+from math import *
 """
 Example nomograph of equation T=((1+p/100)^N-1)*100
 N = years
@@ -41,4 +42,4 @@ functions1={ 'filename':'nomogram_interest.pdf',
         'w_title_x_shift':-1.0,
         'w_title_y_shift':0.25,
         'w_scale_type':'linear',}
-Nomograph(nomo_type=nomo_type,functions=functions1)
+nomograph.Nomograph(nomo_type=nomo_type,functions=functions1)

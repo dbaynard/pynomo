@@ -16,7 +16,7 @@
 from pynomo import *
 """
     Retaining wall example nomograph from Allcock's book. Also found in O'Cagne:
-    Traité de Nomographie (1899).
+    Traite de Nomographie (1899).
     Eq: (1+L)h^2-L*h*(1+p)-1/3*(1-L)*(1+2*p)=0
     in determinant form::
           -----------------------------------------
@@ -29,23 +29,26 @@ from pynomo import *
 
 """
 nomo_type='general3'
-functions2={ 'filename':'nomogram1.pdf',
-        'f1':lambda u:2*(u*u-1.0),
-        'g1':lambda u:3*u*(u+1.0),
-        'h1':lambda u:-u*(u-1.0),
-        'f2':lambda v:v,
-        'g2':lambda v:1.0,
-        'h2':lambda v:-v*v,
-        'f3':lambda w:2.0*(2.0*w+1.0),
-        'g3':lambda w:3.0*(w+1.0),
-        'h3':lambda w:-(w+1.0)*(2.0*w+1.0),
-        'u_start':0.5,
-        'u_stop':1.0,
-        'u_title':'p',
-        'v_start':1.0,
-        'v_stop':0.75,
-        'v_title':'h',
-        'w_start':1.0,
-        'w_stop':0.5,
-        'w_title':'L'}
+functions2={'filename':'nomogram1.pdf',
+            'f1':lambda u:2*(u*u-1.0),
+            'g1':lambda u:3*u*(u+1.0),
+            'h1':lambda u:-u*(u-1.0),
+            'f2':lambda v:v,
+            'g2':lambda v:1.0,
+            'h2':lambda v:-v*v,
+            'f3':lambda w:2.0*(2.0*w+1.0),
+            'g3':lambda w:3.0*(w+1.0),
+            'h3':lambda w:-(w+1.0)*(2.0*w+1.0),
+            'u_start':0.5,
+            'u_stop':1.0,
+            'u_title':'p',
+            'v_start':1.0,
+            'v_stop':0.75,
+            'v_title':'h',
+            'w_start':1.0,
+            'w_stop':0.5,
+            'w_title':'L',
+            'title_y': 2,
+            'title_box_width': 10,
+            'title_str':r'Solution to retaining wall equation:  $(1+L)h^2-Lh(1+p)-1/3(1-L)(1+2p)=0$'}
 nomograph.Nomograph(nomo_type=nomo_type,functions=functions2)

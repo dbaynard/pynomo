@@ -80,7 +80,7 @@ class Nomograph:
             'title_str':'',
             'title_x': nomo_width/2.0,
             'title_y': nomo_height,
-            'title_box_width': nomo_width/3.0,
+            'title_box_width': nomo_width/2.2,
             'u_title':'f(u)',
             'u_title_x_shift':0.0,
             'u_title_y_shift':0.25,
@@ -314,7 +314,7 @@ if __name__=='__main__':
             'w_stop':30.0,
             'w_title':r'Weight (kg)',
             'w_scale_type':'linear',
-            'title_str':r"Body mass index $BMI=W/H^2$"
+            'title_str':r"Body mass index $BMI=W($kg$)/H($m$)^2$"
             }
     nomo_bmi=Nomograph(nomo_type=nomo_type,functions=functions1)
     # lets add additional scales for demonstration
@@ -373,6 +373,9 @@ if __name__=='__main__':
             'v_title':'h',
             'w_start':1.0,
             'w_stop':0.5,
-            'w_title':'L'}
+            'w_title':'L',
+            'title_y': 2,
+            'title_box_width': 10,
+            'title_str':r'Solution to retaining wall equation:  $(1+L)h^2-Lh(1+p)-1/3(1-L)(1+2p)=0$'}
     Nomograph(nomo_type=nomo_type,functions=functions2)
 

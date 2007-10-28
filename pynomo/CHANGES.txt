@@ -1,5 +1,16 @@
 PyNomo
 
+0.1.0b1
+=======
+Added functionality
+-------------------
+- axis title position can be tuned
+- log axis 
+- two more examples
+- title box added
+- default values for "functions" (nomogram definition) added
+
+
 0.1.0a1
 =======
 Three basic nomograms (three variable)

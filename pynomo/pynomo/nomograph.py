@@ -77,6 +77,10 @@ class Nomograph:
         """
         # default parameters
         self.functions_default={
+            'title_str':'',
+            'title_x': nomo_width/2.0,
+            'title_y': nomo_height,
+            'title_box_width': nomo_width/3.0,
             'u_title':'f(u)',
             'u_title_x_shift':0.0,
             'u_title_y_shift':0.25,
@@ -134,9 +138,14 @@ class Nomograph:
                          canvas=c,type=self.functions['w_scale_type'],
                          title_x_shift=self.functions['w_title_x_shift'],
                          title_y_shift=self.functions['w_title_y_shift'])
-        c.writePDFfile(self.functions['filename'])
         self.canvas=c
         self.nomo=nomo
+        # let's draw title
+        c.text(self.functions['title_x'], self.functions['title_y'],
+               self.functions['title_str'],
+               [text.parbox(self.functions['title_box_width']),
+                text.halign.boxcenter, text.halign.flushcenter])
+        c.writePDFfile(self.functions['filename'])
 
     def init_sum_three(self):
         """
@@ -265,12 +274,12 @@ if __name__=='__main__':
             'F2':lambda T:log(T/100.0+1.0),
             'v_start':20.0,
             'v_stop':900.0,
-            'v_title':r'Total interest \%',
+            'v_title':r'Total interest \% (T)',
             'v_scale_type':'log',
             'F1':lambda N:1/N,
             'u_start':3.0,
             'u_stop':20.0,
-            'u_title':'Years',
+            'u_title':'N (years)',
             'u_scale_type':'linear',
             'F3':lambda p:log(1.0+p/100.0),
             'w_start':0.2,
@@ -278,7 +287,9 @@ if __name__=='__main__':
             'w_title':r'p \%',
             'w_title_x_shift':-1.0,
             'w_title_y_shift':0.25,
-            'w_scale_type':'linear',}
+            'w_scale_type':'linear',
+            'title_str':r"$T=((1+p/100)^{N-1}) 100$",
+            'title_box_width':10}
     Nomograph(nomo_type=nomo_type,functions=functions1)
     """
     Example nomograph of body-mass index BMI = weight (kg)/(height^2(m^2))
@@ -302,7 +313,9 @@ if __name__=='__main__':
             'w_start':200,
             'w_stop':30.0,
             'w_title':r'Weight (kg)',
-            'w_scale_type':'linear',}
+            'w_scale_type':'linear',
+            'title_str':r"Body mass index $BMI=W/H^2$"
+            }
     nomo_bmi=Nomograph(nomo_type=nomo_type,functions=functions1)
     # lets add additional scales for demonstration
     def feet2meter(feet):
@@ -321,11 +334,15 @@ if __name__=='__main__':
               start=70.0,stop=440.0,turn=1,title='Weight (lb)',
               title_x_shift=-2,
               canvas=nomo_bmi.canvas,type='linear')
+
+    #nomo_bmi.canvas.text(5, 15, r"Body mass index $BMI=W/H^2$",
+    #   [text.parbox(3), text.halign.boxcenter, text.halign.flushcenter])
+
     nomo_bmi.canvas.writePDFfile('BMI1.pdf')
 
     """
     Retaining wall example nomograph from Allcock's book. Also found in O'Cagne:
-    Traité de Nomographie (1899).
+    Traite de Nomographie (1899).
     Eq: (1+L)h^2-L*h*(1+p)-1/3*(1-L)*(1+2*p)=0
     in determinant form::
               -----------------------------------------

@@ -36,7 +36,9 @@ functions1={ 'filename':'BMI.pdf',
         'w_start':200,
         'w_stop':30.0,
         'w_title':r'Weight (kg)',
-        'w_scale_type':'linear',}
+        'w_scale_type':'linear',
+        'title_str':r"Body mass index $BMI=W($kg$)/H($m$)^2$"
+        }
 nomo_bmi=nomograph.Nomograph(nomo_type=nomo_type,functions=functions1)
 # lets add additional scales for demonstration
 def feet2meter(feet):

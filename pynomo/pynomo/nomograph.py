@@ -85,16 +85,22 @@ class Nomograph:
             'u_title_x_shift':0.0,
             'u_title_y_shift':0.25,
             'u_scale_type':'linear',
+            'u_tick_levels':10,
+            'u_tick_text_levels':10,
             'u_tick_dir':-1,
             'v_title':'f(v)',
             'v_title_x_shift':0.0,
             'v_title_y_shift':0.25,
             'v_scale_type':'linear',
+            'v_tick_levels':10,
+            'v_tick_text_levels':10,
             'v_tick_dir':1,
             'w_title':'f(w)',
             'w_title_x_shift':0.0,
             'w_title_y_shift':0.25,
             'w_scale_type':'linear',
+            'w_tick_levels':10,
+            'w_tick_text_levels':10,
             'w_tick_dir':-1}
         self.functions=self.functions_default
         self.functions.update(functions)
@@ -125,19 +131,25 @@ class Nomograph:
                          turn=self.functions['v_tick_dir'],title=self.functions['u_title'],
                          canvas=c,type=self.functions['u_scale_type'],
                          title_x_shift=self.functions['u_title_x_shift'],
-                         title_y_shift=self.functions['u_title_y_shift'])
+                         title_y_shift=self.functions['u_title_y_shift'],
+                         tick_levels=self.functions['u_tick_levels'],
+                         tick_text_levels=self.functions['u_tick_text_levels'])
         v_axis=Nomo_Axis(func_f=nomo.give_x2,func_g=nomo.give_y2,
                          start=self.functions['v_start'],stop=self.functions['v_stop'],
                          turn=self.functions['v_tick_dir'],title=self.functions['v_title'],
                          canvas=c,type=self.functions['v_scale_type'],
                          title_x_shift=self.functions['v_title_x_shift'],
-                         title_y_shift=self.functions['v_title_y_shift'])
+                         title_y_shift=self.functions['v_title_y_shift'],
+                         tick_levels=self.functions['v_tick_levels'],
+                         tick_text_levels=self.functions['v_tick_text_levels'])
         w_axis=Nomo_Axis(func_f=nomo.give_x3,func_g=nomo.give_y3,
                          start=self.functions['w_start'],stop=self.functions['w_stop'],
                          turn=self.functions['w_tick_dir'],title=self.functions['w_title'],
                          canvas=c,type=self.functions['w_scale_type'],
                          title_x_shift=self.functions['w_title_x_shift'],
-                         title_y_shift=self.functions['w_title_y_shift'])
+                         title_y_shift=self.functions['w_title_y_shift'],
+                         tick_levels=self.functions['w_tick_levels'],
+                         tick_text_levels=self.functions['w_tick_text_levels'])
         self.canvas=c
         self.nomo=nomo
         # let's draw title
@@ -275,6 +287,7 @@ if __name__=='__main__':
             'v_start':20.0,
             'v_stop':900.0,
             'v_title':r'Total interest \% (T)',
+            'v_title_x_shift':1.0,
             'v_scale_type':'log',
             'F1':lambda N:1/N,
             'u_start':3.0,
@@ -304,6 +317,8 @@ if __name__=='__main__':
             'v_scale_type':'linear',
             'v_title_x_shift':-3.0,
             'v_title_y_shift':0.5,
+            'v_tick_text_levels':3, # not really used here, only for demonstration
+            'v_tick_levels':4,      # of syntax
             'F1':lambda H:H**2,
             'u_start':1.4,
             'u_stop':2.2,

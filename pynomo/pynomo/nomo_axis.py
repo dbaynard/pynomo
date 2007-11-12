@@ -72,14 +72,18 @@ class Nomo_Axis:
             dy=(g(u+du)-g(u))*turn
             dx_unit=dx/math.sqrt(dx**2+dy**2)
             dy_unit=dy/math.sqrt(dx**2+dy**2)
+            if dy_unit!=0:
+                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+            else:
+                angle=0
             # floating arithmetic makes life difficult, that's why _test_tick_ function
             if self._test_tick_(u,tick_max,scale_max):
                 text_distance=1.0
                 grid_length=3.0/4
                 if dy<=0:
-                    text_attr=[text.valign.middle,text.halign.right,text.size.small]
+                    text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
                 else:
-                    text_attr=[text.valign.middle,text.halign.left,text.size.small]
+                    text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
                 #texts.append((`u`,f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                 texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                 line.append(path.lineto(f(u), g(u)))
@@ -89,9 +93,9 @@ class Nomo_Axis:
                 grid_length=1.0/4
                 text_distance=1.5/4
                 if dy<=0:
-                    text_attr=[text.valign.middle,text.halign.right,text.size.scriptsize]
+                    text_attr=[text.valign.middle,text.halign.right,text.size.scriptsize,trafo.rotate(angle)]
                 else:
-                    text_attr=[text.valign.middle,text.halign.left,text.size.scriptsize]
+                    text_attr=[text.valign.middle,text.halign.left,text.size.scriptsize,trafo.rotate(angle)]
                 texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                 line.append(path.lineto(f(u), g(u)))
                 line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
@@ -100,9 +104,9 @@ class Nomo_Axis:
                 grid_length=0.5/4
                 text_distance=1.0/4
                 if dy<=0:
-                    text_attr=[text.valign.middle,text.halign.right,text.size.tiny]
+                    text_attr=[text.valign.middle,text.halign.right,text.size.tiny,trafo.rotate(angle)]
                 else:
-                    text_attr=[text.valign.middle,text.halign.left,text.size.tiny]
+                    text_attr=[text.valign.middle,text.halign.left,text.size.tiny,trafo.rotate(angle)]
                 texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                 line.append(path.lineto(f(u), g(u)))
                 line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))

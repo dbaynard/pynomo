@@ -22,8 +22,13 @@ import math
 import scipy
 
 class Nomo_Axis:
+    """
+    Main class to draw axis.
+    """
     def __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
-                 text_style='normal',title_x_shift=0,title_y_shift=0.25):
+                 text_style='normal',title_x_shift=0,title_y_shift=0.25,
+                 tick_levels=10,tick_text_levels=10,
+                 text_color=color.rgb.black, axis_color=color.rgb.black):
         self.func_f=func_f
         self.func_g=func_g
         self.start=start
@@ -34,6 +39,8 @@ class Nomo_Axis:
         self.title_x_shift=title_x_shift
         self.title_y_shift=title_y_shift
         self.text_style=text_style
+        self.tick_levels=tick_levels
+        self.tick_text_levels=tick_text_levels
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
         else:
@@ -85,9 +92,11 @@ class Nomo_Axis:
                 else:
                     text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
                 #texts.append((`u`,f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
-                texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
+                if self.tick_text_levels>0:
+                    texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                 line.append(path.lineto(f(u), g(u)))
-                line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                if self.tick_levels>0:
+                    line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 line.append(path.moveto(f(u), g(u)))
             elif self._test_tick_(u,tick_1,scale_max):
                 grid_length=1.0/4
@@ -96,9 +105,11 @@ class Nomo_Axis:
                     text_attr=[text.valign.middle,text.halign.right,text.size.scriptsize,trafo.rotate(angle)]
                 else:
                     text_attr=[text.valign.middle,text.halign.left,text.size.scriptsize,trafo.rotate(angle)]
-                texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
+                if self.tick_text_levels>1:
+                    texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                 line.append(path.lineto(f(u), g(u)))
-                line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                if self.tick_levels>1:
+                    line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 line.append(path.moveto(f(u), g(u)))
             elif self._test_tick_(u,tick_2,scale_max):
                 grid_length=0.5/4
@@ -107,14 +118,17 @@ class Nomo_Axis:
                     text_attr=[text.valign.middle,text.halign.right,text.size.tiny,trafo.rotate(angle)]
                 else:
                     text_attr=[text.valign.middle,text.halign.left,text.size.tiny,trafo.rotate(angle)]
-                texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
+                if self.tick_text_levels>2:
+                    texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                 line.append(path.lineto(f(u), g(u)))
-                line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                if self.tick_levels>2:
+                    line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 line.append(path.moveto(f(u), g(u)))
             else:
                 grid_length=0.3/4
                 thin_line.append(path.moveto(f(u), g(u)))
-                thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                if self.tick_levels>3:
+                    thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 thin_line.append(path.moveto(f(u), g(u)))
                 line.append(path.lineto(f(u), g(u)))
         self.line=line
@@ -143,29 +157,36 @@ class Nomo_Axis:
                 dy=(g(u+du)-g(u))*turn
                 dx_unit=dx/math.sqrt(dx**2+dy**2)
                 dy_unit=dy/math.sqrt(dx**2+dy**2)
+                if dy_unit!=0:
+                    angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+                else:
+                    angle=0
                 if u>=min and u<=max:
                     if (number==1):
                         grid_length=3.0/4
                         text_distance=1.0
                         if dy<=0:
-                            text_attr=[text.valign.middle,text.halign.right,text.size.small]
-                            texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
+                            text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
                         else:
-                            text_attr=[text.valign.middle,text.halign.left,text.size.small]
+                            text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
+                        if self.tick_text_levels>0:
                             texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                         line.append(path.lineto(f(u), g(u)))
-                        line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                        if self.tick_levels>0:
+                            line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                         line.append(path.moveto(f(u), g(u)))
                     else:
                         grid_length=0.3/4
                         text_distance=1.0/4
                         if dy<=0:
-                            text_attr=[text.valign.middle,text.halign.right,text.size.tiny]
+                            text_attr=[text.valign.middle,text.halign.right,text.size.tiny,trafo.rotate(angle)]
                         else:
-                            text_attr=[text.valign.middle,text.halign.left,text.size.tiny]
-                        texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
+                            text_attr=[text.valign.middle,text.halign.left,text.size.tiny,trafo.rotate(angle)]
+                        if self.tick_text_levels>1:
+                            texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                         thin_line.append(path.lineto(f(u), g(u)))
-                        thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                        if self.tick_levels>1:
+                            thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                         thin_line.append(path.moveto(f(u), g(u)))
                         line.append(path.lineto(f(u), g(u)))
         self.line=line

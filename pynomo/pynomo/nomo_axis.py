@@ -53,14 +53,14 @@ class Nomo_Axis:
 
     def _make_linear_axis_(self,start,stop,f,g,turn=1):
         """ Makes a linear scale according to functions f(u) and g(u)
-        with values u in range [start, stop]. turn=-1 makes ticks to change size
+        with values u in range [start, stop]. turn=-1 makes ticks to change side
         """
         line = path.path(path.moveto(f(start), g(start)))
         thin_line=path.path(path.moveto(f(start), g(start)))
         # for numerical derivative to find angle
         du=math.fabs(start-stop)*1e-4
-        # which number to divide
-        scale_max=math.pow(10,math.ceil(math.log10(math.fabs(start-stop))))
+        # which number to divide. how many decades there are
+        scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
         tick_min=scale_max/500.0
         tick_max=scale_max/10.0
         tick_1=scale_max/20.0
@@ -70,8 +70,8 @@ class Nomo_Axis:
         for u in scipy.linspace(start,stop,steps):
             dx=(f(u+du)-f(u))*turn
             dy=(g(u+du)-g(u))*turn
-            dx_unit=dx/math.sqrt(dx*dx+dy*dy)
-            dy_unit=dy/math.sqrt(dx*dx+dy*dy)
+            dx_unit=dx/math.sqrt(dx**2+dy**2)
+            dy_unit=dy/math.sqrt(dx**2+dy**2)
             # floating arithmetic makes life difficult, that's why _test_tick_ function
             if self._test_tick_(u,tick_max,scale_max):
                 text_distance=1.0
@@ -112,6 +112,7 @@ class Nomo_Axis:
                 thin_line.append(path.moveto(f(u), g(u)))
                 thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 thin_line.append(path.moveto(f(u), g(u)))
+                line.append(path.lineto(f(u), g(u)))
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
@@ -133,11 +134,11 @@ class Nomo_Axis:
         min_decade=math.floor(math.log10(min))
         for decade in scipy.arange(min_decade,max_decade+1,1):
             for number in scipy.concatenate((scipy.arange(1,2,0.2),scipy.arange(2,10,1))):
-                u=number*math.pow(10,decade)
+                u=number*10.0**decade
                 dx=(f(u+du)-f(u))*turn
                 dy=(g(u+du)-g(u))*turn
-                dx_unit=dx/math.sqrt(dx*dx+dy*dy)
-                dy_unit=dy/math.sqrt(dx*dx+dy*dy)
+                dx_unit=dx/math.sqrt(dx**2+dy**2)
+                dy_unit=dy/math.sqrt(dx**2+dy**2)
                 if u>=min and u<=max:
                     if (number==1):
                         grid_length=3.0/4
@@ -158,10 +159,11 @@ class Nomo_Axis:
                             text_attr=[text.valign.middle,text.halign.right,text.size.tiny]
                         else:
                             text_attr=[text.valign.middle,text.halign.left,text.size.tiny]
-                            texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
+                        texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
                         thin_line.append(path.lineto(f(u), g(u)))
                         thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                         thin_line.append(path.moveto(f(u), g(u)))
+                        line.append(path.lineto(f(u), g(u)))
         self.line=line
         self.thin_line=thin_line
         self.texts=texts

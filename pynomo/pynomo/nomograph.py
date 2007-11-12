@@ -393,4 +393,46 @@ if __name__=='__main__':
             'title_box_width': 10,
             'title_str':r'Solution to retaining wall equation:  $(1+L)h^2-Lh(1+p)-1/3(1-L)(1+2p)=0$'}
     Nomograph(nomo_type=nomo_type,functions=functions2)
+    """
+    Clock tuning example (linear extrapolation).
+    Measure error e1.
+    Turn knob once around.
+    Measure error e2.
+    To make error=0, turn knob T turns from its current position.
+    Problem in determinant form::
+              -----------------------------------------
+              |     1     |     -e1     |     0       |
+              -----------------------------------------
+              |     0     |     -e2     |     1       | = 0
+              -----------------------------------------
+              |   -T+1    |     0       |     1       |
+              -----------------------------------------
 
+    """
+    # Needs tuning -> make axis start and stop to be free x,y points
+    """
+    nomo_type='general3'
+    functions_clock={ 'filename':'clock.pdf',
+            'f1':lambda u:-u,
+            'g1':lambda u:0.0,
+            'h1':lambda u:1.0,
+            'f2':lambda v:0.0,
+            'g2':lambda v:1.0,
+            'h2':lambda v:-v,
+            'f3':lambda w:-w+1,
+            'g3':lambda w:1.0,
+            'h3':lambda w:0.0,
+            'u_start':-10.0,
+            'u_stop':10.0,
+            'u_title':'p',
+            'v_start':10.0,
+            'v_stop':-10.0,
+            'v_title':'h',
+            'w_start':10.0,
+            'w_stop':-10.0,
+            'w_title':'L',
+            'title_y': 2,
+            'title_box_width': 10,
+            'title_str':r'Clock tuning problem'}
+    Nomograph(nomo_type=nomo_type,functions=functions_clock)
+    """

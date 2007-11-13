@@ -41,8 +41,8 @@ class Nomograph:
       Axes may be chosen to be linear or logarithmic
 
     """
-    def __init__(self,nomo_type,functions,nomo_height=15.0,nomo_width=10.0
-                 ):
+    def __init__(self,nomo_type,functions,nomo_height=15.0,nomo_width=10.0,
+                 manual_coord_points=False):
         """
         @param nomo_type: This values describes the type of nomogram.
             allowed values are:
@@ -88,6 +88,10 @@ class Nomograph:
             'u_tick_levels':10,
             'u_tick_text_levels':10,
             'u_tick_dir':-1,
+            'u_start_x_coord':0.0,
+            'u_start_y_coord':0.0,
+            'u_stop_x_coord':0.0,
+            'u_stop_y_coord':nomo_height,
             'v_title':'f(v)',
             'v_title_x_shift':0.0,
             'v_title_y_shift':0.25,
@@ -101,7 +105,11 @@ class Nomograph:
             'w_scale_type':'linear',
             'w_tick_levels':10,
             'w_tick_text_levels':10,
-            'w_tick_dir':-1}
+            'w_tick_dir':-1,
+            'w_start_x_coord':nomo_width,
+            'w_start_y_coord':0.0,
+            'w_stop_x_coord':nomo_width,
+            'w_stop_y_coord':nomo_height}
         self.functions=self.functions_default
         self.functions.update(functions)
         self.nomo_height=nomo_height
@@ -113,14 +121,14 @@ class Nomograph:
         except KeyError:
             print "nomo_type not valid"
         # This structure sets the limits
-        vk=[['u',functions['u_start'],'x',0.0],
-            ['u',functions['u_start'],'y',0.0],
-            ['u',functions['u_stop'],'x',0.0],
-            ['u',functions['u_stop'],'y',nomo_height],
-            ['w',functions['w_start'],'x',nomo_width],
-            ['w',functions['w_start'],'y',0.0],
-            ['w',functions['w_stop'],'x',nomo_width],
-            ['w',functions['w_stop'],'y',nomo_height]]
+        vk=[['u',self.functions['u_start'],'x',self.functions['u_start_x_coord']],
+            ['u',self.functions['u_start'],'y',self.functions['u_start_y_coord']],
+            ['u',self.functions['u_stop'],'x',self.functions['u_stop_x_coord']],
+            ['u',self.functions['u_stop'],'y',self.functions['u_stop_y_coord']],
+            ['w',self.functions['w_start'],'x',self.functions['w_start_x_coord']],
+            ['w',self.functions['w_start'],'y',self.functions['w_start_y_coord']],
+            ['w',self.functions['w_stop'],'x',self.functions['w_stop_x_coord']],
+            ['w',self.functions['w_stop'],'y',self.functions['w_stop_y_coord']]]
         nomo=Nomograph3(f1=self.f1,f2=self.f2,f3=self.f3,
                         g1=self.g1,g2=self.g2,g3=self.g3,
                         h1=self.h1,h2=self.h2,h3=self.h3,
@@ -128,7 +136,7 @@ class Nomograph:
         c = canvas.canvas()
         u_axis=Nomo_Axis(func_f=nomo.give_x1,func_g=nomo.give_y1,
                          start=self.functions['u_start'],stop=self.functions['u_stop'],
-                         turn=self.functions['v_tick_dir'],title=self.functions['u_title'],
+                         turn=self.functions['u_tick_dir'],title=self.functions['u_title'],
                          canvas=c,type=self.functions['u_scale_type'],
                          title_x_shift=self.functions['u_title_x_shift'],
                          title_y_shift=self.functions['u_title_y_shift'],
@@ -324,6 +332,7 @@ if __name__=='__main__':
             'u_stop':2.2,
             'u_title':'Height (m)',
             'u_scale_type':'linear',
+            'u_tick_dir':1,
             'F3':lambda W:W,
             'w_start':200,
             'w_stop':30.0,
@@ -405,34 +414,45 @@ if __name__=='__main__':
               -----------------------------------------
               |     0     |     -e2     |     1       | = 0
               -----------------------------------------
-              |   -T+1    |     0       |     1       |
+              |   -T+1    |     0       |     T       |
               -----------------------------------------
 
     """
     # Needs tuning -> make axis start and stop to be free x,y points
-    """
+    #"""
     nomo_type='general3'
     functions_clock={ 'filename':'clock.pdf',
-            'f1':lambda u:-u,
-            'g1':lambda u:0.0,
-            'h1':lambda u:1.0,
+            'f1':lambda u:1.0,
+            'g1':lambda u:-u,
+            'h1':lambda u:0.0,
             'f2':lambda v:0.0,
-            'g2':lambda v:1.0,
-            'h2':lambda v:-v,
+            'g2':lambda v:-v,
+            'h2':lambda v:1.0,
             'f3':lambda w:-w+1,
-            'g3':lambda w:1.0,
-            'h3':lambda w:0.0,
+            'g3':lambda w:0.0,
+            'h3':lambda w:w,
             'u_start':-10.0,
             'u_stop':10.0,
-            'u_title':'p',
+            'u_start_x_coord':1.0,
+            'u_start_y_coord':-10.0,
+            'u_stop_x_coord':1.0,
+            'u_stop_y_coord':10.0,
+            'u_title':r'$\epsilon_1$',
+            'u_tick_dir':-1,
             'v_start':10.0,
             'v_stop':-10.0,
-            'v_title':'h',
-            'w_start':10.0,
-            'w_stop':-10.0,
-            'w_title':'L',
-            'title_y': 2,
+            'v_title':r'$\epsilon_2$',
+            'v_tick_dir':1,
+            'w_start':-10.0,
+            'w_stop':10.0,
+            'w_start_x_coord':-10.0,
+            'w_start_y_coord':-5.0,
+            'w_stop_x_coord':10.0,
+            'w_stop_y_coord':5.0,
+            'w_title':r'Turns',
+            'title_y': 5,
+            'title_x': -4,
             'title_box_width': 10,
             'title_str':r'Clock tuning problem'}
     Nomograph(nomo_type=nomo_type,functions=functions_clock)
-    """
+    #"""

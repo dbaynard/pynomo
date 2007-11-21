@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from numpy import *
+from pyx import *
+from nomo_axis import *
 
 class Nomograph_N_lin:
     """
@@ -28,18 +30,19 @@ class Nomograph_N_lin:
         except KeyError:
             print "N=%i is not defined" % N
         self.x_multiplier=self.functions['nomo_width']/N
-        self.y_multiplier=self.functions['nomo_height']/self._max_y_()
+        self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())
 
-    def give_u_x(self,n,value):
+
+    def give_u_x(self,n):
         # n:th function
-        return self.x_func[n](value)*self.x_multiplier
+        return lambda value:self.x_func[n](value)*self.x_multiplier
 
-    def give_u_y(self,n,value):
-        return self.y_func[n](value)*self.y_multiplier
+    def give_u_y(self,n):
+        return lambda value:self.y_func[n](value)*self.y_multiplier
 
     def give_R_x(self,n):
         # n:th function
-        return self.xR_func[n](value)*self.x_multiplier
+        return lambda value:self.xR_func[n](value)*self.x_multiplier
 
     def _make_4_(self):
         """ makes nomogram with 4 variables
@@ -81,15 +84,6 @@ class Nomograph_N_lin:
 
     def  _max_y_(self):
             Ns=range(self.N)
-            """
-            print array([[self.functions['u_min'][idx],self.functions['u_max'][idx]]
-                            for idx in Ns])
-
-            print        [(n+1,x)
-                            for n in Ns
-                            for x in array([[self.functions['u_min'][idx]]
-                            for idx in Ns])]
-                            """
 
             max1=max(max([self.y_func[n+1](x)
                             for n in Ns
@@ -99,17 +93,53 @@ class Nomograph_N_lin:
                             for n in Ns
                             for x in array([[self.functions['u_max'][idx]]
                             for idx in Ns])]))
+            print max(max1,max2)
             return max(max1,max2)
+    def  _min_y_(self):
+            Ns=range(self.N)
+
+            min1=min(min([self.y_func[n+1](x)
+                            for n in Ns
+                            for x in array([[self.functions['u_min'][idx]]
+                            for idx in Ns])]))
+            min2=min(min([self.y_func[n+1](x)
+                            for n in Ns
+                            for x in array([[self.functions['u_max'][idx]]
+                            for idx in Ns])]))
+            print min(min1,min2)
+            return min(min1,min2)
 
 
 
 if __name__=='__main__':
     functions={'u_min':array([1.0,1.0,2.0,2.0]),
                'u_max':array([10.0,10.0,20.0,20.0]),
-               'f1':lambda u1:u1**2,
-               'f2':lambda u2:u2**2,
-               'f3':lambda u3:u3**2,
-               'f4':lambda u4:u4**2,
+               'f1':lambda u1:u1,
+               'f2':lambda u2:u2,
+               'f3':lambda u3:u3,
+               'f4':lambda u4:-u4,
                'nomo_width':10.0,
                'nomo_height':10.0}
     nomo=Nomograph_N_lin(functions,4)
+    c = canvas.canvas()
+    ax1=Nomo_Axis(func_f=nomo.give_u_x(1),func_g=nomo.give_u_y(1),
+                  start=functions['u_min'][0],stop=functions['u_max'][0],
+                  turn=-1,title='f1',canvas=c,type='linear',
+                  tick_levels=3,tick_text_levels=1)
+    ax2=Nomo_Axis(func_f=nomo.give_u_x(2),func_g=nomo.give_u_y(2),
+                  start=functions['u_min'][1],stop=functions['u_max'][1],
+                  turn=1,title='f2',canvas=c,type='linear',
+                  tick_levels=3,tick_text_levels=1)
+    ax3=Nomo_Axis(func_f=nomo.give_u_x(3),func_g=nomo.give_u_y(3),
+                  start=functions['u_min'][2],stop=functions['u_max'][2],
+                  turn=-1,title='f3',canvas=c,type='linear',
+                  tick_levels=3,tick_text_levels=1)
+    ax4=Nomo_Axis(func_f=nomo.give_u_x(4),func_g=nomo.give_u_y(4),
+                  start=functions['u_min'][3],stop=functions['u_max'][3],
+                  turn=-1,title='f4',canvas=c,type='linear',
+                  tick_levels=3,tick_text_levels=1)
+    R=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=lambda a:a,
+                  start=0,stop=1,
+                  turn=-1,title='R',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    c.writePDFfile("nomolin")

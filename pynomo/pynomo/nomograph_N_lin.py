@@ -31,6 +31,8 @@ class Nomograph_N_lin:
             print "N=%i is not defined" % N
         self.x_multiplier=self.functions['nomo_width']/N
         self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())
+        self.Ry_min=self._min_y_()*1.2
+        self.Ry_max=self._max_y_()*1.2
         print self.x_multiplier
         print self.y_multiplier
 
@@ -44,6 +46,17 @@ class Nomograph_N_lin:
     def give_R_x(self,n):
         # n:th function
         return lambda value:self.xR_func[n](value)*self.x_multiplier
+
+    def give_R_y(self):
+        # n:th function
+        return self._give_R_y_
+
+    def _give_R_y_(self,value):
+        if value <= 0.5:
+            result=self.Ry_min
+        else:
+            result=self.Ry_max
+        return result
 
     def _make_4_(self):
         """ makes nomogram with 4 variables
@@ -129,8 +142,8 @@ if __name__=='__main__':
                   turn=-1,title='f4',canvas=c,type='linear',
                   tick_levels=3,tick_text_levels=1)
     R=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=lambda a:a,
-                  start=0,stop=1,
+                  start=-5,stop=10,
                   turn=-1,title='R',canvas=c,type='linear',
                   tick_levels=0,tick_text_levels=0)
-    %c.stroke(path.line(0, 0, 10, 10))
+    #c.stroke(path.line(nomo.give_R_x(1), nomo.Ry_min, nomo.give_R_x(1), nomo.Ry_max))
     c.writePDFfile("nomolin")

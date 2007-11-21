@@ -31,7 +31,8 @@ class Nomograph_N_lin:
             print "N=%i is not defined" % N
         self.x_multiplier=self.functions['nomo_width']/N
         self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())
-
+        print self.x_multiplier
+        print self.y_multiplier
 
     def give_u_x(self,n):
         # n:th function
@@ -85,28 +86,17 @@ class Nomograph_N_lin:
     def  _max_y_(self):
             Ns=range(self.N)
 
-            max1=max(max([self.y_func[n+1](x)
-                            for n in Ns
-                            for x in array([[self.functions['u_min'][idx]]
-                            for idx in Ns])]))
-            max2=max(max([self.y_func[n+1](x)
-                            for n in Ns
-                            for x in array([[self.functions['u_max'][idx]]
-                            for idx in Ns])]))
+            max1=max([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
+            max2=max([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
             print max(max1,max2)
             return max(max1,max2)
     def  _min_y_(self):
             Ns=range(self.N)
-
-            min1=min(min([self.y_func[n+1](x)
-                            for n in Ns
-                            for x in array([[self.functions['u_min'][idx]]
-                            for idx in Ns])]))
-            min2=min(min([self.y_func[n+1](x)
-                            for n in Ns
-                            for x in array([[self.functions['u_max'][idx]]
-                            for idx in Ns])]))
+            print Ns
+            min1=min([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
+            min2=min([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
             print min(min1,min2)
+            print [self.y_func[n+1](self.functions['u_max'][n]) for n in Ns]
             return min(min1,min2)
 
 
@@ -142,4 +132,5 @@ if __name__=='__main__':
                   start=0,stop=1,
                   turn=-1,title='R',canvas=c,type='linear',
                   tick_levels=0,tick_text_levels=0)
+    %c.stroke(path.line(0, 0, 10, 10))
     c.writePDFfile("nomolin")

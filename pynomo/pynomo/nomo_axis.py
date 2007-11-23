@@ -196,16 +196,18 @@ class Nomo_Axis:
     def draw_axis(self,c):
         c.stroke(self.line, [style.linewidth.normal])
         c.stroke(self.thin_line, [style.linewidth.thin])
-        for text,x,y,attr in self.texts:
-            c.text(x,y,text,attr)
+        for ttext,x,y,attr in self.texts:
+            c.text(x,y,ttext,attr)
         # make title
         # find out if start or stop has higher y-value
         if self.func_g(self.stop)>self.func_g(self.start):
             c.text(self.func_f(self.stop)+self.title_x_shift,
-                    self.func_g(self.stop)+self.title_y_shift, self.title)
+                    self.func_g(self.stop)+self.title_y_shift,
+                    self.title,[text.halign.center])
         else:
             c.text(self.func_f(self.start)+self.title_x_shift,
-                    self.func_g(self.start)+self.title_y_shift, self.title)
+                    self.func_g(self.start)+self.title_y_shift, self.title,
+                    [text.halign.center])
 
     def _put_text_(self,u):
         if self.text_style=='oldstyle':

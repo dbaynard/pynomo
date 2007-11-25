@@ -24,6 +24,16 @@ class Nomograph_N_lin:
     def __init__(self,functions,N):
         self.functions=functions
         self.N=N
+        # initial transformation = no transformation
+        self.alpha1=1.0
+        self.beta1=0.0
+        self.gamma1=0.0
+        self.alpha2=0.0
+        self.beta2=1.0
+        self.gamma2=0.0
+        self.alpha3=0.0
+        self.beta3=0.0
+        self.gamma3=0.0
         try:
             {'4': self._make_4_,
              '5': self._make_5_}[`N`]()
@@ -32,9 +42,9 @@ class Nomograph_N_lin:
         self.R_padding=1.3
         self.x_multiplier=self.functions['nomo_width']/N
         self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())/self.R_padding
+        self._make_transformation_matrix_()
         self.Ry_min=self._min_y_()*self.R_padding*self.y_multiplier
         self.Ry_max=self._max_y_()*self.R_padding*self.y_multiplier
-        self._make_transformation_matrix_()
 
 
     def give_u_x(self,n):
@@ -116,54 +126,51 @@ class Nomograph_N_lin:
             min2=min([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
             return min(min1,min2)
 
-    def _make_row_(self,variable='u1',variable_value=0,coordinate='x',coord_value=10):
+    def _make_row_(self,coordinate='x',x=1.0,y=1.0,coord_value=1.0):
         """ Makes transformation matrix. See eq.37,a
-        in Allcock. We take \alpha_1=1.
+        in Allcock. We take \alpha_1=1. h=1.
         """
         # to make expressions shorter
-        vv=variable_value
         cv=coord_value
-        f1=self.x_func[1]
-        f3=self.x_func[self.N]
-        g1=self.y_func[1]
-        g3=self.y_func[self.N]
-        h1=lambda x:1
-        h3=lambda x:1
-        if variable =='u1' and coordinate=='x':
-            row=array([g1(vv),h1(vv),0,0,0,-cv*f1(vv),-cv*g1(vv),-cv*h1(vv)])
-            value=array([f1(vv)])
-        if variable =='u1' and coordinate=='y':
-            row=array([0,0,f1(vv),g1(vv),h1(vv),-cv*f1(vv),-cv*g1(vv),-cv*h1(vv)])
-            value=array([0])
-        if variable =='un' and coordinate=='x':
-            row=array([g3(vv),h3(vv),0,0,0,-cv*f3(vv),-cv*g3(vv),-cv*h3(vv)])
-            value=array([f3(vv)])
-        if variable =='un' and coordinate=='y':
-            row=array([0,0,f3(vv),g3(vv),h3(vv),-cv*f3(vv),-cv*g3(vv),-cv*h3(vv)])
+        if  coordinate=='x':
+            row=array([y,1,0,0,0,-cv*x,-cv*y,-cv*1])
+            value=array([x])
+        if  coordinate=='y':
+            row=array([0,0,x,y,1,-cv*x,-cv*y,-cv*1])
             value=array([0])
         return row,value
     def test(self):
         return lambda x:x
 
     def _make_transformation_matrix_(self):
+        """ Makes transformation from polygon (non-intersecting) to rectangle
+            (x1,y1)     (x3,y3)          (x1t,y1t)      (x3t,y3t)       (0,height)    (width,height)
+               |  polygon  |      ---->      |   rectangle  |       =
+            (x2,y2)     (x4,y4)          (x2t,y2t)      (x4t,y4t)       (0,0)         (width,0)
+        """
+        x1=self.x_func[1](self.functions['u_min'][0])
+        x2=self.x_func[1](self.functions['u_max'][0])
+        x3=self.x_func[self.N](self.functions['u_min'][self.N-1])
+        x4=self.x_func[self.N](self.functions['u_max'][self.N-1])
+        y1=min(self.y_func[1](self.functions['u_min'][0]),self.y_func[1](self.functions['u_max'][0]))
+        y2=max(self.y_func[1](self.functions['u_min'][0]),self.y_func[1](self.functions['u_max'][0]))
+        y3=min(self.y_func[self.N](self.functions['u_min'][self.N-1]),\
+               self.y_func[self.N](self.functions['u_max'][self.N-1]))
+        y4=max(self.y_func[self.N](self.functions['u_min'][self.N-1]),\
+               self.y_func[self.N](self.functions['u_max'][self.N-1]))
+
         width=self.functions['nomo_width']
         height=self.functions['nomo_height']#/self.R_padding
-        row1,const1=self._make_row_(variable='u1',variable_value=self.functions['u_min'][0],
-                                    coordinate='x',coord_value=0)
-        row2,const2=self._make_row_(variable='u1',variable_value=self.functions['u_min'][0],
-                                    coordinate='y',coord_value=0)
-        row3,const3=self._make_row_(variable='u1',variable_value=self.functions['u_max'][0],
-                                    coordinate='x',coord_value=0)
-        row4,const4=self._make_row_(variable='u1',variable_value=self.functions['u_max'][0],
-                                    coordinate='y',coord_value=height)
-        row5,const5=self._make_row_(variable='un',variable_value=self.functions['u_min'][self.N-1],
-                                    coordinate='x',coord_value=width)
-        row6,const6=self._make_row_(variable='un',variable_value=self.functions['u_min'][self.N-1],
-                                    coordinate='y',coord_value=0)
-        row7,const7=self._make_row_(variable='un',variable_value=self.functions['u_max'][self.N-1],
-                                    coordinate='x',coord_value=width)
-        row8,const8=self._make_row_(variable='un',variable_value=self.functions['u_max'][self.N-1],
-                                    coordinate='y',coord_value=height)
+        row1,const1=self._make_row_(coordinate='x',coord_value=0,x=x2,y=y2)
+        row2,const2=self._make_row_(coordinate='y',coord_value=0,x=x2,y=y2)
+        row3,const3=self._make_row_(coordinate='x',coord_value=0,x=x1,y=y1)
+        row4,const4=self._make_row_(coordinate='y',coord_value=height,x=x1,y=y1)
+        row5,const5=self._make_row_(coordinate='x',coord_value=width,x=x4,y=y4)
+        row6,const6=self._make_row_(coordinate='y',coord_value=0,x=x4,y=y4)
+        row7,const7=self._make_row_(coordinate='x',coord_value=width,x=x3,y=y3)
+        row8,const8=self._make_row_(coordinate='y',coord_value=height,x=x3,y=y3)
+
+
         matrix=array([row1,row2,row3,row4,row5,row6,row7,row8])
         b=array([const1,const2,const3,const4,const5,const6,const7,const8])
         coeff_vector=linalg.solve(matrix,b)
@@ -178,11 +185,38 @@ class Nomograph_N_lin:
         self.gamma3=coeff_vector[7]
         #print coeff_vector
         return coeff_vector
-
+    def _find_polygon_(self):
+        """
+        finds limiting polygon for transformation
+        """
+        # let's find max and min y values
+        list1=[self.y_func[n+1](self.functions['u_min'][n]) for n in range(self.N)]
+        list2=[self.y_func[n+1](self.functions['u_max'][n]) for n in range(self.N)]
+        print list1
+        print list2
+        min_val,min_idx = list1[0],0
+        max_val,max_idx = list1[0],0
+        for idx,value in enumerate(list1[1:]):
+            if value < min_val:
+                min_val,min_idx = value,idx+1
+            if value > max_val:
+                max_val,max_idx = value,idx+1
+        for idx,value in enumerate(list2[0:]):
+            if value < min_val:
+                min_val,min_idx = value,idx+1
+            if value > max_val:
+                max_val,max_idx = value,idx+1
+        # let's find min slopes
+        list1_slope_upper=[self.y_func[n+1](self.functions['u_min'][n]) for n in range(self.N) if n!=(max_idx-1)]
+        list2_slope_upper=[self.y_func[n+1](self.functions['u_max'][n]) for n in range(self.N) if n!=(max_idx-1)]
+        list1_slope_lower=[self.y_func[n+1](self.functions['u_min'][n]) for n in range(self.N) if n!=(min_idx-1)]
+        list2_slope_lower=[self.y_func[n+1](self.functions['u_max'][n]) for n in range(self.N) if n!=(min_idx-1)]
+        # to be continued
+        return max_val,min_val,max_idx,min_idx
 
 if __name__=='__main__':
-    functions={'u_min':array([0.1,0.1,0.1,0.1]),
-               'u_max':array([10.0,10.0,10.0,20.0]),
+    functions={'u_min':array([0.0,0.0,0.0,0.0]),
+               'u_max':array([10.0,10.0,10.0,10.0]),
                'f1':lambda u1:u1,
                'f2':lambda u2:u2,
                'f3':lambda u3:u3,
@@ -198,8 +232,7 @@ if __name__=='__main__':
     print nomo.give_u_y(4)(functions['u_min'][3])
     print nomo.give_u_x(4)(functions['u_max'][3])
     print nomo.give_u_y(4)(functions['u_max'][3])
-    print nomo.test()(functions['u_max'][3])
-    print nomo.test()(1.0)
+    print nomo._find_polygon_()
     c = canvas.canvas()
     ax1=Nomo_Axis(func_f=nomo.give_u_x(1),func_g=nomo.give_u_y(1),
                   start=functions['u_min'][0],stop=functions['u_max'][0],
@@ -216,7 +249,7 @@ if __name__=='__main__':
     ax4=Nomo_Axis(func_f=nomo.give_u_x(4),func_g=nomo.give_u_y(4),
                   start=functions['u_min'][3],stop=functions['u_max'][3],
                   turn=-1,title='f4',canvas=c,type='linear',
-                  tick_levels=4,tick_text_levels=1)
+                  tick_levels=4,tick_text_levels=2)
     R=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=lambda a:a,
                   start=nomo.Ry_min,stop=nomo.Ry_max,
                   turn=-1,title='R',canvas=c,type='linear',
@@ -226,8 +259,8 @@ if __name__=='__main__':
 
     # example 2
     # f1+f2+f3+f4=f5
-    functions={'u_min':array([0.1,0.1,0.1,0.1,0.1]),
-               'u_max':array([10.0,10.0,10.0,10.0,20.0]),
+    functions={'u_min':array([0.0,0.0,0.0,0.0,0.0]),
+               'u_max':array([10.0,10.0,10.0,10.0,10.0]),
                'f1':lambda u1:u1,
                'f2':lambda u2:u2,
                'f3':lambda u3:u3,
@@ -264,7 +297,7 @@ if __name__=='__main__':
     ax5=Nomo_Axis(func_f=nomo.give_u_x(5),func_g=nomo.give_u_y(5),
                   start=functions['u_min'][4],stop=functions['u_max'][4],
                   turn=1,title='f5',canvas=c,type='linear',
-                  tick_levels=4,tick_text_levels=1)
+                  tick_levels=4,tick_text_levels=2)
 
     R1=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=lambda a:a,
                   start=nomo.Ry_min,stop=nomo.Ry_max,

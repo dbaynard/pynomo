@@ -21,7 +21,7 @@ class Nomograph_N_lin:
     """
     Writes N parallel line nomographs
     """
-    def __init__(self,functions,N):
+    def __init__(self,functions,N,transform=True):
         self.functions=functions
         self.N=N
         # initial transformation = no transformation
@@ -33,7 +33,7 @@ class Nomograph_N_lin:
         self.gamma2=0.0
         self.alpha3=0.0
         self.beta3=0.0
-        self.gamma3=0.0
+        self.gamma3=1.0
         try:
             {'4': self._make_4_,
              '5': self._make_5_}[`N`]()
@@ -42,35 +42,39 @@ class Nomograph_N_lin:
         self.R_padding=1.3
         self.x_multiplier=self.functions['nomo_width']/N
         self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())/self.R_padding
-        self._make_transformation_matrix_()
         self.Ry_min=self._min_y_()*self.R_padding*self.y_multiplier
         self.Ry_max=self._max_y_()*self.R_padding*self.y_multiplier
+        if transform==True:
+            self._make_transformation_matrix_()
 
 
     def give_u_x(self,n):
         # n:th function
         #return lambda value:self.x_func[n](value)*self.x_multiplier
         return lambda value:((self.alpha1*self.x_func[n](value)+self.beta1*self.y_func[n](value)+self.gamma1)\
-        /(self.alpha3*self.x_func[n](value)+self.beta3*self.y_func[n](value)+self.gamma3))[0]
+        /(self.alpha3*self.x_func[n](value)+self.beta3*self.y_func[n](value)+self.gamma3))#[0]
 
     def give_u_y(self,n):
         #return lambda value:self.y_func[n](value)*self.y_multiplier
         return lambda value:((self.alpha2*self.x_func[n](value)+self.beta2*self.y_func[n](value)+self.gamma2)\
-        /(self.alpha3*self.x_func[n](value)+self.beta3*self.y_func[n](value)+self.gamma3))[0]
+        /(self.alpha3*self.x_func[n](value)+self.beta3*self.y_func[n](value)+self.gamma3))#[0]
 
     def give_R_x(self,n):
         # n:th function
         #return lambda value:self.xR_func[n](value)*self.x_multiplier
         return lambda value:((self.alpha1*self.xR_func[n](value)+self.beta1*self.yR_func[n](value)+self.gamma1)\
-        /(self.alpha3*self.xR_func[n](value)+self.beta3*self.yR_func[n](value)+self.gamma3))[0]
+        /(self.alpha3*self.xR_func[n](value)+self.beta3*self.yR_func[n](value)+self.gamma3))#[0]
 
-    def give_R_y(self):
+    def give_R_y(self,n):
         # n:th function
         #return self._give_R_y_
         return lambda value:((self.alpha2*self.xR_func[n](value)+self.beta2*self.yR_func[n](value)+self.gamma2)\
-        /(self.alpha3*self.xR_func[n](value)+self.beta3*self.yR_func[n](value)+self.gamma3))[0]
+        /(self.alpha3*self.xR_func[n](value)+self.beta3*self.yR_func[n](value)+self.gamma3))#[0]
 
-
+    def transform(self,x,y):
+        xt=((self.alpha1*x+self.beta1*y+self.gamma1)/(self.alpha3*x+self.beta3*y+self.gamma3))
+        yt=((self.alpha2*x+self.beta2*y+self.gamma2)/(self.alpha3*x+self.beta3*y+self.gamma3))
+        return xt,yt
     def _make_4_(self):
         """ makes nomogram with 4 variables
         f1+f2+f3+f4=0
@@ -148,6 +152,7 @@ class Nomograph_N_lin:
                |  polygon  |      ---->      |   rectangle  |       =
             (x2,y2)     (x4,y4)          (x2t,y2t)      (x4t,y4t)       (0,0)         (width,0)
         """
+        """
         x1=self.x_func[1](self.functions['u_min'][0])
         x2=self.x_func[1](self.functions['u_max'][0])
         x3=self.x_func[self.N](self.functions['u_min'][self.N-1])
@@ -158,31 +163,34 @@ class Nomograph_N_lin:
                self.y_func[self.N](self.functions['u_max'][self.N-1]))
         y4=max(self.y_func[self.N](self.functions['u_min'][self.N-1]),\
                self.y_func[self.N](self.functions['u_max'][self.N-1]))
-
+        """
+        x1,y1,x2,y2,x3,y3,x4,y4=self._find_polygon_()
+        print x1,y1,x2,y2,x3,y3,x4,y4
+        max_x=self.x_func[self.N](self.functions['u_max'][self.N-1])
         width=self.functions['nomo_width']
         height=self.functions['nomo_height']#/self.R_padding
-        row1,const1=self._make_row_(coordinate='x',coord_value=0,x=x2,y=y2)
-        row2,const2=self._make_row_(coordinate='y',coord_value=0,x=x2,y=y2)
-        row3,const3=self._make_row_(coordinate='x',coord_value=0,x=x1,y=y1)
+        row1,const1=self._make_row_(coordinate='x',coord_value=x2/max_x*width,x=x2,y=y2)
+        row2,const2=self._make_row_(coordinate='y',coord_value=0.0,x=x2,y=y2)
+        row3,const3=self._make_row_(coordinate='x',coord_value=x1/max_x*width,x=x1,y=y1)
         row4,const4=self._make_row_(coordinate='y',coord_value=height,x=x1,y=y1)
-        row5,const5=self._make_row_(coordinate='x',coord_value=width,x=x4,y=y4)
-        row6,const6=self._make_row_(coordinate='y',coord_value=0,x=x4,y=y4)
-        row7,const7=self._make_row_(coordinate='x',coord_value=width,x=x3,y=y3)
+        row5,const5=self._make_row_(coordinate='x',coord_value=x4/max_x*width,x=x4,y=y4)
+        row6,const6=self._make_row_(coordinate='y',coord_value=0.0,x=x4,y=y4)
+        row7,const7=self._make_row_(coordinate='x',coord_value=x3/max_x*width,x=x3,y=y3)
         row8,const8=self._make_row_(coordinate='y',coord_value=height,x=x3,y=y3)
 
 
         matrix=array([row1,row2,row3,row4,row5,row6,row7,row8])
         b=array([const1,const2,const3,const4,const5,const6,const7,const8])
         coeff_vector=linalg.solve(matrix,b)
-        self.alpha1=-1
-        self.beta1=coeff_vector[0]
-        self.gamma1=coeff_vector[1]
-        self.alpha2=coeff_vector[2]
-        self.beta2=coeff_vector[3]
-        self.gamma2=coeff_vector[4]
-        self.alpha3=coeff_vector[5]
-        self.beta3=coeff_vector[6]
-        self.gamma3=coeff_vector[7]
+        self.alpha1=-1.0
+        self.beta1=coeff_vector[0][0]
+        self.gamma1=coeff_vector[1][0]
+        self.alpha2=coeff_vector[2][0]
+        self.beta2=coeff_vector[3][0]
+        self.gamma2=coeff_vector[4][0]
+        self.alpha3=coeff_vector[5][0]
+        self.beta3=coeff_vector[6][0]
+        self.gamma3=coeff_vector[7][0]
         #print coeff_vector
         return coeff_vector
     def _find_polygon_(self):
@@ -192,27 +200,87 @@ class Nomograph_N_lin:
         # let's find max and min y values
         list1=[self.y_func[n+1](self.functions['u_min'][n]) for n in range(self.N)]
         list2=[self.y_func[n+1](self.functions['u_max'][n]) for n in range(self.N)]
-        print list1
-        print list2
-        min_val,min_idx = list1[0],0
-        max_val,max_idx = list1[0],0
+        min_val,min_idx = list1[0],1
+        max_val,max_idx = list1[0],1
         for idx,value in enumerate(list1[1:]):
             if value < min_val:
-                min_val,min_idx = value,idx+1
+                min_val,min_idx = value,idx+2 # enumerate starts from idx=1
             if value > max_val:
-                max_val,max_idx = value,idx+1
+                max_val,max_idx = value,idx+2 # enumerate starts from idx=1
         for idx,value in enumerate(list2[0:]):
             if value < min_val:
-                min_val,min_idx = value,idx+1
+                min_val,min_idx = value,idx+1 # enumerate starts from idx=0
             if value > max_val:
-                max_val,max_idx = value,idx+1
-        # let's find min slopes
-        list1_slope_upper=[self.y_func[n+1](self.functions['u_min'][n]) for n in range(self.N) if n!=(max_idx-1)]
-        list2_slope_upper=[self.y_func[n+1](self.functions['u_max'][n]) for n in range(self.N) if n!=(max_idx-1)]
-        list1_slope_lower=[self.y_func[n+1](self.functions['u_min'][n]) for n in range(self.N) if n!=(min_idx-1)]
-        list2_slope_lower=[self.y_func[n+1](self.functions['u_max'][n]) for n in range(self.N) if n!=(min_idx-1)]
-        # to be continued
-        return max_val,min_val,max_idx,min_idx
+                max_val,max_idx = value,idx+1 # enumerate starts from idx=0
+        x_min=self.x_func[min_idx](self.functions['u_min'][min_idx-1])
+        y_min=min_val
+        x_max=self.x_func[max_idx](self.functions['u_min'][max_idx-1])
+        y_max=max_val
+        # let's find min slopes for lower part
+        list1_slope=[self._calc_slope_(n+1,self.functions['u_min'][n],x_min,y_min) for n in range(self.N)]
+        list2_slope=[self._calc_slope_(n+1,self.functions['u_max'][n],x_min,y_min) for n in range(self.N)]
+        print list1_slope
+        print list2_slope
+        min_slope_lower,min_slope_lower_idx = list1_slope[0],1
+        for idx,value in enumerate(list1_slope[1:]):
+            if value < min_slope_lower:
+                min_slope_lower,min_slope_lower_idx = value,idx+2 # enumerate starts from idx=1
+                print idx+1
+        for idx,value in enumerate(list2_slope[0:]):
+            if value < min_slope_lower:
+                min_slope_lower,min_slope_lower_idx = value,idx+1 # enumerate starts from idx=0
+                print idx+1
+        print "min slope below between %i and %i" % (min_idx,min_slope_lower_idx)
+        # let's find min slopes for upper part
+        list1_slope=[self._calc_slope_(n+1,self.functions['u_min'][n],x_max,y_max) for n in range(self.N)]
+        list2_slope=[self._calc_slope_(n+1,self.functions['u_max'][n],x_max,y_max) for n in range(self.N)]
+        print list1_slope
+        print list2_slope
+        min_slope_upper,min_slope_upper_idx = list1_slope[0],1
+        for idx,value in enumerate(list1_slope[1:]):
+            if value < min_slope_upper:
+                min_slope_upper,min_slope_upper_idx = value,idx+2 # enumerate starts from idx=1
+                print idx+1
+        for idx,value in enumerate(list2_slope[0:]):
+            if value < min_slope_upper:
+                min_slope_upper,min_slope_upper_idx = value,idx+1 # enumerate starts from idx=0
+                print idx+1
+        print "min slope upper between %i and %i" % (max_idx,min_slope_upper_idx)
+        """ returns polygon (to be transformed)
+            (x1,y1)     (x3,y3)
+               |  polygon  |
+            (x2,y2)     (x4,y4)
+        """
+        x1=x_max
+        y1=y_max
+        x2=x_min
+        y2=y_min
+        x3=self.x_func[min_slope_upper_idx](self.functions['u_min'][min_slope_upper_idx-1])
+        y3=max(self.y_func[min_slope_upper_idx](self.functions['u_min'][min_slope_upper_idx-1]),
+               self.y_func[min_slope_upper_idx](self.functions['u_max'][min_slope_upper_idx-1]))
+        x4=self.x_func[min_slope_lower_idx](self.functions['u_min'][min_slope_lower_idx-1])
+        y4=min(self.y_func[min_slope_lower_idx](self.functions['u_min'][min_slope_lower_idx-1]),
+               self.y_func[min_slope_lower_idx](self.functions['u_max'][min_slope_lower_idx-1]))
+        if (x1-x3)*(x2-x4)<0:
+            x1,y1,x3,y3=x3,y3,x1,y1
+        if x3<x1:
+            x1,y1,x2,y2,x3,y3,x4,y4=x3,y3,x4,y4,x1,y1,x2,y2
+        return x1*1.0,y1*1.0,x2*1.0,y2*1.0,x3*1.0,y3*1.0,x4*1.0,y4*1.0
+    def _calc_slope_(self,index,value,x_ref,y_ref):
+        """
+        calculates absolute value of slope between axis(index(value1)) and axis(index2(value2))
+        slope = dy/dx
+        """
+        x1=x_ref
+        x2=self.x_func[index](value)
+        y1=y_ref
+        y2=self.y_func[index](value)
+        dx=abs(x2-x1)
+        dy=abs(y1-y2)
+        if dx>0:
+            return dy/dx
+        else:
+            return 1e12 # = big number
 
 if __name__=='__main__':
     functions={'u_min':array([0.0,0.0,0.0,0.0]),
@@ -221,9 +289,10 @@ if __name__=='__main__':
                'f2':lambda u2:u2,
                'f3':lambda u3:u3,
                'f4':lambda u4:-u4,
-               'nomo_width':14.0,
+               'nomo_width':20.0,
                'nomo_height':14.0}
-    nomo=Nomograph_N_lin(functions,4)
+    nomo=Nomograph_N_lin(functions,4,transform=True)
+    """
     print nomo.give_u_x(1)(functions['u_min'][0])
     print nomo.give_u_y(1)(functions['u_min'][0])
     print nomo.give_u_x(1)(functions['u_max'][0])
@@ -232,7 +301,9 @@ if __name__=='__main__':
     print nomo.give_u_y(4)(functions['u_min'][3])
     print nomo.give_u_x(4)(functions['u_max'][3])
     print nomo.give_u_y(4)(functions['u_max'][3])
-    print nomo._find_polygon_()
+    """
+    print nomo._calc_slope_(1,2,1.0,2.0)
+    #print nomo._find_polygon_()
     c = canvas.canvas()
     ax1=Nomo_Axis(func_f=nomo.give_u_x(1),func_g=nomo.give_u_y(1),
                   start=functions['u_min'][0],stop=functions['u_max'][0],
@@ -253,8 +324,15 @@ if __name__=='__main__':
     R=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=lambda a:a,
                   start=nomo.Ry_min,stop=nomo.Ry_max,
                   turn=-1,title='R',canvas=c,type='linear',
-                  tick_levels=0,tick_text_levels=0)
+                  tick_levels=4,tick_text_levels=2)
     #c.stroke(path.line(nomo.give_R_x(1), nomo.Ry_min, nomo.give_R_x(1), nomo.Ry_max))
+    # linetest
+    line = path.path(path.moveto(0, 5))
+    for xx in arange(0,5.0,0.2):
+        x,y=nomo.transform(xx,2.0+2*xx)
+        line.append(path.lineto(x, y))
+        print x,y
+    c.stroke(line, [style.linewidth.normal])
     c.writePDFfile("nomolin")
 
     # example 2
@@ -266,9 +344,10 @@ if __name__=='__main__':
                'f3':lambda u3:u3,
                'f4':lambda u4:u4,
                'f5':lambda u5:-u5,
-               'nomo_width':12.0,
+               'nomo_width':20.0,
                'nomo_height':18.0}
-    nomo=Nomograph_N_lin(functions,5)
+    nomo=Nomograph_N_lin(functions,5,transform=True)
+    """
     print nomo.give_u_x(1)(functions['u_min'][0])
     print nomo.give_u_y(1)(functions['u_min'][0])
     print nomo.give_u_x(1)(functions['u_max'][0])
@@ -277,6 +356,7 @@ if __name__=='__main__':
     print nomo.give_u_y(5)(functions['u_min'][4])
     print nomo.give_u_x(5)(functions['u_max'][4])
     print nomo.give_u_y(5)(functions['u_max'][4])
+    """
     c = canvas.canvas()
     ax1=Nomo_Axis(func_f=nomo.give_u_x(1),func_g=nomo.give_u_y(1),
                   start=functions['u_min'][0],stop=functions['u_max'][0],
@@ -308,4 +388,10 @@ if __name__=='__main__':
                   turn=-1,title='R2',canvas=c,type='linear',
                   tick_levels=0,tick_text_levels=0)
     #c.stroke(path.line(nomo.give_R_x(1), nomo.Ry_min, nomo.give_R_x(1), nomo.Ry_max))
+    line = path.path(path.moveto(0, 5))
+    for xx in arange(0,5.0,0.2):
+        x,y=nomo.transform(xx,-2.0+2*xx)
+        line.append(path.lineto(x, y))
+        print x,y
+    c.stroke(line, [style.linewidth.normal])
     c.writePDFfile("nomolin2")

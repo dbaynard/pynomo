@@ -281,6 +281,27 @@ class Nomograph_N_lin:
             return dy/dx
         else:
             return 1e12 # = big number
+    def _line_points_(self,x1,y1,x2,y2,c):
+        steps=100.0
+        step_x=(x2-x1)/steps
+        step_y=(y2-y1)/steps
+        xt,yt=nomo.transform(x1,y1)
+        line = path.path(path.moveto(xt, yt))
+        x=x1
+        y=y1
+        step=1
+        while True:
+            x=x+step_x
+            y=y+step_y
+            xt,yt=nomo.transform(x,y)
+            line.append(path.lineto(xt, yt))
+            step+=1
+            if step>steps:
+                break
+        c.stroke(line, [style.linewidth.normal])
+
+
+
 
 if __name__=='__main__':
     functions={'u_min':array([0.0,0.0,0.0,0.0]),
@@ -331,7 +352,7 @@ if __name__=='__main__':
     for xx in arange(0,5.0,0.2):
         x,y=nomo.transform(xx,2.0+2*xx)
         line.append(path.lineto(x, y))
-        print x,y
+        #print x,y
     c.stroke(line, [style.linewidth.normal])
     c.writePDFfile("nomolin")
 
@@ -388,10 +409,19 @@ if __name__=='__main__':
                   turn=-1,title='R2',canvas=c,type='linear',
                   tick_levels=0,tick_text_levels=0)
     #c.stroke(path.line(nomo.give_R_x(1), nomo.Ry_min, nomo.give_R_x(1), nomo.Ry_max))
+    """
     line = path.path(path.moveto(0, 5))
     for xx in arange(0,5.0,0.2):
         x,y=nomo.transform(xx,-2.0+2*xx)
         line.append(path.lineto(x, y))
         print x,y
     c.stroke(line, [style.linewidth.normal])
+    """
+    nomo._line_points_(0.0,1.0,1.0,-0.5,c)
+    nomo._line_points_(1.0,-0.5,2.0,-2.0,c)
+    nomo._line_points_(2.0,-2.0,3.0,0.5,c)
+    nomo._line_points_(3.0,0.5,4.0,3.0,c)
+    nomo._line_points_(4.0,3.0,5.0,-0.5,c)
+    nomo._line_points_(5.0,-0.5,6.0,-4.0,c)
+
     c.writePDFfile("nomolin2")

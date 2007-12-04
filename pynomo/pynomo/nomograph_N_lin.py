@@ -39,13 +39,15 @@ class Nomograph_N_lin:
              '5': self._make_5_}[`N`]()
         except KeyError:
             print "N=%i is not defined" % N
-        self.R_padding=1.3
-        self.x_multiplier=self.functions['nomo_width']/N
-        self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())/self.R_padding
-        self.Ry_min=self._min_y_()*self.R_padding*self.y_multiplier
-        self.Ry_max=self._max_y_()*self.R_padding*self.y_multiplier
+        self.R_padding=0.3
+        #self.x_multiplier=self.functions['nomo_width']/N
+        #self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())/self.R_padding
+        # self.Ry_min=self._min_y_()*self.R_padding*self.y_multiplier
+        #self.Ry_max=self._max_y_()*self.R_padding*self.y_multiplier
+        self.transform_bool=transform
         if transform==True:
             self._make_transformation_matrix_()
+        self._find_reflection_axes_()
 
 
     def give_u_x(self,n):
@@ -152,20 +154,15 @@ class Nomograph_N_lin:
                |  polygon  |      ---->      |   rectangle  |       =
             (x2,y2)     (x4,y4)          (x2t,y2t)      (x4t,y4t)       (0,0)         (width,0)
         """
-        """
-        x1=self.x_func[1](self.functions['u_min'][0])
-        x2=self.x_func[1](self.functions['u_max'][0])
-        x3=self.x_func[self.N](self.functions['u_min'][self.N-1])
-        x4=self.x_func[self.N](self.functions['u_max'][self.N-1])
-        y1=min(self.y_func[1](self.functions['u_min'][0]),self.y_func[1](self.functions['u_max'][0]))
-        y2=max(self.y_func[1](self.functions['u_min'][0]),self.y_func[1](self.functions['u_max'][0]))
-        y3=min(self.y_func[self.N](self.functions['u_min'][self.N-1]),\
-               self.y_func[self.N](self.functions['u_max'][self.N-1]))
-        y4=max(self.y_func[self.N](self.functions['u_min'][self.N-1]),\
-               self.y_func[self.N](self.functions['u_max'][self.N-1]))
-        """
         x1,y1,x2,y2,x3,y3,x4,y4=self._find_polygon_()
-        print x1,y1,x2,y2,x3,y3,x4,y4
+        self.polyg_x1=x1
+        self.polyg_y1=y1
+        self.polyg_x2=x2
+        self.polyg_y2=y2
+        self.polyg_x3=x3
+        self.polyg_y3=y3
+        self.polyg_x4=x4
+        self.polyg_y4=y4
         max_x=self.x_func[self.N](self.functions['u_max'][self.N-1])
         width=self.functions['nomo_width']
         height=self.functions['nomo_height']#/self.R_padding
@@ -282,10 +279,13 @@ class Nomograph_N_lin:
         else:
             return 1e12 # = big number
     def _line_points_(self,x1,y1,x2,y2,c):
+        """
+        makes line between given points to canvas c
+        """
         steps=100.0
         step_x=(x2-x1)/steps
         step_y=(y2-y1)/steps
-        xt,yt=nomo.transform(x1,y1)
+        xt,yt=self.transform(x1,y1)
         line = path.path(path.moveto(xt, yt))
         x=x1
         y=y1
@@ -300,7 +300,29 @@ class Nomograph_N_lin:
                 break
         c.stroke(line, [style.linewidth.normal])
 
+    def _give_y_coord_(self,x1,y1,x2,y2,x):
+        """
+        gives y coordinate of point (x,y) at line passing through points (x1,y1) and (x2,y2)
+        for given x
+        """
+        return (y1-y2)/(x1-x2)*(x-x1)+y1
 
+    def _find_reflection_axes_(self):
+        self.y_R_top={}
+        self.y_R_bottom={}
+        if self.transform_bool:
+            for idx in [idx+1 for idx in range(self.N-3)]:
+                y_top=self._give_y_coord_(self.polyg_x1,self.polyg_y1,
+                                                self.polyg_x3,self.polyg_y3,self.xR_func[idx](0))
+                y_bottom=self._give_y_coord_(self.polyg_x2,self.polyg_y2,
+                                                   self.polyg_x4,self.polyg_y4,self.xR_func[idx](0))
+                self.y_R_top[idx]=y_top+(y_top-y_bottom)*self.R_padding
+                self.y_R_bottom[idx]=y_bottom-(y_top-y_bottom)*self.R_padding
+        else:
+            for idx in [idx+1 for idx in range(self.N-3)]:
+                (self._max_y_()-self._min_y_())*self.R_padding
+                self.y_R_top[idx]=self._max_y_()+(self._max_y_()-self._min_y_())*self.R_padding
+                self.y_R_bottom[idx]=self._min_y_()-(self._max_y_()-self._min_y_())*self.R_padding
 
 
 if __name__=='__main__':
@@ -341,19 +363,13 @@ if __name__=='__main__':
     ax4=Nomo_Axis(func_f=nomo.give_u_x(4),func_g=nomo.give_u_y(4),
                   start=functions['u_min'][3],stop=functions['u_max'][3],
                   turn=-1,title='f4',canvas=c,type='linear',
-                  tick_levels=4,tick_text_levels=2)
-    R=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=lambda a:a,
-                  start=nomo.Ry_min,stop=nomo.Ry_max,
+                  tick_levels=3,tick_text_levels=2)
+    R=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=nomo.give_R_y(1),
+                  start=nomo.y_R_bottom[1],stop=nomo.y_R_top[1],
                   turn=-1,title='R',canvas=c,type='linear',
-                  tick_levels=4,tick_text_levels=2)
+                  tick_levels=0,tick_text_levels=0)
     #c.stroke(path.line(nomo.give_R_x(1), nomo.Ry_min, nomo.give_R_x(1), nomo.Ry_max))
     # linetest
-    line = path.path(path.moveto(0, 5))
-    for xx in arange(0,5.0,0.2):
-        x,y=nomo.transform(xx,2.0+2*xx)
-        line.append(path.lineto(x, y))
-        #print x,y
-    c.stroke(line, [style.linewidth.normal])
     c.writePDFfile("nomolin")
 
     # example 2
@@ -398,14 +414,14 @@ if __name__=='__main__':
     ax5=Nomo_Axis(func_f=nomo.give_u_x(5),func_g=nomo.give_u_y(5),
                   start=functions['u_min'][4],stop=functions['u_max'][4],
                   turn=1,title='f5',canvas=c,type='linear',
-                  tick_levels=4,tick_text_levels=2)
+                  tick_levels=3,tick_text_levels=2)
 
-    R1=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=lambda a:a,
-                  start=nomo.Ry_min,stop=nomo.Ry_max,
+    R1=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=nomo.give_R_y(1),
+                  start=nomo.y_R_bottom[1],stop=nomo.y_R_top[1],
                   turn=-1,title='R1',canvas=c,type='linear',
                   tick_levels=0,tick_text_levels=0)
-    R2=Nomo_Axis(func_f=nomo.give_R_x(2),func_g=lambda a:a,
-                  start=nomo.Ry_min,stop=nomo.Ry_max,
+    R2=Nomo_Axis(func_f=nomo.give_R_x(2),func_g=nomo.give_R_y(2),
+                  start=nomo.y_R_bottom[2],stop=nomo.y_R_top[2],
                   turn=-1,title='R2',canvas=c,type='linear',
                   tick_levels=0,tick_text_levels=0)
     #c.stroke(path.line(nomo.give_R_x(1), nomo.Ry_min, nomo.give_R_x(1), nomo.Ry_max))

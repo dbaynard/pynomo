@@ -40,7 +40,7 @@ class Nomograph_N_lin:
              '5': self._make_5_}[`N`]()
         except KeyError:
             self._make_N_()
-            print "N=%i is not defined" % N
+            #print "N=%i is not defined" % N
         self.R_padding=0.3
         #self.x_multiplier=self.functions['nomo_width']/N
         #self.y_multiplier=self.functions['nomo_height']/(self._max_y_()-self._min_y_())/self.R_padding
@@ -82,6 +82,8 @@ class Nomograph_N_lin:
     def _make_4_(self):
         """ makes nomogram with 4 variables
         f1+f2+f3+f4=0
+        Even when _make_N_ handles N=4 or N=5 these are left as an example
+        what is happening
         """
         self.x_func={} # x coordinate to map points into canvas
         self.y_func={} # y coordinate to map points into canvas
@@ -97,12 +99,12 @@ class Nomograph_N_lin:
         self.y_func[3]=lambda u3:0.5*self.functions['f3'](u3)
         self.y_func[4]=lambda u4:-self.functions['f4'](u4)
         self.yR_func[1]=lambda uR1:uR1
-        print "making N=4"
-        # let's find maximum y-value for scaling
 
     def _make_5_(self):
         """ makes nomogram with 5 variables
         f1+f2+f3+f4+f5=0
+        Even when _make_N_ handles N=4 or N=5 these are left as an example
+        what is happening
         """
         self.x_func={} # x coordinate to map points into canvas
         self.y_func={} # y coordinate to map points into canvas
@@ -122,7 +124,6 @@ class Nomograph_N_lin:
         self.y_func[5]=lambda u5:self.functions['f5'](u5)
         self.yR_func[1]=lambda yR1:yR1
         self.yR_func[2]=lambda yR2:yR2
-        print "making N=5"
 
     def _make_N_(self):
         """
@@ -151,26 +152,14 @@ class Nomograph_N_lin:
         fn2x_table: table of x-coordinates of functions
         r_table: table of x-coordinates of functions
         """
-        self.fn2x_table=fn2x_table
-        print fn2x_table
-        print r_table
-        print "testing"
         # make fn functions
-        for iidx in range(2,N,1):
-            # for example: self.x_func[2]=lambda x:0
-            #self.x_func[iidx]=lambda u:self.fn2x_table[iidx].copy()*1.0
-            self.x_func[iidx]=self._makeDoX_(fn2x_table[iidx])
-            print "idx %i"%iidx
-            print "table %f" %self.fn2x_table[iidx]
-            print "from func %f" %self.x_func[iidx](1)
-            # for example: self.y_func[2]=lambda u:-0.5*self.functions['f2'](u)
-            #self.y_func[iidx]=lambda u:(-1)**(idx+1)*0.5*self.functions['f%i'%iidx](u)
-            self.y_func[iidx]=self._makeDoY_(iidx)
+        for idx in range(2,N,1):
+            self.x_func[idx]=self._makeDoX_(fn2x_table[idx])
+            self.y_func[idx]=self._makeDoY_(idx)
         self.x_func[1]=lambda x:fn2x_table[1]*1.0
         self.x_func[N]=lambda x:fn2x_table[N]*1.0
         self.y_func[1]=lambda u:self.functions['f1'](u)
         self.y_func[N]=lambda u:(-1)**(N+1)*self.functions['f%i'%N](u)
-        print "from func(3) %f" %self.x_func[3.0](1)
         # make reflection axes
         for idx in range(1,N-2):
             self.xR_func[idx]=self._makeDoX_(r_table[idx])
@@ -178,29 +167,37 @@ class Nomograph_N_lin:
 
     def _makeDoX_(self,value):
         """
-        copied trick to solve lambda inside loop
+        copied trick to solve function defitions inside loop
+        (I could not figure out how to use lambda...)
         """
         def f(dummy): return value
         return f
     def _makeDoY_(self,idx):
         """
-        copied trick to solve lambda inside loop
+        copied trick to solve function definitions inside loop
+        (I could not figure out how to use lambda...)
         """
         def ff(u): return (-1)**(idx+1)*0.5*self.functions['f%i'%idx](u)
         return ff
 
 
-    def  _max_y_(self):
-            Ns=range(self.N)
+    def _max_y_(self):
+        """
+        return maximum y value of all fn axes
+        """
+        Ns=range(self.N)
+        max1=max([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
+        max2=max([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
+        return max(max1,max2)
 
-            max1=max([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
-            max2=max([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
-            return max(max1,max2)
     def  _min_y_(self):
-            Ns=range(self.N)
-            min1=min([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
-            min2=min([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
-            return min(min1,min2)
+        """
+        return minimum y value of all fn axes
+        """
+        Ns=range(self.N)
+        min1=min([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
+        min2=min([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
+        return min(min1,min2)
 
     def _make_row_(self,coordinate='x',x=1.0,y=1.0,coord_value=1.0):
         """ Makes transformation matrix. See eq.37,a
@@ -243,7 +240,6 @@ class Nomograph_N_lin:
         row7,const7=self._make_row_(coordinate='x',coord_value=x3/max_x*width,x=x3,y=y3)
         row8,const8=self._make_row_(coordinate='y',coord_value=height,x=x3,y=y3)
 
-
         matrix=array([row1,row2,row3,row4,row5,row6,row7,row8])
         b=array([const1,const2,const3,const4,const5,const6,const7,const8])
         coeff_vector=linalg.solve(matrix,b)
@@ -256,8 +252,8 @@ class Nomograph_N_lin:
         self.alpha3=coeff_vector[5][0]
         self.beta3=coeff_vector[6][0]
         self.gamma3=coeff_vector[7][0]
-        #print coeff_vector
         return coeff_vector
+
     def _find_polygon_(self):
         """
         finds limiting polygon for transformation
@@ -323,6 +319,7 @@ class Nomograph_N_lin:
         if x3<x1:
             x1,y1,x2,y2,x3,y3,x4,y4=x3,y3,x4,y4,x1,y1,x2,y2
         return x1*1.0,y1*1.0,x2*1.0,y2*1.0,x3*1.0,y3*1.0,x4*1.0,y4*1.0
+
     def _calc_slope_(self,index,value,x_ref,y_ref):
         """
         calculates absolute value of slope between axis(index(value1)) and axis(index2(value2))
@@ -338,6 +335,7 @@ class Nomograph_N_lin:
             return dy/dx
         else:
             return 1e12 # = big number
+
     def _line_points_(self,x1,y1,x2,y2,c):
         """
         makes line between given points to canvas c
@@ -368,6 +366,9 @@ class Nomograph_N_lin:
         return (y1-y2)/(x1-x2)*(x-x1)+y1
 
     def _find_reflection_axes_(self):
+        """
+        finds limits of reflection axes (for drawing)
+        """
         self.y_R_top={}
         self.y_R_bottom={}
         if self.transform_bool:
@@ -400,6 +401,7 @@ if __name__=='__main__':
                'nomo_height':18.0}
     nomo6=Nomograph_N_lin(functions,6,transform=True)
     c = canvas.canvas()
+    """
     print "give_u_x(1)=%f"%nomo6.give_u_x(1)(0.0)
     print "x_func[1](1)=%f"%nomo6.x_func[1](0.0)
     print "give_u_x(2)=%f"%nomo6.give_u_x(2)(0.0)
@@ -412,6 +414,7 @@ if __name__=='__main__':
     print "x_func[5](1)=%f"%nomo6.x_func[5](1.0)
     print "give_u_x(6)=%f"%nomo6.give_u_x(6)(1.0)
     print nomo6.x_func[6](1)
+    """
     ax1=Nomo_Axis(func_f=nomo6.give_u_x(1),func_g=nomo6.give_u_y(1),
                   start=functions['u_min'][0],stop=functions['u_max'][0],
                   turn=1,title='f1',canvas=c,type='linear',
@@ -538,3 +541,102 @@ if __name__=='__main__':
     nomo._line_points_(5.0,-0.5,6.0,-4.0,c)
 
     c.writePDFfile("nomolin2")
+
+
+    # example 4
+    # f1+f2+f3+f4+f5+f6=0
+    functions={'u_min':array([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]),
+               'u_max':array([10.0,10.0,10.0,10.0,10.0,10.0,10.0,10.0,10.0,10.0,10.0]),
+               'f1':lambda u1:u1,
+               'f2':lambda u2:u2,
+               'f3':lambda u3:u3,
+               'f4':lambda u4:u4,
+               'f5':lambda u5:u5,
+               'f6':lambda u6:u6,
+               'f7':lambda u7:u7,
+               'f8':lambda u8:u8,
+               'f9':lambda u9:u9,
+               'f10':lambda u10:u10,
+               'f11':lambda u11:-u11,
+               'nomo_width':60.0,
+               'nomo_height':18.0}
+    nomo11=Nomograph_N_lin(functions,11,transform=True)
+    c = canvas.canvas()
+    ax1=Nomo_Axis(func_f=nomo11.give_u_x(1),func_g=nomo11.give_u_y(1),
+                  start=functions['u_min'][0],stop=functions['u_max'][0],
+                  turn=1,title='f1',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax2=Nomo_Axis(func_f=nomo11.give_u_x(2),func_g=nomo11.give_u_y(2),
+                  start=functions['u_min'][1],stop=functions['u_max'][1],
+                  turn=-1,title='f2',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax3=Nomo_Axis(func_f=nomo11.give_u_x(3),func_g=nomo11.give_u_y(3),
+                  start=functions['u_min'][2],stop=functions['u_max'][2],
+                  turn=-1,title='f3',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax4=Nomo_Axis(func_f=nomo11.give_u_x(4),func_g=nomo11.give_u_y(4),
+                  start=functions['u_min'][3],stop=functions['u_max'][3],
+                  turn=1,title='f4',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax5=Nomo_Axis(func_f=nomo11.give_u_x(5),func_g=nomo11.give_u_y(5),
+                  start=functions['u_min'][4],stop=functions['u_max'][4],
+                  turn=1,title='f5',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax6=Nomo_Axis(func_f=nomo11.give_u_x(6),func_g=nomo11.give_u_y(6),
+                  start=functions['u_min'][5],stop=functions['u_max'][5],
+                  turn=1,title='f6',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax7=Nomo_Axis(func_f=nomo11.give_u_x(7),func_g=nomo11.give_u_y(7),
+                  start=functions['u_min'][6],stop=functions['u_max'][6],
+                  turn=-1,title='f7',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax8=Nomo_Axis(func_f=nomo11.give_u_x(8),func_g=nomo11.give_u_y(8),
+                  start=functions['u_min'][7],stop=functions['u_max'][7],
+                  turn=-1,title='f8',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax9=Nomo_Axis(func_f=nomo11.give_u_x(9),func_g=nomo11.give_u_y(9),
+                  start=functions['u_min'][8],stop=functions['u_max'][8],
+                  turn=1,title='f9',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax10=Nomo_Axis(func_f=nomo11.give_u_x(10),func_g=nomo11.give_u_y(10),
+                  start=functions['u_min'][9],stop=functions['u_max'][9],
+                  turn=1,title='f10',canvas=c,type='linear',
+                  tick_levels=2,tick_text_levels=1)
+    ax11=Nomo_Axis(func_f=nomo11.give_u_x(11),func_g=nomo11.give_u_y(11),
+                  start=functions['u_min'][10],stop=functions['u_max'][10],
+                  turn=1,title='f11',canvas=c,type='linear',
+                  tick_levels=3,tick_text_levels=2)
+
+    R1=Nomo_Axis(func_f=nomo11.give_R_x(1),func_g=nomo11.give_R_y(1),
+                  start=nomo11.y_R_bottom[1],stop=nomo11.y_R_top[1],
+                  turn=-1,title='R1',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    R2=Nomo_Axis(func_f=nomo11.give_R_x(2),func_g=nomo11.give_R_y(2),
+                  start=nomo11.y_R_bottom[2],stop=nomo11.y_R_top[2],
+                  turn=-1,title='R2',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    R3=Nomo_Axis(func_f=nomo11.give_R_x(3),func_g=nomo11.give_R_y(3),
+                  start=nomo11.y_R_bottom[3],stop=nomo11.y_R_top[3],
+                  turn=-1,title='R3',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    R4=Nomo_Axis(func_f=nomo11.give_R_x(4),func_g=nomo11.give_R_y(4),
+                  start=nomo11.y_R_bottom[4],stop=nomo11.y_R_top[4],
+                  turn=-1,title='R4',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    R5=Nomo_Axis(func_f=nomo11.give_R_x(5),func_g=nomo11.give_R_y(5),
+                  start=nomo11.y_R_bottom[5],stop=nomo11.y_R_top[5],
+                  turn=-1,title='R5',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    R6=Nomo_Axis(func_f=nomo11.give_R_x(6),func_g=nomo11.give_R_y(6),
+                  start=nomo11.y_R_bottom[6],stop=nomo11.y_R_top[6],
+                  turn=-1,title='R6',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    R7=Nomo_Axis(func_f=nomo11.give_R_x(7),func_g=nomo11.give_R_y(7),
+                  start=nomo11.y_R_bottom[7],stop=nomo11.y_R_top[7],
+                  turn=-1,title='R6',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    R8=Nomo_Axis(func_f=nomo11.give_R_x(8),func_g=nomo11.give_R_y(8),
+                  start=nomo11.y_R_bottom[8],stop=nomo11.y_R_top[8],
+                  turn=-1,title='R6',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    c.writePDFfile("nomolin11")

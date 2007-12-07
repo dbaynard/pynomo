@@ -28,7 +28,7 @@ class Nomo_Axis:
     def __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
                  text_style='normal',title_x_shift=0,title_y_shift=0.25,
                  tick_levels=10,tick_text_levels=10,
-                 text_color=color.rgb.black, axis_color=color.rgb.black):
+                 text_color=color.rgb.black, axis_color=color.rgb.black, manual_axis_data={}):
         self.func_f=func_f
         self.func_g=func_g
         self.start=start
@@ -41,11 +41,17 @@ class Nomo_Axis:
         self.text_style=text_style
         self.tick_levels=tick_levels
         self.tick_text_levels=tick_text_levels
+
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
-        else:
+            self.draw_axis(canvas)
+        if type=='linear':
             self._make_linear_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
-        self.draw_axis(canvas)
+            self.draw_axis(canvas)
+        if type=='manual':
+            self._make_manual_axis_(manual_axis_data)
+            self.draw_axis(canvas)
+
 
     def _test_tick_(self,u,tick,scale_max):
         """ tests if it is time to put a tick
@@ -151,7 +157,7 @@ class Nomo_Axis:
         max_decade=math.ceil(math.log10(max))
         min_decade=math.floor(math.log10(min))
         for decade in scipy.arange(min_decade,max_decade+1,1):
-            for number in scipy.concatenate((scipy.arange(1,2,0.2),scipy.arange(2,10,1))):
+            for number in scipy.concatenate((scipy.arange(1,2,0.2),scipy.arange(2,3,0.5),scipy.arange(3,10,1))):
                 u=number*10.0**decade
                 dx=(f(u+du)-f(u))*turn
                 dy=(g(u+du)-g(u))*turn
@@ -193,6 +199,22 @@ class Nomo_Axis:
         self.thin_line=thin_line
         self.texts=texts
 
+    def _make_manual_axis_(self,manual_axis_data):
+        f=self.func_f
+        g=self.func_g
+        texts=list([])
+        line = path.path(path.moveto(f(self.start), g(self.start)))
+        thin_line=path.path(path.moveto(f(self.start), g(self.start)))
+        for number, label_string in manual_axis_data.iteritems():
+            text_distance=1.0/4
+            text_attr=[text.valign.middle,text.halign.right,text.size.small]
+            texts.append((label_string,f(number)-text_distance,
+                          g(number),text_attr))
+            self.canvas.fill(path.circle(f(number), g(number), 0.02))
+        self.line=line
+        self.thin_line=thin_line
+        self.texts=texts
+
     def draw_axis(self,c):
         c.stroke(self.line, [style.linewidth.normal])
         c.stroke(self.thin_line, [style.linewidth.thin])
@@ -217,26 +239,36 @@ class Nomo_Axis:
 
 ## Testing
 if __name__=='__main__':
-    skaalaus_x=2*4*1.3
-    skaalaus_y=2*12*1.3
     def f1(L):
-        return skaalaus_x*(L*L-8*L-5)/(3*L*L+2*L+7)
+        return 2*(L*L-8*L-5)/(3*L*L+2*L+7)
     def g1(L):
-        return skaalaus_y*(8*L*L+12*L-8)/(3*L*L+2*L+7)
-    def f3(p):
-        return skaalaus_x*((4*p*p+10*p+1)/(8*p*p+4*p+3))
+        return 10*(8*L*L+12*L-8)/(3*L*L+2*L+7)
+    def f1a(L):
+        return 5
+    def g1a(L):
+        return 3*math.log10(L)
+    def f1b(L):
+        return 2
+    def g1b(L):
+        return L
+    manual_axis_data={1.0:'first',
+                     2.0:'second',
+                     3.0:'third',
+                     3.1415:r'$\pi$',
+                     4.0:'fourth',
+                     5.0:'fifth',
+                     6.0:'sixth',
+                     7.0:'seventh',
+                     8.0:'eigth',
+                     9.0:'nineth',
+                     10.0:'tenth'}
 
-    def g3(p):
-        return skaalaus_y*((-12*p*p+4*p+8)/(8*p*p+4*p+3))
-    def f4(p):
-        return skaalaus_x*((4*p*p+10*p+1)/(8*p*p+4*p+3))+20
 
-    def g4(p):
-        return skaalaus_y*((-12*p*p+4*p+8)/(8*p*p+4*p+3))
     c = canvas.canvas()
-    gg3=Nomo_Axis(func_f=f3,func_g=g3,start=1.0,stop=0.5,turn=-1,title='func 1',canvas=c,type='linear')
-    gg1=Nomo_Axis(func_f=f1,func_g=g1,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
-    gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
-    c.writePDFfile("minimal6")
-    print f1(1)
-    print g1(1)
+    #gg3=Nomo_Axis(func_f=f3,func_g=g3,start=1.0,stop=0.5,turn=-1,title='func 1',canvas=c,type='linear')
+    gr1=Nomo_Axis(func_f=f1,func_g=g1,start=0.5,stop=1.0,turn=-1,title='func 1',canvas=c,type='linear')
+    gr2=Nomo_Axis(func_f=f1a,func_g=g1a,start=1.0,stop=1e4,turn=-1,title='func 2',canvas=c,type='log')
+    gr3=Nomo_Axis(func_f=f1b,func_g=g1b,start=1.0,stop=10,turn=-1,title='func 3',canvas=c,type='manual',
+                  manual_axis_data=manual_axis_data)
+    #gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
+    c.writePDFfile("test_nomo_axis")

@@ -182,38 +182,50 @@ class Nomo_Axis:
                 else:
                     angle=0
                 if u>=min and u<=max:
+                    line.append(path.lineto(f(u), g(u)))
                     if (number==1):
-                        grid_length=3.0/4
-                        text_distance=1.0
+                        text_distance=self.axis_appear['text_distance_0']
+                        grid_length=self.axis_appear['grid_length_0']
                         if dy<=0:
                             text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
                         else:
                             text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
                         if self.tick_text_levels>0:
                             texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
-                        line.append(path.lineto(f(u), g(u)))
+                        #line.append(path.lineto(f(u), g(u)))
                         if self.tick_levels>0:
                             line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                         line.append(path.moveto(f(u), g(u)))
                     else:
-                        grid_length=0.3/4
-                        text_distance=1.0/4
+                        if number in [2,3,4,5,6,7,8,9]:
+                            text_distance=self.axis_appear['text_distance_1']
+                            grid_length=self.axis_appear['grid_length_1']
+                        else:
+                            text_distance=self.axis_appear['text_distance_2']
+                            grid_length=self.axis_appear['grid_length_2']
                         if dy<=0:
                             text_attr=[text.valign.middle,text.halign.right,text.size.tiny,trafo.rotate(angle)]
                         else:
                             text_attr=[text.valign.middle,text.halign.left,text.size.tiny,trafo.rotate(angle)]
                         if self.tick_text_levels>1:
                             texts.append((self._put_text_(u),f(u)+text_distance*dy_unit,g(u)-text_distance*dx_unit,text_attr))
-                        thin_line.append(path.lineto(f(u), g(u)))
+                        #thin_line.append(path.lineto(f(u), g(u)))
                         if self.tick_levels>1:
-                            thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
-                        thin_line.append(path.moveto(f(u), g(u)))
-                        line.append(path.lineto(f(u), g(u)))
+                            if number in [2,3,4,5,6,7,8,9]:
+                                line.append(path.moveto(f(u), g(u)))
+                                line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                            else:
+                                thin_line.append(path.moveto(f(u), g(u)))
+                                thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
+                            line.append(path.lineto(f(u), g(u)))
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
 
     def _make_manual_axis_circle_(self,manual_axis_data):
+        """
+        draws axis with only circles and texts
+        """
         f=self.func_f
         g=self.func_g
         texts=list([])
@@ -230,6 +242,9 @@ class Nomo_Axis:
         self.texts=texts
 
     def _make_manual_axis_line_(self,manual_axis_data):
+        """
+        draws axis with texts, line and ticks where texts are
+        """
         # for numerical derivative to find angle
         f=self.func_f
         g=self.func_g
@@ -255,6 +270,23 @@ class Nomo_Axis:
             delta_u=du*section_length/dl
             u+=delta_u
             line.append(path.lineto(f(u), g(u)))
+        # make lines and texts
+        for number, label_string in manual_axis_data.iteritems():
+            dx=(f(number+du)-f(number))
+            dy=(g(number+du)-g(number))
+            dx_unit=dx/math.sqrt(dx**2+dy**2)
+            dy_unit=dy/math.sqrt(dx**2+dy**2)
+            if dy_unit!=0:
+                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+            else:
+                angle=0
+            text_distance=self.axis_appear['text_distance_1']
+            grid_length=self.axis_appear['grid_length_1']
+            text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
+            texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
+            line.append(path.moveto(f(number), g(number)))
+            line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))
+            #self.canvas.fill(path.circle(f(number), g(number), 0.02))
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
@@ -296,7 +328,7 @@ if __name__=='__main__':
     def g1b(L):
         return L
     def f1c(L):
-        return 5+L/10.0
+        return 7+L/10.0
     def g1c(L):
         return L
 

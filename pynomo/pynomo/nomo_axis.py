@@ -28,7 +28,8 @@ class Nomo_Axis:
     def __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
                  text_style='normal',title_x_shift=0,title_y_shift=0.25,
                  tick_levels=10,tick_text_levels=10,
-                 text_color=color.rgb.black, axis_color=color.rgb.black, manual_axis_data={}):
+                 text_color=color.rgb.black, axis_color=color.rgb.black,
+                 manual_axis_data={},axis_appear={}):
         self.func_f=func_f
         self.func_g=func_g
         self.start=start
@@ -41,6 +42,16 @@ class Nomo_Axis:
         self.text_style=text_style
         self.tick_levels=tick_levels
         self.tick_text_levels=tick_text_levels
+        axis_appear_default_values={
+                             'text_distance_0':1.0,
+                             'text_distance_1':1.0/4,
+                             'text_distance_2':1.0/4,
+                             'grid_length_0':3.0/4,
+                             'grid_length_1':1.0/4,
+                             'grid_length_2':0.5/4,
+                             'grid_length_3':0.3/4}
+        self.axis_appear=axis_appear_default_values
+        self.axis_appear.update(axis_appear)
 
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
@@ -48,8 +59,11 @@ class Nomo_Axis:
         if type=='linear':
             self._make_linear_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
             self.draw_axis(canvas)
-        if type=='manual':
-            self._make_manual_axis_(manual_axis_data)
+        if type=='manual point':
+            self._make_manual_axis_circle_(manual_axis_data)
+            self.draw_axis(canvas)
+        if type=='manual line':
+            self._make_manual_axis_line_(manual_axis_data)
             self.draw_axis(canvas)
 
 
@@ -91,8 +105,8 @@ class Nomo_Axis:
                 angle=0
             # floating arithmetic makes life difficult, that's why _test_tick_ function
             if self._test_tick_(u,tick_max,scale_max):
-                text_distance=1.0
-                grid_length=3.0/4
+                text_distance=self.axis_appear['text_distance_0']
+                grid_length=self.axis_appear['grid_length_0']
                 if dy<=0:
                     text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
                 else:
@@ -105,8 +119,8 @@ class Nomo_Axis:
                     line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 line.append(path.moveto(f(u), g(u)))
             elif self._test_tick_(u,tick_1,scale_max):
-                grid_length=1.0/4
-                text_distance=1.5/4
+                text_distance=self.axis_appear['text_distance_1']
+                grid_length=self.axis_appear['grid_length_1']
                 if dy<=0:
                     text_attr=[text.valign.middle,text.halign.right,text.size.scriptsize,trafo.rotate(angle)]
                 else:
@@ -118,8 +132,8 @@ class Nomo_Axis:
                     line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 line.append(path.moveto(f(u), g(u)))
             elif self._test_tick_(u,tick_2,scale_max):
-                grid_length=0.5/4
-                text_distance=1.0/4
+                text_distance=self.axis_appear['text_distance_2']
+                grid_length=self.axis_appear['grid_length_2']
                 if dy<=0:
                     text_attr=[text.valign.middle,text.halign.right,text.size.tiny,trafo.rotate(angle)]
                 else:
@@ -131,7 +145,7 @@ class Nomo_Axis:
                     line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
                 line.append(path.moveto(f(u), g(u)))
             else:
-                grid_length=0.3/4
+                grid_length=self.axis_appear['grid_length_3']
                 thin_line.append(path.moveto(f(u), g(u)))
                 if self.tick_levels>3:
                     thin_line.append(path.lineto(f(u)+grid_length*dy_unit, g(u)-grid_length*dx_unit))
@@ -199,7 +213,7 @@ class Nomo_Axis:
         self.thin_line=thin_line
         self.texts=texts
 
-    def _make_manual_axis_(self,manual_axis_data):
+    def _make_manual_axis_circle_(self,manual_axis_data):
         f=self.func_f
         g=self.func_g
         texts=list([])
@@ -211,6 +225,36 @@ class Nomo_Axis:
             texts.append((label_string,f(number)-text_distance,
                           g(number),text_attr))
             self.canvas.fill(path.circle(f(number), g(number), 0.02))
+        self.line=line
+        self.thin_line=thin_line
+        self.texts=texts
+
+    def _make_manual_axis_line_(self,manual_axis_data):
+        # for numerical derivative to find angle
+        f=self.func_f
+        g=self.func_g
+        du=math.fabs(self.start-self.stop)*1e-6
+        texts=list([])
+        if (self.start<self.stop):
+            min=self.start
+            max=self.stop
+        else:
+            min=self.stop
+            max=self.start
+        # lets make the line
+        line_length_straigth=math.sqrt((f(max)-f(min))**2+(g(max)-g(min))**2)
+        sections=300.0 # about number of sections
+        section_length=line_length_straigth/sections
+        line = path.path(path.moveto(f(self.start), g(self.start)))
+        thin_line=path.path(path.moveto(f(self.start), g(self.start)))
+        u=min
+        while u<max:
+            dx=f(u+du)-f(u)
+            dy=g(u+du)-g(u)
+            dl=math.sqrt(dx**2+dy**2)
+            delta_u=du*section_length/dl
+            u+=delta_u
+            line.append(path.lineto(f(u), g(u)))
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
@@ -251,6 +295,11 @@ if __name__=='__main__':
         return 2
     def g1b(L):
         return L
+    def f1c(L):
+        return 5+L/10.0
+    def g1c(L):
+        return L
+
     manual_axis_data={1.0:'first',
                      2.0:'second',
                      3.0:'third',
@@ -268,7 +317,9 @@ if __name__=='__main__':
     #gg3=Nomo_Axis(func_f=f3,func_g=g3,start=1.0,stop=0.5,turn=-1,title='func 1',canvas=c,type='linear')
     gr1=Nomo_Axis(func_f=f1,func_g=g1,start=0.5,stop=1.0,turn=-1,title='func 1',canvas=c,type='linear')
     gr2=Nomo_Axis(func_f=f1a,func_g=g1a,start=1.0,stop=1e4,turn=-1,title='func 2',canvas=c,type='log')
-    gr3=Nomo_Axis(func_f=f1b,func_g=g1b,start=1.0,stop=10,turn=-1,title='func 3',canvas=c,type='manual',
+    gr3=Nomo_Axis(func_f=f1b,func_g=g1b,start=1.0,stop=10,turn=-1,title='func 3',canvas=c,type='manual point',
+                  manual_axis_data=manual_axis_data)
+    gr4=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',canvas=c,type='manual line',
                   manual_axis_data=manual_axis_data)
     #gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
     c.writePDFfile("test_nomo_axis")

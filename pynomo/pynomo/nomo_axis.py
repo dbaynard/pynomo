@@ -29,12 +29,13 @@ class Nomo_Axis:
                  text_style='normal',title_x_shift=0,title_y_shift=0.25,
                  tick_levels=10,tick_text_levels=10,
                  text_color=color.rgb.black, axis_color=color.rgb.black,
-                 manual_axis_data={},axis_appear={}):
+                 manual_axis_data={},axis_appear={},side='left'):
         self.func_f=func_f
         self.func_g=func_g
         self.start=start
         self.stop=stop
-        self.turn=turn
+        self.side=side
+        self.turn=turn # to be removed, use side
         self.title=title
         self.canvas=canvas
         self.title_x_shift=title_x_shift
@@ -47,7 +48,7 @@ class Nomo_Axis:
                              'text_distance_1':1.0/4,
                              'text_distance_2':1.0/4,
                              'grid_length_0':3.0/4,
-                             'grid_length_1':1.0/4,
+                             'grid_length_1':0.9/4,
                              'grid_length_2':0.5/4,
                              'grid_length_3':0.3/4}
         self.axis_appear=axis_appear_default_values
@@ -85,7 +86,10 @@ class Nomo_Axis:
         line = path.path(path.moveto(f(start), g(start)))
         thin_line=path.path(path.moveto(f(start), g(start)))
         # for numerical derivative to find angle
-        du=math.fabs(start-stop)*1e-4
+        du=math.fabs(start-stop)*1e-6
+        dy=(g(start+du)-g(start))
+        self._determine_turn_()
+        turn=self.turn
         # which number to divide. how many decades there are
         scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
         tick_min=scale_max/500.0
@@ -159,6 +163,8 @@ class Nomo_Axis:
         """
         # for numerical derivative to find angle
         du=math.fabs(start-stop)*1e-6
+        self._determine_turn_()
+        turn=self.turn
         texts=list([])
         if (start<stop):
             min=start
@@ -228,13 +234,18 @@ class Nomo_Axis:
         """
         f=self.func_f
         g=self.func_g
+        self._determine_turn_()
+        turn=self.turn
         texts=list([])
         line = path.path(path.moveto(f(self.start), g(self.start)))
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
         for number, label_string in manual_axis_data.iteritems():
-            text_distance=1.0/4
-            text_attr=[text.valign.middle,text.halign.right,text.size.small]
-            texts.append((label_string,f(number)-text_distance,
+            text_distance=1.0/4*turn
+            if self.side=='left':
+                text_attr=[text.valign.middle,text.halign.right,text.size.small]
+            else:
+                text_attr=[text.valign.middle,text.halign.left,text.size.small]
+            texts.append((label_string,f(number)+text_distance,
                           g(number),text_attr))
             self.canvas.fill(path.circle(f(number), g(number), 0.02))
         self.line=line
@@ -248,11 +259,14 @@ class Nomo_Axis:
         # for numerical derivative to find angle
         f=self.func_f
         g=self.func_g
+        self._determine_turn_()
+        turn=self.turn
         du=math.fabs(self.start-self.stop)*1e-6
         texts=list([])
         if (self.start<self.stop):
             min=self.start
             max=self.stop
+            turn=turn*-1.0
         else:
             min=self.stop
             max=self.start
@@ -264,16 +278,16 @@ class Nomo_Axis:
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
         u=min
         while u<max:
-            dx=f(u+du)-f(u)
-            dy=g(u+du)-g(u)
+            dx=(f(u+du)-f(u))*turn
+            dy=(g(u+du)-g(u))*turn
             dl=math.sqrt(dx**2+dy**2)
             delta_u=du*section_length/dl
             u+=delta_u
             line.append(path.lineto(f(u), g(u)))
         # make lines and texts
         for number, label_string in manual_axis_data.iteritems():
-            dx=(f(number+du)-f(number))
-            dy=(g(number+du)-g(number))
+            dx=(f(number+du)-f(number))*turn
+            dy=(g(number+du)-g(number))*turn
             dx_unit=dx/math.sqrt(dx**2+dy**2)
             dy_unit=dy/math.sqrt(dx**2+dy**2)
             if dy_unit!=0:
@@ -282,7 +296,10 @@ class Nomo_Axis:
                 angle=0
             text_distance=self.axis_appear['text_distance_1']
             grid_length=self.axis_appear['grid_length_1']
-            text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
+            if dy<=0:
+                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
+            else:
+                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
             texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
             line.append(path.moveto(f(number), g(number)))
             line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))
@@ -313,6 +330,24 @@ class Nomo_Axis:
         else:
             return r"$%3.2f$ " %u
 
+    def _determine_turn_(self):
+        """
+         determines if we are going upwards or downwards at start
+        """
+        g=self.func_g
+        f=self.func_f
+        start=self.start
+        stop=self.stop
+        du=math.fabs(start-stop)*1e-6
+        dy=(g(start+du)-g(start))
+        if dy<=0 and self.side=='left':
+            self.turn=1.0
+        if dy>0 and self.side=='left':
+            self.turn=-1.0
+        if dy<=0 and self.side=='right':
+            self.turn=-1.0
+        if dy>0 and self.side=='right':
+            self.turn=1.0
 ## Testing
 if __name__=='__main__':
     def f1(L):
@@ -324,13 +359,18 @@ if __name__=='__main__':
     def g1a(L):
         return 3*math.log10(L)
     def f1b(L):
-        return 2
+        return 1.5
     def g1b(L):
-        return L
+        return L*1.3
     def f1c(L):
-        return 7+L/10.0
+        return 10+L/10.0
     def g1c(L):
         return L
+
+    def f1d(angle):
+        return math.sin(angle/180*math.pi)*3+17
+    def g1d(angle):
+        return math.cos(angle/180*math.pi)*5+5
 
     manual_axis_data={1.0:'first',
                      2.0:'second',
@@ -347,11 +387,30 @@ if __name__=='__main__':
 
     c = canvas.canvas()
     #gg3=Nomo_Axis(func_f=f3,func_g=g3,start=1.0,stop=0.5,turn=-1,title='func 1',canvas=c,type='linear')
-    gr1=Nomo_Axis(func_f=f1,func_g=g1,start=0.5,stop=1.0,turn=-1,title='func 1',canvas=c,type='linear')
-    gr2=Nomo_Axis(func_f=f1a,func_g=g1a,start=1.0,stop=1e4,turn=-1,title='func 2',canvas=c,type='log')
-    gr3=Nomo_Axis(func_f=f1b,func_g=g1b,start=1.0,stop=10,turn=-1,title='func 3',canvas=c,type='manual point',
-                  manual_axis_data=manual_axis_data)
-    gr4=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',canvas=c,type='manual line',
-                  manual_axis_data=manual_axis_data)
+    gr1=Nomo_Axis(func_f=f1,func_g=g1,start=0.5,stop=1.0,turn=-1,title='func 1',
+                  canvas=c,type='linear',side='left')
+    gr11=Nomo_Axis(func_f=f1,func_g=g1,start=0.5,stop=1.0,turn=-1,title='func 1',
+                  canvas=c,type='linear',side='right')
+    gr2=Nomo_Axis(func_f=f1a,func_g=g1a,start=1.0,stop=1e4,turn=-1,title='func 2',
+                  canvas=c,type='log',side='left')
+    gr22=Nomo_Axis(func_f=f1a,func_g=g1a,start=1.0,stop=1e4,turn=-1,title='func 2',
+                  canvas=c,type='log',side='right')
+    gr3=Nomo_Axis(func_f=f1b,func_g=g1b,start=1.0,stop=10,turn=-1,title='func 3',
+                  canvas=c,type='manual point',
+                  manual_axis_data=manual_axis_data,side='left')
+    gr33=Nomo_Axis(func_f=f1b,func_g=g1b,start=1.0,stop=10,turn=-1,title='func 3',
+                  canvas=c,type='manual point',
+                  manual_axis_data=manual_axis_data,side='right')
+
+    gr4=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',
+                  canvas=c,type='manual line',
+                  manual_axis_data=manual_axis_data,side='right')
+    gr44=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',
+                  canvas=c,type='manual line',
+                  manual_axis_data=manual_axis_data,side='left')
+
+    # for some reason, this does not work when stop is 359 ??
+    gr5=Nomo_Axis(func_f=f1d,func_g=g1d,start=0.0,stop=300.0,turn=-1,title='func 1',
+                  canvas=c,type='linear',side='right')
     #gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
     c.writePDFfile("test_nomo_axis")

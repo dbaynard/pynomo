@@ -17,6 +17,7 @@ from numpy import *
 from pyx import *
 from nomo_axis import *
 from copy import *
+from math import log
 
 class Nomograph_N_lin:
     """
@@ -640,3 +641,65 @@ if __name__=='__main__':
                   turn=-1,title='R6',canvas=c,type='linear',
                   tick_levels=0,tick_text_levels=0)
     c.writePDFfile("nomolin11")
+
+    # example 5
+    # equivalent light nomogram in photography
+    # log2(ISO/100)+log2(f**2)-log2(t)=EV
+    functions={'u_min':array([50.0,1.0,0.0,1.0]),
+               'u_max':array([3200.0,4000.0,18.0,64.0]),
+               'f1':lambda ISO:-log(ISO/100.0,2.0),
+               'f4':lambda f:log(f**2.0,2.0),
+               'f2':lambda t:log(t,2.0),
+               'f3':lambda EV:-EV,
+               'nomo_width':20.0,
+               'nomo_height':14.0}
+    nomo=Nomograph_N_lin(functions,4,transform=True)
+    c = canvas.canvas()
+    ax1=Nomo_Axis(func_f=nomo.give_u_x(2),func_g=nomo.give_u_y(2),
+                  start=functions['u_min'][1],stop=functions['u_max'][1],
+                  turn=1,title='1/t',canvas=c,type='log',
+                  tick_levels=3,tick_text_levels=3)
+    manual_axis_ISO={50:'50',
+                 100:'100',
+                 200:'200',
+                 400:r'400',
+                 800:'800',
+                 1600:'1600',
+                 3200:'3200'}
+
+
+    ax2=Nomo_Axis(func_f=nomo.give_u_x(1),func_g=nomo.give_u_y(1),
+                  start=functions['u_min'][0],stop=functions['u_max'][0],
+                  turn=-1,title='ISO speed',canvas=c,type='manual point',
+                  tick_levels=3,tick_text_levels=1,
+                  manual_axis_data=manual_axis_ISO,side='right')
+
+    manual_axis_f={1.0:'1.0',
+                 1.4:'1.4',
+                 2.0:'2.0',
+                 2.8:r'2.8',
+                 3.5:'3.5',
+                 4.0:'4.0',
+                 5.6:'5.6',
+                 8.0:'8.0',
+                 11.0:'11',
+                 16.0:'16',
+                 22.0:'22',
+                 32.0:'32',
+                 45.0:'45',
+                 64.0:'64'}
+
+    ax3=Nomo_Axis(func_f=nomo.give_u_x(4),func_g=nomo.give_u_y(4),
+                  start=functions['u_min'][3],stop=functions['u_max'][3],
+                  turn=-1,title=r'$f$-number',canvas=c,type='manual point',
+                  tick_levels=3,tick_text_levels=1,
+                  manual_axis_data=manual_axis_f,side='right')
+    ax4=Nomo_Axis(func_f=nomo.give_u_x(3),func_g=nomo.give_u_y(3),
+                  start=functions['u_min'][2],stop=functions['u_max'][2],
+                  turn=-1,title='EV',canvas=c,type='linear',
+                  tick_levels=3,tick_text_levels=3)
+    R=Nomo_Axis(func_f=nomo.give_R_x(1),func_g=nomo.give_R_y(1),
+                  start=nomo.y_R_bottom[1],stop=nomo.y_R_top[1],
+                  turn=-1,title='R',canvas=c,type='linear',
+                  tick_levels=0,tick_text_levels=0)
+    c.writePDFfile("equivalent_light")

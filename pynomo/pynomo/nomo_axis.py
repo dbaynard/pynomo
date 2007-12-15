@@ -240,12 +240,14 @@ class Nomo_Axis:
         line = path.path(path.moveto(f(self.start), g(self.start)))
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
         for number, label_string in manual_axis_data.iteritems():
-            text_distance=1.0/4*turn
+            text_distance=1.0/4
             if self.side=='left':
                 text_attr=[text.valign.middle,text.halign.right,text.size.small]
+                texts.append((label_string,f(number)-text_distance,
+                          g(number),text_attr))
             else:
                 text_attr=[text.valign.middle,text.halign.left,text.size.small]
-            texts.append((label_string,f(number)+text_distance,
+                texts.append((label_string,f(number)+text_distance,
                           g(number),text_attr))
             self.canvas.fill(path.circle(f(number), g(number), 0.02))
         self.line=line
@@ -338,7 +340,7 @@ class Nomo_Axis:
         f=self.func_f
         start=self.start
         stop=self.stop
-        du=math.fabs(start-stop)*1e-6
+        du=(stop-start)*1e-6
         dy=(g(start+du)-g(start))
         if dy<=0 and self.side=='left':
             self.turn=1.0
@@ -410,7 +412,7 @@ if __name__=='__main__':
                   manual_axis_data=manual_axis_data,side='left')
 
     # for some reason, this does not work when stop is 359 ??
-    gr5=Nomo_Axis(func_f=f1d,func_g=g1d,start=0.0,stop=300.0,turn=-1,title='func 1',
-                  canvas=c,type='linear',side='right')
+    gr5=Nomo_Axis(func_f=f1d,func_g=g1d,start=0.0,stop=360.0,turn=-1,title='func 1',
+                  canvas=c,type='linear',side='left')
     #gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
     c.writePDFfile("test_nomo_axis")

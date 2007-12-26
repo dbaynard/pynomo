@@ -33,8 +33,8 @@ class Nomo_Grid:
                              'u_stop':1.0,
                              'v_start':0.0,
                              'v_stop':1.0,
-                             'u_values':[0.0,0.5,1.0],
-                             'v_values':[0.0,0.5,1.0]}
+                             'u_values':[0.0,0.25,0.5,0.75,1.0],
+                             'v_values':[0.0,0.25,0.5,0.75,1.0]}
         self.grid_data=data_default_values
         self.grid_data.update(data)
         self._draw_line_u_()
@@ -47,9 +47,8 @@ class Nomo_Grid:
         start=self.grid_data['u_start']
         stop=self.grid_data['u_stop']
         for v in self.grid_data['v_values']:
-            print v
             f_here,g_here=self._make_u_funcs_(v)
-            self._draw_line_(f_here,g_here,start,stop)
+            self._draw_line_(f_here,g_here,start,stop,`v`)
 
     def _draw_line_v_(self):
         """
@@ -58,9 +57,8 @@ class Nomo_Grid:
         start=self.grid_data['v_start']
         stop=self.grid_data['v_stop']
         for u in self.grid_data['u_values']:
-            print u
             f_here,g_here=self._make_v_funcs_(u)
-            self._draw_line_(f_here,g_here,start,stop)
+            self._draw_line_(f_here,g_here,start,stop,`u`)
 
     def _make_u_funcs_(self,v_value):
         """
@@ -80,8 +78,8 @@ class Nomo_Grid:
         def g(v): return self.g(u_value,v)
         return f,g
 
-    def _draw_line_(self,f,g,start,stop):
-        du=fabs(start-stop)*1e-6
+    def _draw_line_(self,f,g,start,stop,title):
+        du=fabs(start-stop)*1e-3
         line_length_straigth=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
         sections=300.0 # about number of sections
         section_length=line_length_straigth/sections
@@ -95,12 +93,31 @@ class Nomo_Grid:
             u+=delta_u
             line.append(path.lineto(f(u), g(u)))
         self.canvas.stroke(line, [style.linewidth.normal])
+        # start number
+        dx=(f(start+du)-f(u))
+        dy=(g(start+du)-g(u))
+        dx_unit=dx/sqrt(dx**2+dy**2)
+        dy_unit=dy/sqrt(dx**2+dy**2)
+        if dy_unit!=0:
+            angle=-atan(dx_unit/dy_unit)*180/pi
+        else:
+            angle=0
+        text_distance=0.5
+        if dy<=0:
+            text_attr=[text.valign.top,text.halign.center,text.size.small,trafo.rotate(angle+90)]
+        else:
+            text_attr=[text.valign.top,text.halign.center,text.size.small,trafo.rotate(angle-90)]
+        self.canvas.text(f(start)-text_distance*dy_unit,
+                         g(start)-text_distance*dx_unit,
+                         title,text_attr)
+        self.canvas.fill(path.circle(f(start), g(start), 0.02))
+
 
 if __name__=='__main__':
     def f(a,b):
-        return sin(a)+cos(b)
+        return 5*(sin(a)+b)
     def g(a,b):
-        return 2*cos(a)-sin(b)
+        return 5*(2*cos(b)+a)
 
     c = canvas.canvas()
     gridi=Nomo_Grid(f,g,c)

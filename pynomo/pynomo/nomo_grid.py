@@ -19,7 +19,10 @@
 
 from pyx import *
 from math import *
-import scipy
+from scipy import *
+from numpy import *
+from nomo_axis import *
+import random
 
 class Nomo_Grid:
     """
@@ -49,7 +52,8 @@ class Nomo_Grid:
         stop=self.grid_data['u_stop']
         for v in self.grid_data['v_values']:
             f_here,g_here=self._make_u_funcs_(v)
-            self._draw_line_(f_here,g_here,start,stop,`v`)
+            self._draw_line_(f_here,g_here,start,stop,`v`,color.rgb.red)
+            print "v=%f"%v
 
     def _draw_line_v_(self):
         """
@@ -59,7 +63,8 @@ class Nomo_Grid:
         stop=self.grid_data['v_stop']
         for u in self.grid_data['u_values']:
             f_here,g_here=self._make_v_funcs_(u)
-            self._draw_line_(f_here,g_here,start,stop,`u`)
+            self._draw_line_(f_here,g_here,start,stop,`u`,color.rgb.black)
+            print "u=%f"%u
 
     def _make_u_funcs_(self,v_value):
         """
@@ -79,31 +84,52 @@ class Nomo_Grid:
         def g(v): return self.g(u_value,v)
         return f,g
 
-    def _draw_line_(self,f,g,start,stop,title):
-        du=fabs(start-stop)*1e-9
-        line_length_straigth1=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
-        diff=stop-start
-        line_length_straigth2=sqrt((f(start+diff/3.0)-f(stop-diff/3.0))**2+\
-                                   (g(start+diff/3.0)-g(stop-diff/3.0))**2)
-        line_length_straigth=max(line_length_straigth1,line_length_straigth2)
-        sections=300.0 # about number of sections
+    def _draw_line_(self,f,g,start,stop,title,axis_color=color.rgb.red):
+        du=fabs(start-stop)*1e-12
+        # approximate line length is found
+        line_length_straigth=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
+        for dummy in range(100):
+            random.seed(0.0) # so that mistakes always the same
+            first=random.uniform(start,stop)
+            second=random.uniform(start,stop)
+            temp=sqrt((f(first)-f(second))**2+(g(first)-g(second))**2)
+            if temp>line_length_straigth:
+                line_length_straigth=temp
+        sections=350.0 # about number of sections
         section_length=line_length_straigth/sections
         line = path.path(path.moveto(f(start), g(start)))
+        line.append(path.lineto(f(start), g(start)))
         u=start
         laskuri=1
-        while u<stop:
-            dx=(f(u+du)-f(u))
-            dy=(g(u+du)-g(u))
-            dl=sqrt(dx**2+dy**2)
-            delta_u=du*section_length/dl
-            u+=delta_u
-            #print u,stop
-            laskuri=laskuri+1
-            line.append(path.lineto(f(u), g(u)))
-        self.canvas.stroke(line, [style.linewidth.normal])
+        while True:
+            if u<stop:
+                dx=(f(u+du)-f(u))
+                dy=(g(u+du)-g(u))
+                dl=sqrt(dx**2+dy**2)
+                delta_u=du*section_length/dl
+                u+=delta_u
+                #print u,stop
+                laskuri=laskuri+1
+                line.append(path.lineto(f(u), g(u)))
+            else:
+                line.append(path.lineto(f(stop), g(stop)))
+                print laskuri
+                break
+
+        self.canvas.stroke(line, [style.linewidth.normal, axis_color])
         # start number
-        dx=(f(start+du)-f(u))
-        dy=(g(start+du)-g(u))
+        #self._set_text_to_grid(f, g, start, du, title,axis_color)
+        self._set_text_to_grid_(f, g, stop, -du, title,axis_color)
+        self.canvas.fill(path.circle(f(start), g(start), 0.03),[axis_color])
+        self.canvas.fill(path.circle(f(stop), g(stop), 0.03),[axis_color])
+        #print "line drawn"
+
+    def _set_text_to_grid_(self,f,g,u,du,title,axis_color):
+        """
+        draws text to the end of gridline
+        """
+        dx=(f(u+du)-f(u))
+        dy=(g(u+du)-g(u))
         dx_unit=dx/sqrt(dx**2+dy**2)
         dy_unit=dy/sqrt(dx**2+dy**2)
         if dy_unit!=0:
@@ -111,16 +137,17 @@ class Nomo_Grid:
         else:
             angle=0
         text_distance=0.5
-        if dy<=0:
-            text_attr=[text.valign.top,text.halign.center,text.size.small,trafo.rotate(angle+90)]
+        #if dy<=0:
+        if True:
+            text_attr=[text.valign.middle,text.halign.center,text.size.small,
+                       trafo.rotate(angle+90.0),axis_color]
         else:
-            text_attr=[text.valign.top,text.halign.center,text.size.small,trafo.rotate(angle-90)]
-        self.canvas.text(f(start)-text_distance*dy_unit,
-                         g(start)-text_distance*dx_unit,
+            text_attr=[text.valign.middle,text.halign.center,text.size.small,
+                       trafo.rotate(angle-90.0),axis_color]
+        self.canvas.text(f(u)-text_distance*dx_unit,
+                         g(u)-text_distance*dy_unit,
                          title,text_attr)
-        self.canvas.fill(path.circle(f(start), g(start), 0.02))
-        print "line drawn"
-
+        #self.canvas.fill(path.circle(f(u), g(u), 0.03),[axis_color])
 
 if __name__=='__main__':
     # functions for solartime
@@ -139,22 +166,52 @@ if __name__=='__main__':
     def ha(day,hour):
         return tst/4.0-180.0
 
+    multiplier=20.0
 
     def f(lat,day):
         dec=eq_declination(day)
-        return 45*(sin(lat*pi/180.0)*sin(dec))/(1.0+(sin(lat*pi/180.0)*sin(dec)))
+        return multiplier*(sin(lat*pi/180.0)*sin(dec))/(1.0+(sin(lat*pi/180.0)*sin(dec)))
     def g(lat,day):
         dec=eq_declination(day) # in radians
-        return 45*(cos(lat*pi/180.0)*cos(dec))/(1.0+cos(lat*pi/180.0)*cos(dec))
+        return multiplier*(cos(lat*pi/180.0)*cos(dec))/(1.0+(sin(lat*pi/180.0)*sin(dec)))
 
+    def f1(dummy):
+        return 0
+    def g1(fii):
+        return multiplier*cos(fii*pi/180.0)
+
+    def f3(dummy):
+        return multiplier
+    def g3(h):
+        hr=h*60.0/4.0-180.0 # we do not take time-offset into account
+        return -multiplier*cos(hr*pi/180.0)
+
+    #times=linspace(0,350,10)
+    times=arange(0.0,360.0,10.0,dtype=double).tolist()
+    #times.append(365)
     data={   'u_start':0.0, # latitude
              'u_stop':90.0,
              'v_start':0.0, # day
-             'v_stop':360.0,
+             'v_stop':350.0,
              'u_values':[0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0],
              #'v_values':[0.0,60.0,120.0,180.0,240.0,300.0,365.0]
-             'v_values':range(0.0,375.0,10.0)}
+             'v_values':times}
 
     c = canvas.canvas()
     gridi=Nomo_Grid(f,g,c,data=data)
+    ax1=Nomo_Axis(func_f=f1,func_g=g1,
+              start=0.0,stop=90.0,
+              title=r'$\Phi$',canvas=c,type='linear',
+              turn=-1,
+              tick_levels=3,tick_text_levels=1,
+              side='right')
+
+    ax2=Nomo_Axis(func_f=f3,func_g=g3,
+              start=0.0,stop=24.0,
+              title=r'Hour',canvas=c,type='linear',
+              turn=-1,
+              tick_levels=3,tick_text_levels=3,
+              side='right')
+
+
     c.writePDFfile("test_nomo_grid")

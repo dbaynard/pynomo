@@ -146,12 +146,18 @@ class Nomo_Grid:
             angle=0
         text_distance=0.5
         #if dy<=0:
+        if dy<=0:
+            text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle-90.0)]
+        else:
+            text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle+90.0)]
+        """
         if True:
             text_attr=[text.valign.middle,text.halign.center,text.size.small,
                        trafo.rotate(angle+90.0),axis_color]
         else:
             text_attr=[text.valign.middle,text.halign.center,text.size.small,
                        trafo.rotate(angle-90.0),axis_color]
+        """
         self.canvas.text(f(u)-text_distance*dx_unit,
                          g(u)-text_distance*dy_unit,
                          title,text_attr)
@@ -224,7 +230,7 @@ if __name__=='__main__':
               side='left')
 
     ax2=Nomo_Axis(func_f=f3,func_g=g3,
-              start=0.0,stop=24.0,
+              start=0.0,stop=23.0,
               title=r'Hour',canvas=c,type='linear',
               turn=-1,
               tick_levels=3,tick_text_levels=3,

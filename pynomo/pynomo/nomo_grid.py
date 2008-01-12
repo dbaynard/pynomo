@@ -50,9 +50,13 @@ class Nomo_Grid:
         """
         start=self.grid_data['u_start']
         stop=self.grid_data['u_stop']
-        for v in self.grid_data['v_values']:
+        for idx,v in enumerate(self.grid_data['v_values']):
             f_here,g_here=self._make_u_funcs_(v)
-            self._draw_line_(f_here,g_here,start,stop,`v`,color.rgb.red)
+            if not self.grid_data.has_key('v_titles'):
+                self._draw_line_(f_here,g_here,start,stop,`v`,color.rgb.red)
+            else:
+                self._draw_line_(f_here,g_here,start,stop,
+                                 self.grid_data['v_titles'][idx],color.rgb.red)
             print "v=%f"%v
 
     def _draw_line_v_(self):
@@ -61,9 +65,13 @@ class Nomo_Grid:
         """
         start=self.grid_data['v_start']
         stop=self.grid_data['v_stop']
-        for u in self.grid_data['u_values']:
+        for idx,u in enumerate(self.grid_data['u_values']):
             f_here,g_here=self._make_v_funcs_(u)
-            self._draw_line_(f_here,g_here,start,stop,`u`,color.rgb.black)
+            if not self.grid_data.has_key('u_titles'):
+                self._draw_line_(f_here,g_here,start,stop,`u`,color.rgb.black)
+            else:
+                self._draw_line_(f_here,g_here,start,stop,
+                                 self.grid_data['u_titles'][idx],color.rgb.red)
             print "u=%f"%u
 
     def _make_u_funcs_(self,v_value):
@@ -164,38 +172,47 @@ if __name__=='__main__':
     def tst(day,hour):
         return hour*60.0+eq_time(day)
     def ha(day,hour):
-        return tst/4.0-180.0
+        return tst(day,hour)/4.0-180.0
 
-    multiplier=20.0
-
+    multiplier_x=20.0
+    multiplier_y=10.0
     def f(lat,day):
         dec=eq_declination(day)
-        return multiplier*(sin(lat*pi/180.0)*sin(dec))/(1.0+(sin(lat*pi/180.0)*sin(dec)))
+        return multiplier_x*(cos(lat*pi/180.0)*cos(dec))/(1.0+(cos(lat*pi/180.0)*cos(dec)))
     def g(lat,day):
         dec=eq_declination(day) # in radians
-        return multiplier*(cos(lat*pi/180.0)*cos(dec))/(1.0+(sin(lat*pi/180.0)*sin(dec)))
+        return multiplier_y*(sin(lat*pi/180.0)*sin(dec))/(1.0+(cos(lat*pi/180.0)*cos(dec)))
 
     def f1(dummy):
         return 0
     def g1(fii):
-        return multiplier*cos(fii*pi/180.0)
+        return multiplier_y*cos(fii*pi/180.0)
 
     def f3(dummy):
-        return multiplier
+        return multiplier_x
     def g3(h):
         hr=h*60.0/4.0-180.0 # we do not take time-offset into account
-        return -multiplier*cos(hr*pi/180.0)
+        return -multiplier_y*cos(hr*pi/180.0)
+
+    days_in_month = (31,28,31,30,31,30,31,31,30,31,30,31)
+    times1=[]
+    for idx in range(0,12):
+        times1.append(sum(days_in_month[0:idx])+1)
+
 
     #times=linspace(0,350,10)
     times=arange(0.0,360.0,10.0,dtype=double).tolist()
+    time_titles=['January','February','March','April','May','June',
+                 'July','August','September','October','November','December']
     #times.append(365)
     data={   'u_start':0.0, # latitude
-             'u_stop':90.0,
-             'v_start':0.0, # day
-             'v_stop':350.0,
-             'u_values':[0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0],
+             'u_stop':80.0,
+             'v_start':times1[0], # day
+             'v_stop':times1[-1],
+             'u_values':[0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0],
              #'v_values':[0.0,60.0,120.0,180.0,240.0,300.0,365.0]
-             'v_values':times}
+             'v_values':times1,
+             'v_titles':time_titles}
 
     c = canvas.canvas()
     gridi=Nomo_Grid(f,g,c,data=data)
@@ -204,7 +221,7 @@ if __name__=='__main__':
               title=r'$\Phi$',canvas=c,type='linear',
               turn=-1,
               tick_levels=3,tick_text_levels=1,
-              side='right')
+              side='left')
 
     ax2=Nomo_Axis(func_f=f3,func_g=g3,
               start=0.0,stop=24.0,
@@ -215,3 +232,12 @@ if __name__=='__main__':
 
 
     c.writePDFfile("test_nomo_grid")
+    # let's get
+    test_h=10.0
+    test_day=70.0
+    test_lat=60.0
+    test_ha=test_h*60.0/4.0-180.0
+    test_dec=eq_declination(test_day)
+    test_cos_phi=sin(test_lat*pi/180.0)*sin(test_dec)+\
+    cos(test_lat*pi/180.0)*cos(test_dec)*cos(test_ha*pi/180.0)
+    print acos(test_cos_phi)*180/pi

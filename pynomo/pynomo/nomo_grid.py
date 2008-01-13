@@ -96,13 +96,14 @@ class Nomo_Grid:
         du=fabs(start-stop)*1e-12
         # approximate line length is found
         line_length_straigth=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
+        random.seed(0.0) # so that mistakes always the same
         for dummy in range(100):
-            random.seed(0.0) # so that mistakes always the same
             first=random.uniform(start,stop)
             second=random.uniform(start,stop)
             temp=sqrt((f(first)-f(second))**2+(g(first)-g(second))**2)
             if temp>line_length_straigth:
                 line_length_straigth=temp
+                #print "length: %f"%line_length_straigth
         sections=350.0 # about number of sections
         section_length=line_length_straigth/sections
         line = path.path(path.moveto(f(start), g(start)))
@@ -115,6 +116,23 @@ class Nomo_Grid:
                 dy=(g(u+du)-g(u))
                 dl=sqrt(dx**2+dy**2)
                 delta_u=du*section_length/dl
+                # let's calculate actual length
+                # and iterate until length is in factor 2 from target
+                """
+                while True:
+                    delta_x=f(u+delta_u)-f(u)
+                    delta_y=g(u+delta_u)-g(u)
+                    delta_l=sqrt(delta_x**2+delta_y**2)
+                    if delta_l>2.0*section_length:
+                        delta_u=delta_u*0.999
+                        #print "delta_u pienenee:%f"%delta_u
+                    else:
+                        if delta_l<section_length/2.0:
+                            delta_u=delta_u*1.001
+                            #print "delta_u kasvaa:%f"%delta_u
+                    if delta_l<=2*section_length and delta_l>=0.5*section_length:
+                        break
+                """
                 u+=delta_u
                 #print u,stop
                 laskuri=laskuri+1

@@ -118,7 +118,6 @@ class Nomo_Grid:
                 delta_u=du*section_length/dl
                 # let's calculate actual length
                 # and iterate until length is in factor 2 from target
-                """
                 while True:
                     delta_x=f(u+delta_u)-f(u)
                     delta_y=g(u+delta_u)-g(u)
@@ -132,7 +131,7 @@ class Nomo_Grid:
                             #print "delta_u kasvaa:%f"%delta_u
                     if delta_l<=2*section_length and delta_l>=0.5*section_length:
                         break
-                """
+
                 u+=delta_u
                 #print u,stop
                 laskuri=laskuri+1
@@ -183,12 +182,21 @@ class Nomo_Grid:
 
 if __name__=='__main__':
     # functions for solartime
+    # taken from solareqns.pdf from
+    # http://www.srrb.noaa.gov/highlights/sunrise/solareqns.PDF
     def gamma(day):
         return 2*pi/365.0*(day-1+0.5)
     def eq_time(day):
         gamma0=gamma(day)
         return 229.18*(0.000075+0.001868*cos(gamma0)-0.032077*sin(gamma0)\
                        -0.014615*cos(2*gamma0)-0.040849*sin(2*gamma0))
+
+    # mean correction, with constant correction we make less than 1.5 minutes error
+    # in time axis
+    temp_a=arange(0,2*pi,0.001)
+    temp_b=eq_time(temp_a)
+    correction=mean(temp_b) # this is about four minutes
+
     def eq_declination(day):
         g0=gamma(day)
         return 0.006918-0.399912*cos(g0)+0.070257*sin(g0)-0.006758*cos(2*g0)\
@@ -215,7 +223,7 @@ if __name__=='__main__':
     def f3(dummy):
         return multiplier_x
     def g3(h):
-        hr=h*60.0/4.0-180.0 # we do not take time-offset into account
+        hr=(h*60.0+correction)/4.0-180.0
         return -multiplier_y*cos(hr*pi/180.0)
 
     days_in_month = (31,28,31,30,31,30,31,31,30,31,30,31)
@@ -242,16 +250,16 @@ if __name__=='__main__':
     gridi=Nomo_Grid(f,g,c,data=data)
     ax1=Nomo_Axis(func_f=f1,func_g=g1,
               start=0.0,stop=90.0,
-              title=r'$\Phi$',canvas=c,type='linear',
+              title=r'Solar zenith angle $\phi$',canvas=c,type='linear',
               turn=-1,
               tick_levels=3,tick_text_levels=1,
               side='left')
 
     ax2=Nomo_Axis(func_f=f3,func_g=g3,
               start=0.0,stop=23.0,
-              title=r'Hour',canvas=c,type='linear',
+              title=r'Hour (h)',canvas=c,type='linear',
               turn=-1,
-              tick_levels=3,tick_text_levels=3,
+              tick_levels=4,tick_text_levels=3,
               side='right')
 
 

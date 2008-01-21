@@ -66,4 +66,12 @@ class Axes_Wrapper:
         """
         pass
 
+    def _print_result_pdf_(self):
+        """
+        prints result pdf for debuggin purposes
+        """
+        pass
+        # print original
+        # print transformed
+
 

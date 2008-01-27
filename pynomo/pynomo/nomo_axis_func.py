@@ -92,7 +92,7 @@ class Axis_Wrapper:
                 line.append((f(u), g(u)))
             else:
                 line.append((f(stop), g(stop)))
-                print count
+                #print count
                 #print line
                 break
         self.line=line
@@ -148,7 +148,7 @@ class Axis_Wrapper:
             y2t=self.give_trafo_y(x2, y2)
             section=sqrt((x1t-x2t)**2+(y1t-y2t)**2)
             length=length+section
-        print length
+        #print length
         self.length=length
         return length
 
@@ -170,7 +170,7 @@ class Axis_Wrapper:
                 y_bottom=y_trafo
             if y_trafo>y_top:
                 y_top=y_trafo
-        print x_left,x_right,y_bottom,y_top
+        #print x_left,x_right,y_bottom,y_top
         self.x_left=x_left
         self.x_right=x_right
         self.y_top=y_top
@@ -220,11 +220,14 @@ class Axes_Wrapper:
         self.beta3=beta3
         self.gamma3=gamma3
 
-    def optimize_tranformation(self):
+    def _set_transformation_to_all_axis_(self):
         """
-        returns optimal transformation
+        sets current transformation to all axes
         """
-        pass
+        for axis in self.axes_list:
+            axis.set_transformation(alpha1=self.alpha1,beta1=self.beta1,gamma1=self.gamma1,
+                           alpha2=self.alpha2,beta2=self.beta2,gamma2=self.gamma2,
+                           alpha3=self.alpha3,beta3=self.beta3,gamma3=self.gamma3)
 
     def _calc_bounding_box_(self):
         """
@@ -247,6 +250,7 @@ class Axes_Wrapper:
         self.y_bottom=y_bottom
         self.Wt=self.x_right-self.x_left
         self.Ht=self.y_top-self.y_bottom
+        return x_left,x_right,y_bottom,y_top
 
     def _calc_paper_area_(self):
         """
@@ -272,15 +276,39 @@ class Axes_Wrapper:
         self.length_sum_sq=length_sum_sq
         return length_sum_sq
 
-    def _calc_min_func_(self):
+    def _set_params_to_trafo_(self,params):
+        """
+        sets transformation coeffs from optimization params
+        """
+        self.alpha1=params[0]
+        self.beta1=params[1]
+        self.gamma1=params[2]
+        self.alpha2=params[3]
+        self.beta2=params[4]
+        self.gamma2=params[5]
+        self.alpha3=params[6]
+        self.beta3=params[7]
+        self.gamma3=params[8]
+
+    def _calc_min_func_(self,params):
         """
         calculates function to be minimized
         """
+        print params
+        self._set_params_to_trafo_(params) # sets tranformation parameters
+        self._set_transformation_to_all_axis_() # applies trafo to every axis
         self._calc_bounding_box_()
         self._calc_paper_area_()
         self._calc_axes_length_sq_sum_()
         opt_value=self.paper_area/self.length_sum_sq
         return opt_value
+
+    def optimize_transformation(self):
+        """
+        returns optimal transformation
+        """
+        x0=[1.0,0,0,0,1.0,0,0,0,1.0]
+        optimize.fmin(self._calc_min_func_,x0,full_output=1)
 
     def _print_result_pdf_(self):
         """
@@ -310,7 +338,24 @@ if __name__=='__main__':
     def g3(L):
         return L
 
+    def f4(L):
+        return 3.0
+    def g4(L):
+        return L
+
+    def f5(L):
+        return 6.0
+    def g5(L):
+        return L
 
     test1_ax=Axis_Wrapper(f1,g1,0.5,1.0)
     test2_ax=Axis_Wrapper(f2,g2,0.5,1.0)
     test3_ax=Axis_Wrapper(f3,g3,0.0,1.0)
+    test4_ax=Axis_Wrapper(f4,g4,0.0,1.0)
+    test5_ax=Axis_Wrapper(f5,g5,0.0,1.0)
+    test_wrap=Axes_Wrapper()
+    test_wrap.add_axis(test3_ax)
+    test_wrap.add_axis(test4_ax)
+    test_wrap.add_axis(test5_ax)
+    #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
+    test_wrap.optimize_transformation()

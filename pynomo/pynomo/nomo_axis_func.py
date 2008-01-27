@@ -258,10 +258,10 @@ class Axes_Wrapper:
         given paper proportions
         """
         proportion=self.Wt/self.Ht
-        if proportion<=self.paper_prop:
+        if proportion>=self.paper_prop:
             W=self.Wt
             H=self.Wt/self.paper_prop
-        else: #proportion>self.paper_prop
+        else: #proportion<self.paper_prop
             W=self.Ht*self.paper_prop
             H=self.Ht
         self.paper_area=W*H
@@ -351,8 +351,8 @@ if __name__=='__main__':
     test1_ax=Axis_Wrapper(f1,g1,0.5,1.0)
     test2_ax=Axis_Wrapper(f2,g2,0.5,1.0)
     test3_ax=Axis_Wrapper(f3,g3,0.0,1.0)
-    test4_ax=Axis_Wrapper(f4,g4,0.0,1.0)
-    test5_ax=Axis_Wrapper(f5,g5,0.0,1.0)
+    test4_ax=Axis_Wrapper(f4,g4,0.0,2.0)
+    test5_ax=Axis_Wrapper(f5,g5,0.0,3.0)
     test_wrap=Axes_Wrapper()
     test_wrap.add_axis(test3_ax)
     test_wrap.add_axis(test4_ax)

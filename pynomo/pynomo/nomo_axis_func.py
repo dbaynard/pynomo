@@ -153,6 +153,9 @@ class Axis_Wrapper:
         return length
 
     def calc_bound_box(self):
+        """
+        calculates bounding box for axis
+        """
         line=self.line
         (x_0,y_0)=line[0]
         x_left=self.give_trafo_x(x_0, y_0)
@@ -176,6 +179,10 @@ class Axis_Wrapper:
         self.y_top=y_top
         self.y_bottom=y_bottom
         return x_left,x_right,y_bottom,y_top
+
+
+
+
 
 class Axes_Wrapper:
     """

@@ -171,29 +171,54 @@ class Axis_Wrapper:
             if y_trafo>y_top:
                 y_top=y_trafo
         print x_left,x_right,y_bottom,y_top
-
-
+        self.x_left=x_left
+        self.x_right=x_right
+        self.y_top=y_top
+        self.y_bottom=y_bottom
+        return x_left,x_right,y_bottom,y_top
 
 class Axes_Wrapper:
     """
     class to wrap axes group functionalities. For optimization of
     axes w.r.t. to paper
     """
-    def __init__(self):
-        pass
+    def __init__(self,paper_width=10.0,paper_height=10.0):
+        self.paper_width=paper_width
+        self.paper_height=paper_height
+        self.paper_prop=paper_width/paper_height
+        self.set_transformation()
+        self.axes_list=[]
 
-
-    def add_axis(self):
+    def add_axis(self,axis):
         """
         adds axis to the list
         """
-        pass
+        self.axes_list.append(axis)
 
-    def define_paper_size(self):
+    def define_paper_size(self,paper_width=10.0,paper_height=10.0):
         """
         sets proportion of the paper
         """
-        pass
+        self.paper_width=paper_width
+        self.paper_height=paper_height
+        self.paper_prop=paper_width/paper_height
+
+    def set_transformation(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
+                           alpha2=0.0,beta2=1.0,gamma2=0.0,
+                           alpha3=0.0,beta3=0.0,gamma3=1.0):
+        """
+        sets the transformation for x,y points to be applied
+        see funcs give_trafo_x and give_trafo_y for details
+        """
+        self.alpha1=alpha1
+        self.beta1=beta1
+        self.gamma1=gamma1
+        self.alpha2=alpha2
+        self.beta2=beta2
+        self.gamma2=gamma2
+        self.alpha3=alpha3
+        self.beta3=beta3
+        self.gamma3=gamma3
 
     def optimize_tranformation(self):
         """
@@ -205,7 +230,57 @@ class Axes_Wrapper:
         """
         calculates bounding box for the axes
         """
-        pass
+        x_left,x_right,y_bottom,y_top=self.axes_list[0].calc_bound_box()
+        for axis in self.axes_list:
+            x_left0,x_right0,y_bottom0,y_top0=axis.calc_bound_box()
+            if x_left0<x_left:
+                x_left=x_left0
+            if x_right0>x_right:
+                x_right=x_right0
+            if y_bottom0<y_bottom:
+                y_bottom=y_bottom0
+            if y_top0>y_top:
+                y_top=y_top0
+        self.x_left=x_left
+        self.x_right=x_right
+        self.y_top=y_top
+        self.y_bottom=y_bottom
+        self.Wt=self.x_right-self.x_left
+        self.Ht=self.y_top-self.y_bottom
+
+    def _calc_paper_area_(self):
+        """
+        calculates paper area needed to fit axes to
+        given paper proportions
+        """
+        proportion=self.Wt/self.Ht
+        if proportion<=self.paper_prop:
+            W=self.Wt
+            H=self.Wt/self.paper_prop
+        else: #proportion>self.paper_prop
+            W=self.Ht*self.paper_prop
+            H=self.Ht
+        self.paper_area=W*H
+
+    def _calc_axes_length_sq_sum_(self):
+        """
+        calculates sum of axes squared lengths
+        """
+        length_sum_sq=0.0
+        for axis in self.axes_list:
+            length_sum_sq=length_sum_sq+(axis.calc_length())**2
+        self.length_sum_sq=length_sum_sq
+        return length_sum_sq
+
+    def _calc_min_func_(self):
+        """
+        calculates function to be minimized
+        """
+        self._calc_bounding_box_()
+        self._calc_paper_area_()
+        self._calc_axes_length_sq_sum_()
+        opt_value=self.paper_area/self.length_sum_sq
+        return opt_value
 
     def _print_result_pdf_(self):
         """
@@ -230,12 +305,12 @@ if __name__=='__main__':
     def g2(L):
         return 10**(L)
 
-    def f2(L):
+    def f3(L):
         return 0.0
-    def g2(L):
+    def g3(L):
         return L
 
 
     test1_ax=Axis_Wrapper(f1,g1,0.5,1.0)
     test2_ax=Axis_Wrapper(f2,g2,0.5,1.0)
-    test3_ax=Axis_Wrapper(f2,g2,0.0,1.0)
+    test3_ax=Axis_Wrapper(f3,g3,0.0,1.0)

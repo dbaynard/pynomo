@@ -342,7 +342,7 @@ class Axes_Wrapper:
         returns optimal transformation
         """
         x0=[1.0,0,0,0,1.0,0,0,0,1.0]
-        optimize.fmin(self._calc_min_func_,x0,full_output=1)
+        optimize.fmin(self._calc_min_func_,x0,full_output=1,maxiter=2000)
         self.alpha1=self.multiplier_x*self.alpha1
         self.beta1=self.multiplier_x*self.beta1
         self.gamma1=self.multiplier_x*self.gamma1
@@ -386,7 +386,7 @@ if __name__=='__main__':
     def f3(L):
         return -L
     def g3(L):
-        return L-2.0
+        return L-1.0
 
     def f4(L):
         return 3.0

@@ -21,6 +21,7 @@ from math import *
 from scipy import *
 from numpy import *
 import random
+from pyx import *
 
 class Axis_Wrapper:
     """
@@ -152,6 +153,22 @@ class Axis_Wrapper:
         self.length=length
         return length
 
+    def plot_axis(self,c):
+        """
+        plots axis to canvas
+        """
+        x00,y00=self.line[0]
+        x0=self.give_trafo_x(x00, y00)
+        y0=self.give_trafo_y(x00, y00)
+        print x0,y0
+        line = path.path(path.moveto(x0, y0))
+        for x,y in self.line:
+            xt=self.give_trafo_x(x, y)
+            yt=self.give_trafo_y(x, y)
+            line.append(path.lineto(xt, yt))
+        c.stroke(line, [style.linewidth.normal])
+
+
     def calc_bound_box(self):
         """
         calculates bounding box for axis
@@ -271,6 +288,10 @@ class Axes_Wrapper:
         else: #proportion<self.paper_prop
             W=self.Ht*self.paper_prop
             H=self.Ht
+        self.multiplier_x=self.paper_width/self.Wt
+        self.multiplier_y=self.paper_height/self.Ht
+        self.H=H
+        self.W=W
         self.paper_area=W*H
 
     def _calc_axes_length_sq_sum_(self):
@@ -301,13 +322,19 @@ class Axes_Wrapper:
         """
         calculates function to be minimized
         """
-        print params
+        #print params
+        #print "."
         self._set_params_to_trafo_(params) # sets tranformation parameters
         self._set_transformation_to_all_axis_() # applies trafo to every axis
-        self._calc_bounding_box_()
+        bb=self._calc_bounding_box_()
         self._calc_paper_area_()
         self._calc_axes_length_sq_sum_()
         opt_value=self.paper_area/self.length_sum_sq
+        max_bb=max(bb)
+        min_bb=min(bb)
+        max_bb=max(max_bb,-min_bb)
+        if max_bb>1000.0:
+            opt_value=max_bb
         return opt_value
 
     def optimize_transformation(self):
@@ -316,12 +343,28 @@ class Axes_Wrapper:
         """
         x0=[1.0,0,0,0,1.0,0,0,0,1.0]
         optimize.fmin(self._calc_min_func_,x0,full_output=1)
+        self.alpha1=self.multiplier_x*self.alpha1
+        self.beta1=self.multiplier_x*self.beta1
+        self.gamma1=self.multiplier_x*self.gamma1
+        self.alpha2=self.multiplier_y*self.alpha2
+        self.beta2=self.multiplier_y*self.beta2
+        self.gamma2=self.multiplier_y*self.gamma2
+        self._set_transformation_to_all_axis_()
 
-    def _print_result_pdf_(self):
+    def _plot_axes_(self,c):
+        """
+        prints axes for debugging purposes
+        """
+        for axis in self.axes_list:
+            axis.plot_axis(c)
+
+    def _print_result_pdf_(self,filename="axis_func_test.pdf"):
         """
         prints result pdf for debugging purposes
         """
-        pass
+        c = canvas.canvas()
+        self._plot_axes_(c)
+        c.writePDFfile(filename)
         # print original
         # print transformed
 
@@ -341,9 +384,9 @@ if __name__=='__main__':
         return 10**(L)
 
     def f3(L):
-        return 0.0
+        return -L
     def g3(L):
-        return L
+        return L-2.0
 
     def f4(L):
         return 3.0
@@ -365,4 +408,6 @@ if __name__=='__main__':
     test_wrap.add_axis(test4_ax)
     test_wrap.add_axis(test5_ax)
     #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
+    test_wrap._print_result_pdf_("original.pdf")
     test_wrap.optimize_transformation()
+    test_wrap._print_result_pdf_("final.pdf")

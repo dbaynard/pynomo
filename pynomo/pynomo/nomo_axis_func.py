@@ -320,7 +320,7 @@ class Axes_Wrapper:
 
     def _calc_min_func_(self,params):
         """
-        calculates function to be minimized
+        function to be minimized
         """
         #print params
         #print "."
@@ -367,6 +367,34 @@ class Axes_Wrapper:
         c.writePDFfile(filename)
         # print original
         # print transformed
+    def _calc_transformation_matrix_(self,orig_points,dest_points):
+        """
+        calculates transformation from orig_points (4 x-y pairs) to
+        dest_points (4 x-y pairs)
+        """
+        pass
+
+    def _find_polygon_horizontal_(self):
+        """
+        finds intersection of horizontal line "dropping" until it
+        hit the highest point (1) of axes. Then line tilts to minimum angle
+        by another point (2).
+        Same for bottom points (3) and (4) with vice versa.
+        """
+        pass
+
+    def _add_transformation_(self):
+        """
+        adds transformation to be applied as a basis.
+        all transformation matrices are multiplied together
+        """
+        pass
+
+    def _calc_rotation_trafo_(self,angle):
+        """
+        returns rotation transformation. angle in degrees.
+        """
+        pass
 
 
 if __name__=='__main__':

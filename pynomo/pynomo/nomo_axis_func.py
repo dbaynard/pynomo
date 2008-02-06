@@ -198,6 +198,70 @@ class Axis_Wrapper:
         self.y_bottom=y_bottom
         return x_left,x_right,y_bottom,y_top
 
+    def calc_highest_point(self):
+        """
+        calculates point with heighest y_value
+        """
+        line=self.line
+        (x_0,y_0)=line[0]
+        x_best=self.give_trafo_x(x_0, y_0)
+        y_best=self.give_trafo_y(x_0, y_0)
+        for x,y in line:
+            x_trafo=self.give_trafo_x(x, y)
+            y_trafo=self.give_trafo_y(x, y)
+            if y_trafo>y_best:
+                y_best=y_trafo
+                x_best=x_trafo
+        return x_best,y_best
+
+    def calc_lowest_point(self):
+        """
+        calculates point with lowest y-value
+        """
+        line=self.line
+        (x_0,y_0)=line[0]
+        x_best=self.give_trafo_x(x_0, y_0)
+        y_best=self.give_trafo_y(x_0, y_0)
+        for x,y in line:
+            x_trafo=self.give_trafo_x(x, y)
+            y_trafo=self.give_trafo_y(x, y)
+            if y_trafo<y_best:
+                y_best=y_trafo
+                x_best=x_trafo
+        return x_best,y_best
+
+    def calc_min_slope(self,x_ref,y_ref):
+        """
+        calculates minimum absolute slope of any point in axis and
+        given point (x_ref,y_ref)
+        """
+        line=self.line
+        (x_0,y_0)=line[0]
+        x_best=self.give_trafo_x(x_0, y_0)
+        y_best=self.give_trafo_y(x_0, y_0)
+        slope_best=self._calc_slope_(x_best,y_best,x_ref,y_ref)
+        for x,y in line:
+            x_trafo=self.give_trafo_x(x, y)
+            y_trafo=self.give_trafo_y(x, y)
+            slope=self._calc_slope_(x,y,x_ref,y_ref)
+            if slope<slope_best:
+                y_best=y_trafo
+                x_best=x_trafo
+                slope_best=slope
+        return x_best,y_best,slope_best
+
+    def _calc_slope_(self,x1,y1,x2,y2):
+        """
+        calculates absolute value of slope between points (x1,y1) and (x2,y2)
+        slope = dy/dx
+        """
+        dx=abs(x2-x1)
+        dy=abs(y1-y2)
+        if dx>0:
+            return dy/dx
+        else:
+            return 1e120 # = big number
+
 
 
 
@@ -357,7 +421,8 @@ class Axes_Wrapper:
         c.writePDFfile(filename)
         # print original
         # print transformed
-    def _calc_transformation_matrix_(self,orig_points,dest_points):
+    def _calc_transformation_matrix_(self,x1,y1,x2,y2,x3,y3,x4,y4,
+                                     x1d,y1d,x2d,y2d,x3d,y3d,x4d,y4d):
         """
         calculates transformation from orig_points (4 x-y pairs) to
         dest_points (4 x-y pairs):
@@ -366,12 +431,14 @@ class Axes_Wrapper:
                |  polygon  |      ---->      |   polygon  |
             (x2,y2)     (x4,y4)          (x2d,y2d)      (x4d,y4d)
         """
+        """
         o=orig_points
         x1,y1,x2,y2=o['x1'],o['y1'],o['x2'],o['y2']
         x3,y3,x4,y4=o['x3'],o['y3'],o['x4'],o['y4']
         d=dest_points
         x1d,y1d,x2d,y2d=d['x1'],d['y1'],d['x2'],d['y2']
         x3d,y3d,x4d,y4d=d['x3'],d['y3'],d['x4'],d['y4']
+        """
         row1,const1=self._make_row_(coordinate='x',coord_value=x2d,x=x2,y=y2)
         row2,const2=self._make_row_(coordinate='y',coord_value=y2d,x=x2,y=y2)
         row3,const3=self._make_row_(coordinate='x',coord_value=x1d,x=x1,y=y1)
@@ -396,7 +463,7 @@ class Axes_Wrapper:
         return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
     def _make_row_(self,coordinate='x',x=1.0,y=1.0,coord_value=1.0):
-        """ Makes transformation matrix. See eq.37,a
+        """ Utility to find transformation matrix. See eq.37,a
         in Allcock. We take \alpha_1=1. h=1.
         """
         # to make expressions shorter
@@ -416,7 +483,75 @@ class Axes_Wrapper:
         by another point (2).
         Same for bottom points (3) and (4) with vice versa.
         """
-        pass
+        # let's find the point with largest y-value
+        y_high=-1e120 #big negative number
+        for axis in self.axes_list:
+            x,y=axis.calc_highest_point()
+            if y>y_high:
+                y_high=y
+                x_high=x
+        # let's find the point with smallest y-value
+        y_low=1e120 #big number
+        for axis in self.axes_list:
+            x,y=axis.calc_lowest_point()
+            if y<y_low:
+                y_low=y
+                x_low=x
+        # let's find the top-line with minimum slope
+        slope_high=1e120 # big number
+        for axis in self.axes_list:
+            x,y,slope=axis.calc_min_slope(x_high,y_high)
+            if slope<slope_high:
+                y_slope_high=y
+                x_slope_high=x
+        # let's find the bottom-lne with minimum slope
+        slope_low=1e120 # big number
+        for axis in self.axes_list:
+            x,y,slope=axis.calc_min_slope(x_low,y_low)
+            if slope<slope_low:
+                y_slope_low=y
+                x_slope_low=x
+        """ let's set the points to a ractangle form (not self-intersecting)
+            (x1,y1)   -  (x3,y3)
+               |  polygon  |
+            (x2,y2)   -  (x4,y4)
+        """
+        x1,y1,x2,y2=x_high,y_high,x_low,y_low
+        x3,y3,x4,y4=x_slope_high,y_slope_high,x_slope_low,y_slope_low
+        if (x1-x3)*(x2-x4)<0:
+            x1,y1,x3,y3=x3,y3,x1,y1
+        if x3<x1:
+            x1,y1,x2,y2,x3,y3,x4,y4=x3,y3,x4,y4,x1,y1,x2,y2
+        return x1,y1,x2,y2,x3,y3,x4,y4
+
+    def make_polygon_trafo(self):
+        """
+        transforms polygon according to:
+
+        finds intersection of horizontal line "dropping" until it
+        hit the highest point (1) of axes. Then line tilts to minimum angle
+        by another point (2).
+        Same for bottom points (3) and (4) with vice versa. This polygon will
+        be transformed to the corners of the paper.
+
+            (x1,y1)     (x3,y3)          (x1d,y1d)      (x3d,y3d)
+               |  polygon  |      ---->      |   polygon  |
+            (x2,y2)     (x4,y4)          (x2d,y2d)      (x4d,y4d)
+        """
+        # define right polygon
+        x1d,y1d=0,self.paper_height
+        x2d,y2d=0,0
+        x3d,y3d=self.paper_width,self.paper_height
+        x4d,y4d=self.paper_width,0
+        # find the left polygon
+        x1,y1,x2,y2,x3,y3,x4,y4=self._find_polygon_horizontal_()
+        # calculate transformation
+        alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+        self._calc_transformation_matrix_(x1,y1,x2,y2,x3,y3,x4,y4,
+                                          x1d,y1d,x2d,y2d,x3d,y3d,x4d,y4d)
+        # apply transformation
+        self._add_transformation_(alpha1,beta1,gamma1,alpha2,beta2,gamma2,
+                                  alpha3, beta3, gamma3)
 
     def _add_transformation_(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
                              alpha2=0.0,beta2=1.0,gamma2=0.0,

@@ -22,6 +22,7 @@ from scipy import *
 from numpy import *
 import random
 from pyx import *
+from copy import copy
 
 class Axis_Wrapper:
     """
@@ -211,6 +212,8 @@ class Axes_Wrapper:
         self.paper_height=paper_height
         self.paper_prop=paper_width/paper_height
         self.set_transformation()
+        self.trafo_stack=[] # stack for transformation matrices
+        self._add_transformation_()
         self.axes_list=[]
 
     def add_axis(self,axis):
@@ -304,27 +307,13 @@ class Axes_Wrapper:
         self.length_sum_sq=length_sum_sq
         return length_sum_sq
 
-    def _set_params_to_trafo_(self,params):
-        """
-        sets transformation coeffs from optimization params
-        """
-        self.alpha1=params[0]
-        self.beta1=params[1]
-        self.gamma1=params[2]
-        self.alpha2=params[3]
-        self.beta2=params[4]
-        self.gamma2=params[5]
-        self.alpha3=params[6]
-        self.beta3=params[7]
-        self.gamma3=params[8]
-
     def _calc_min_func_(self,params):
         """
         function to be minimized
         """
         #print params
         #print "."
-        self._set_params_to_trafo_(params) # sets tranformation parameters
+        self._change_params_to_last_trafo_mat_(params) # sets tranformation parameters
         self._set_transformation_to_all_axis_() # applies trafo to every axis
         bb=self._calc_bounding_box_()
         self._calc_paper_area_()
@@ -342,6 +331,7 @@ class Axes_Wrapper:
         returns optimal transformation
         """
         x0=[1.0,0,0,0,1.0,0,0,0,1.0]
+        self._add_params_trafo_stack_(x0)
         optimize.fmin(self._calc_min_func_,x0,full_output=1,maxiter=2000)
         self.alpha1=self.multiplier_x*self.alpha1
         self.beta1=self.multiplier_x*self.beta1
@@ -370,9 +360,54 @@ class Axes_Wrapper:
     def _calc_transformation_matrix_(self,orig_points,dest_points):
         """
         calculates transformation from orig_points (4 x-y pairs) to
-        dest_points (4 x-y pairs)
+        dest_points (4 x-y pairs):
+
+            (x1,y1)     (x3,y3)          (x1d,y1d)      (x3d,y3d)
+               |  polygon  |      ---->      |   polygon  |
+            (x2,y2)     (x4,y4)          (x2d,y2d)      (x4d,y4d)
         """
-        pass
+        o=orig_points
+        x1,y1,x2,y2=o['x1'],o['y1'],o['x2'],o['y2']
+        x3,y3,x4,y4=o['x3'],o['y3'],o['x4'],o['y4']
+        d=dest_points
+        x1d,y1d,x2d,y2d=d['x1'],d['y1'],d['x2'],d['y2']
+        x3d,y3d,x4d,y4d=d['x3'],d['y3'],d['x4'],d['y4']
+        row1,const1=self._make_row_(coordinate='x',coord_value=x2d,x=x2,y=y2)
+        row2,const2=self._make_row_(coordinate='y',coord_value=y2d,x=x2,y=y2)
+        row3,const3=self._make_row_(coordinate='x',coord_value=x1d,x=x1,y=y1)
+        row4,const4=self._make_row_(coordinate='y',coord_value=y1d,x=x1,y=y1)
+        row5,const5=self._make_row_(coordinate='x',coord_value=x4d,x=x4,y=y4)
+        row6,const6=self._make_row_(coordinate='y',coord_value=y4d,x=x4,y=y4)
+        row7,const7=self._make_row_(coordinate='x',coord_value=x3d,x=x3,y=y3)
+        row8,const8=self._make_row_(coordinate='y',coord_value=y3d,x=x3,y=y3)
+
+        matrix=array([row1,row2,row3,row4,row5,row6,row7,row8])
+        b=array([const1,const2,const3,const4,const5,const6,const7,const8])
+        coeff_vector=linalg.solve(matrix,b)
+        alpha1=-1.0 # fixed
+        beta1=coeff_vector[0][0]
+        gamma1=coeff_vector[1][0]
+        alpha2=coeff_vector[2][0]
+        beta2=coeff_vector[3][0]
+        gamma2=coeff_vector[4][0]
+        alpha3=coeff_vector[5][0]
+        beta3=coeff_vector[6][0]
+        gamma3=coeff_vector[7][0]
+        return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
+
+    def _make_row_(self,coordinate='x',x=1.0,y=1.0,coord_value=1.0):
+        """ Makes transformation matrix. See eq.37,a
+        in Allcock. We take \alpha_1=1. h=1.
+        """
+        # to make expressions shorter
+        cv=coord_value
+        if  coordinate=='x':
+            row=array([y,1,0,0,0,-cv*x,-cv*y,-cv*1])
+            value=array([x])
+        if  coordinate=='y':
+            row=array([0,0,x,y,1,-cv*x,-cv*y,-cv*1])
+            value=array([0])
+        return row,value
 
     def _find_polygon_horizontal_(self):
         """
@@ -383,19 +418,102 @@ class Axes_Wrapper:
         """
         pass
 
-    def _add_transformation_(self):
+    def _add_transformation_(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
+                             alpha2=0.0,beta2=1.0,gamma2=0.0,
+                             alpha3=0.0,beta3=0.0,gamma3=1.0):
         """
         adds transformation to be applied as a basis.
         all transformation matrices are multiplied together
         """
-        pass
+        trafo_mat = array([[alpha1,beta1,gamma1],
+                          [alpha2,beta2,gamma2],
+                          [alpha3,beta3,gamma3]])
+        self.trafo_stack.append(trafo_mat)
+        self._calculate_total_trafo_mat_() # update coeffs
+
+    def _calculate_total_trafo_mat_(self):
+        """
+        calculates total transformation matrix and
+        master coeffs self.alpha1,self.beta1,...
+        """
+        stack_copy=copy(self.trafo_stack)
+        stack_copy.reverse()
+        trafo_mat=stack_copy.pop()
+        for matrix in stack_copy:
+            trafo_mat=dot(trafo_mat,matrix) # matrix multiplication
+        self.alpha1=trafo_mat[0][0]
+        self.beta1=trafo_mat[0][1]
+        self.gamma1=trafo_mat[0][2]
+        self.alpha2=trafo_mat[1][0]
+        self.beta2=trafo_mat[1][1]
+        self.gamma2=trafo_mat[1][2]
+        self.alpha3=trafo_mat[2][0]
+        self.beta3=trafo_mat[2][1]
+        self.gamma3=trafo_mat[2][2]
+
+    def _change_params_to_last_trafo_mat_(self,params):
+        """
+        changes transformation coeffs from optimization params to
+        last transformation matrix in stack
+        """
+        alpha1=params[0]
+        beta1=params[1]
+        gamma1=params[2]
+        alpha2=params[3]
+        beta2=params[4]
+        gamma2=params[5]
+        alpha3=params[6]
+        beta3=params[7]
+        gamma3=params[8]
+        self.trafo_stack.pop()
+        self._add_transformation_(alpha1=alpha1,beta1=beta1,gamma1=gamma1,
+                                  alpha2=alpha2,beta2=beta2,gamma2=gamma2,
+                                  alpha3=alpha3,beta3=beta3,gamma3=gamma3)
+
+    def _add_params_trafo_stack_(self,params):
+        """
+        appends transformation coeffs from (optimization) params to stack
+        """
+        alpha1=params[0]
+        beta1=params[1]
+        gamma1=params[2]
+        alpha2=params[3]
+        beta2=params[4]
+        gamma2=params[5]
+        alpha3=params[6]
+        beta3=params[7]
+        gamma3=params[8]
+        self._add_transformation_(alpha1=alpha1,beta1=beta1,gamma1=gamma1,
+                                  alpha2=alpha2,beta2=beta2,gamma2=gamma2,
+                                  alpha3=alpha3,beta3=beta3,gamma3=gamma3)
 
     def _calc_rotation_trafo_(self,angle):
         """
         returns rotation transformation. angle in degrees.
         """
-        pass
+        angle_r=angle/180*pi # angle in radians
+        alpha1=sin(angle_r)
+        beta1=cos(angle_r)
+        gamma1=0.0
+        alpha2=cos(angle_r)
+        beta2=-sin(angle_r)
+        gamma2=0.0
+        alpha3=0.0
+        beta3=0.0
+        gamma3=1.0
+        return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
+    def rotate_canvas(self,angle):
+        """
+        rotates canvas by angle degrees by adding a rotation matrix
+        into trafo_stack
+        """
+        alpha1,beta1,gamma1,alpha2,\
+        beta2,gamma2,alpha3,beta3,gamma3=self._calc_rotation_trafo_(angle)
+        self._add_transformation_(alpha1=alpha1,beta1=beta1,gamma1=gamma1,
+                                  alpha2=alpha2,beta2=beta2,gamma2=gamma2,
+                                  alpha3=alpha3,beta3=beta3,gamma3=gamma3)
+        self._set_transformation_to_all_axis_()
 
 if __name__=='__main__':
     """
@@ -425,13 +543,30 @@ if __name__=='__main__':
         return 6.0
     def g5(L):
         return L
-
+    # test points for transformation
+    o = {'x1':1,
+         'y1':3,
+         'x2':-2,
+         'y2':1,
+         'x3':4,
+         'y3':2,
+         'x4':3,
+         'y4':-2}
+    d = {'x1':0,
+         'y1':1,
+         'x2':0,
+         'y2':0,
+         'x3':1,
+         'y3':1,
+         'x4':1,
+         'y4':0}
     test1_ax=Axis_Wrapper(f1,g1,0.5,1.0)
     test2_ax=Axis_Wrapper(f2,g2,0.5,1.0)
     test3_ax=Axis_Wrapper(f3,g3,0.0,1.0)
     test4_ax=Axis_Wrapper(f4,g4,0.0,2.0)
     test5_ax=Axis_Wrapper(f5,g5,0.0,3.0)
     test_wrap=Axes_Wrapper()
+    #print test_wrap._calc_transformation_matrix_(o, d)
     test_wrap.add_axis(test3_ax)
     test_wrap.add_axis(test4_ax)
     test_wrap.add_axis(test5_ax)
@@ -439,3 +574,11 @@ if __name__=='__main__':
     test_wrap._print_result_pdf_("original.pdf")
     test_wrap.optimize_transformation()
     test_wrap._print_result_pdf_("final.pdf")
+
+    test_wrap1=Axes_Wrapper()
+    test_wrap1.add_axis(test3_ax)
+    test_wrap1.add_axis(test4_ax)
+    test_wrap1.add_axis(test5_ax)
+    #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
+    test_wrap1.rotate_canvas(90)
+    test_wrap1._print_result_pdf_("final_rot.pdf")

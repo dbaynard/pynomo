@@ -285,6 +285,9 @@ class Axes_Wrapper:
         adds axis to the list
         """
         self.axes_list.append(axis)
+        # if same instance of Axis_Wrapper is used in many Axes Wrapper
+        # instances, let's reset
+        self._set_transformation_to_all_axis_()
 
     def define_paper_size(self,paper_width=10.0,paper_height=10.0):
         """
@@ -355,11 +358,33 @@ class Axes_Wrapper:
         else: #proportion<self.paper_prop
             W=self.Ht*self.paper_prop
             H=self.Ht
-        self.multiplier_x=self.paper_width/self.Wt
-        self.multiplier_y=self.paper_height/self.Ht
+        #self.multiplier_x=self.paper_width/self.Wt
+        #self.multiplier_y=self.paper_height/self.Ht
         self.H=H
         self.W=W
         self.paper_area=W*H
+
+    def _trafo_to_paper_(self):
+        """
+        transforms nomogram to paper proportions
+        """
+        self._calc_bounding_box_()
+        multiplier_x=self.paper_width/self.Wt
+        multiplier_y=self.paper_height/self.Ht
+        alpha1=multiplier_x
+        beta1=0.0
+        gamma1=0.0
+        alpha2=0.0
+        beta2=multiplier_y
+        gamma2=0.0
+        alpha3=0.0
+        beta3=0.0
+        gamma3=1.0
+        self._add_transformation_(alpha1=alpha1,beta1=beta1,gamma1=gamma1,
+                                  alpha2=alpha2,beta2=beta2,gamma2=gamma2,
+                                  alpha3=alpha3,beta3=beta3,gamma3=gamma3)
+        self._set_transformation_to_all_axis_()
+
 
     def _calc_axes_length_sq_sum_(self):
         """
@@ -397,13 +422,15 @@ class Axes_Wrapper:
         x0=[1.0,0,0,0,1.0,0,0,0,1.0]
         self._add_params_trafo_stack_(x0)
         optimize.fmin(self._calc_min_func_,x0,full_output=1,maxiter=2000)
-        self.alpha1=self.multiplier_x*self.alpha1
-        self.beta1=self.multiplier_x*self.beta1
-        self.gamma1=self.multiplier_x*self.gamma1
-        self.alpha2=self.multiplier_y*self.alpha2
-        self.beta2=self.multiplier_y*self.beta2
-        self.gamma2=self.multiplier_y*self.gamma2
+        #self.alpha1=self.multiplier_x*self.alpha1
+        #self.beta1=self.multiplier_x*self.beta1
+        #self.gamma1=self.multiplier_x*self.gamma1
+        #self.alpha2=self.multiplier_y*self.alpha2
+        #self.beta2=self.multiplier_y*self.beta2
+        #self.gamma2=self.multiplier_y*self.gamma2
         self._set_transformation_to_all_axis_()
+        self._calc_bounding_box_()
+        self._trafo_to_paper_()
 
     def _plot_axes_(self,c):
         """
@@ -449,6 +476,7 @@ class Axes_Wrapper:
         row8,const8=self._make_row_(coordinate='y',coord_value=y3d,x=x3,y=y3)
 
         matrix=array([row1,row2,row3,row4,row5,row6,row7,row8])
+        print matrix
         b=array([const1,const2,const3,const4,const5,const6,const7,const8])
         coeff_vector=linalg.solve(matrix,b)
         alpha1=-1.0 # fixed
@@ -518,6 +546,7 @@ class Axes_Wrapper:
         """
         x1,y1,x2,y2=x_high,y_high,x_low,y_low
         x3,y3,x4,y4=x_slope_high,y_slope_high,x_slope_low,y_slope_low
+        print x_high,y_high,x_low,y_low,x_slope_high,y_slope_high,x_slope_low,y_slope_low
         if (x1-x3)*(x2-x4)<0:
             x1,y1,x3,y3=x3,y3,x1,y1
         if x3<x1:
@@ -545,6 +574,7 @@ class Axes_Wrapper:
         x4d,y4d=self.paper_width,0
         # find the left polygon
         x1,y1,x2,y2,x3,y3,x4,y4=self._find_polygon_horizontal_()
+        print x1,y1,x2,y2,x3,y3,x4,y4
         # calculate transformation
         alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
         self._calc_transformation_matrix_(x1,y1,x2,y2,x3,y3,x4,y4,
@@ -552,6 +582,8 @@ class Axes_Wrapper:
         # apply transformation
         self._add_transformation_(alpha1,beta1,gamma1,alpha2,beta2,gamma2,
                                   alpha3, beta3, gamma3)
+        self._set_transformation_to_all_axis_() # update axis
+        self._trafo_to_paper_() # transforms to paper
 
     def _add_transformation_(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
                              alpha2=0.0,beta2=1.0,gamma2=0.0,
@@ -707,8 +739,8 @@ if __name__=='__main__':
     test_wrap.add_axis(test5_ax)
     #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
     test_wrap._print_result_pdf_("original.pdf")
-    test_wrap.optimize_transformation()
-    test_wrap._print_result_pdf_("final.pdf")
+    #test_wrap.optimize_transformation()
+    #test_wrap._print_result_pdf_("final.pdf")
 
     test_wrap1=Axes_Wrapper()
     test_wrap1.add_axis(test3_ax)
@@ -717,3 +749,13 @@ if __name__=='__main__':
     #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
     test_wrap1.rotate_canvas(90)
     test_wrap1._print_result_pdf_("final_rot.pdf")
+
+
+    test_wrap2=Axes_Wrapper()
+    test_wrap2.add_axis(test3_ax)
+    test_wrap2.add_axis(test4_ax)
+    test_wrap2.add_axis(test5_ax)
+    #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
+    test_wrap2._print_result_pdf_("ini_poly.pdf")
+    test_wrap2.make_polygon_trafo()
+    test_wrap2._print_result_pdf_("final_poly.pdf")

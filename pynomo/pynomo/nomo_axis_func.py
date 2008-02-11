@@ -710,30 +710,14 @@ if __name__=='__main__':
         return 6.0
     def g5(L):
         return L
-    # test points for transformation
-    o = {'x1':1,
-         'y1':3,
-         'x2':-2,
-         'y2':1,
-         'x3':4,
-         'y3':2,
-         'x4':3,
-         'y4':-2}
-    d = {'x1':0,
-         'y1':1,
-         'x2':0,
-         'y2':0,
-         'x3':1,
-         'y3':1,
-         'x4':1,
-         'y4':0}
+
     test1_ax=Axis_Wrapper(f1,g1,0.5,1.0)
     test2_ax=Axis_Wrapper(f2,g2,0.5,1.0)
     test3_ax=Axis_Wrapper(f3,g3,0.0,1.0)
     test4_ax=Axis_Wrapper(f4,g4,0.0,2.0)
     test5_ax=Axis_Wrapper(f5,g5,0.0,3.0)
     test_wrap=Axes_Wrapper()
-    #print test_wrap._calc_transformation_matrix_(o, d)
+    #print test_wrap._calc_transformation_matrix_(1, 1, 1, 2, 1, 3, 1, 4, 3, 3, 3, 4, 3, 5, 3, 6)
     test_wrap.add_axis(test3_ax)
     test_wrap.add_axis(test4_ax)
     test_wrap.add_axis(test5_ax)

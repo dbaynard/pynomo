@@ -40,6 +40,7 @@ class Nomo_Wrapper:
         adds nomograph (Nomo_Block) to the wrapper
         """
         self.nomo_blocks.append(nomo_block)
+        # TODO: calculate transformation according to tag
 
     def _calc_trafo_(self,x1,y1,x2,y2,x3,y3,x1d,y1d,x2d,y2d,x3d,y3d):
         """
@@ -68,6 +69,19 @@ class Nomo_Wrapper:
         beta3=0.0
         gamma3=1.0
         return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
+
+    def find_total_trafo(self,method=None):
+        """
+        Finds transformation according to given method
+        uses class Axis_Wrapper in nomo_axis_func.py
+        """
+        pass
+
+    def draw_total_nomogram(self):
+        """
+        draws the nomogram = draws blocks, titles, etc.
+        """
+        pass
 
 
 class Nomo_Block:

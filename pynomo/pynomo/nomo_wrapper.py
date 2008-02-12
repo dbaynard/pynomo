@@ -35,7 +35,7 @@ class Nomo_Wrapper:
         self.params.update(params)
         self.nomo_blocks=[]
 
-    def add_nomo(self,nomo_block):
+    def add_block(self,nomo_block):
         """
         adds nomograph (Nomo_Block) to the wrapper
         """
@@ -72,13 +72,14 @@ class Nomo_Wrapper:
 
 class Nomo_Block:
     """
-    class to hold separate nomograhs connected by a single line in
+    class to hold separate nomographs connected by a single line in
     order to build the whole paper
     """
-    def __init__(self,params={}):
+    def __init__(self,params={},block_type=''):
         """
         type: N,III,...
-        parameters: dict with parameters
+        params: dict with parameters
+        block_type: what kind of block (N,parallel,...)
         """
         # default parameters
         self.params_default={
@@ -108,6 +109,22 @@ class Nomo_Block:
             'w_tag':'C'}
         self.params=self.params_default
         self.params.update(params)
+        # initial transformation
+        self.alpha1=1.0
+        self.beta1=0.0
+        self.gamma1=0.0
+        self.alpha2=0.0
+        self.beta2=1.0
+        self.gamma2=0.0
+        self.alpha3=0.0
+        self.beta3=0.0
+        self.gamma3=1.0
+
+    def draw(self,canvas):
+        """
+        draws the axes of block
+        """
+        pass
 
 
 if __name__=='__main__':

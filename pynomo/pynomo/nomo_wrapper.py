@@ -17,7 +17,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from nomo_axis import *
+from nomo_axis_func import *
 from numpy import *
+from pyx import *
+from copy import copy
 
 class Nomo_Wrapper:
     """
@@ -35,6 +39,9 @@ class Nomo_Wrapper:
         self.params.update(params)
         self.block_stack=[]
         self.filename=filename
+        self.paper_width=paper_width
+        self.paper_height=paper_height
+        self._build_axes_wrapper_()
 
     def add_block(self,nomo_block):
         """
@@ -71,18 +78,55 @@ class Nomo_Wrapper:
         gamma3=1.0
         return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
-    def find_total_trafo(self,method=None):
+    def _find_total_trafo_(self,method=None):
         """
         Finds transformation according to given method
         uses class Axis_Wrapper in nomo_axis_func.py
         """
-        pass
+        self._build_axes_wrapper_()
+        self.axes_wrapper.fit_to_paper()
+        self.axes_wrapper._print_result_pdf_("dummy1.pdf")
+        self.alpha1,self.beta1,self.gamma1,\
+        self.alpha2,self.beta2,self.gamma2,\
+        self.alpha3,self.beta3,self.gamma3 = self.axes_wrapper.give_trafo()
+
+#    def _update_block_trafos_(self):
+#        """
+#        updates (adds) transformation to blocks
+#        """
+#        for block in self.block_stack:
+#            block.add_transformation(alpha1=self.alpha1,beta1=self.beta1,gamma1=self.gamma1,
+#                           alpha2=self.alpha2,beta2=self.beta2,gamma2=self.gamma2,
+#                           alpha3=self.alpha3,beta3=self.beta3,gamma3=self.gamma3)
+
+    def _build_axes_wrapper_(self):
+        """
+        builds full instance of class Axes_Wrapper to find
+        transformation
+        """
+        self.axes_wrapper=Axes_Wrapper(paper_width=self.paper_width,
+                                       paper_height=self.paper_height)
+        for block in self.block_stack:
+            for atom in block.atom_stack:
+                self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
+                                                        atom.params['u_min'],
+                                                        atom.params['u_max']))
+    def do_transformation(self,method=None):
+        """
+        main function to find and update transformation up to atoms
+        """
+        self._find_total_trafo_(method=method)
+        # update block trafos
+        for block in self.block_stack:
+            block.add_transformation(alpha1=self.alpha1,beta1=self.beta1,gamma1=self.gamma1,
+                           alpha2=self.alpha2,beta2=self.beta2,gamma2=self.gamma2,
+                           alpha3=self.alpha3,beta3=self.beta3,gamma3=self.gamma3)
 
     def draw_nomogram(self,canvas):
         """
         draws the nomogram = draws blocks, titles, etc.
         """
-        for block in block_stack:
+        for block in self.block_stack:
             block.draw(canvas)
         c.writePDFfile(self.filename)
 
@@ -104,9 +148,10 @@ class Nomo_Block:
         in wrapper class Nomo_Wrapper.
         """
         # initial transformation
+        self.atom_stack=[] # atoms
         self.trafo_stack=[] # stack for transformation matrices for block
         self.add_transformation() # adds initial unit transformation
-        self.atom_stack=[] # atoms
+
 
     def add_atom(self,atom):
         """
@@ -152,10 +197,10 @@ class Nomo_Block:
         """
         sets overall transformation to all atoms
         """
-        for atom in atom_stack:
+        for atom in self.atom_stack:
             atom.set_trafo(alpha1=self.alpha1,beta1=self.beta1,gamma1=self.gamma1,
                            alpha2=self.alpha2,beta2=self.beta2,gamma2=self.gamma2,
-                           alpha3=self.gamma3,beta3=self.beta3,gamma3=self.gamma3)
+                           alpha3=self.alpha3,beta3=self.beta3,gamma3=self.gamma3)
 
 #    Maybe not needed
 #
@@ -178,7 +223,7 @@ class Nomo_Block:
         """
         draws the Atoms of block
         """
-        for atom in atom_stack:
+        for atom in self.atom_stack:
             atom.draw(canvas)
 
 class Nomo_Atom:
@@ -200,7 +245,7 @@ class Nomo_Atom:
             'tag':'A'} # for aligning block wrt others
         self.params=self.params_default
         self.params.update(params)
-        set_trafo() # initialize
+        self.set_trafo() # initialize
         self.f = f # x-coord func
         self.g = g # y-coord func
 
@@ -226,7 +271,7 @@ class Nomo_Atom:
         """
         value=(self.alpha1*self.f(u)+self.beta1*self.g(u)+self.gamma1)/\
         (self.alpha3*self.f(u)+self.beta3*self.g(u)+self.gamma3)
-        return value[0]
+        return value
 
     def give_y(self,u):
         """
@@ -234,7 +279,7 @@ class Nomo_Atom:
         """
         value=(self.alpha2*self.f(u)+self.beta2*self.g(u)+self.gamma2)/\
         (self.alpha3*self.f(u)+self.beta3*self.g(u)+self.gamma3)
-        return value[0]
+        return value
 
     def draw(self,canvas):
         """
@@ -242,7 +287,7 @@ class Nomo_Atom:
         """
         p=self.params
         Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
-                  start=p['u_min'][2],stop=p['u_max'],
+                  start=p['u_min'],stop=p['u_max'],
                   turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
                   tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'])
 
@@ -267,7 +312,7 @@ if __name__=='__main__':
     # build atoms
     block1_atom1_para={
             'u_min':0.0,
-            'u_max':1.0,
+            'u_max':10.0,
             'title':'b1 a1',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -280,69 +325,69 @@ if __name__=='__main__':
 
     block1_atom2_para={
             'u_min':0.0,
-            'u_max':1.0,
-            'title':'b1 a1',
+            'u_max':10.0,
+            'title':'b1 a2',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
             'scale_type':'linear',
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'A'}
+            'tag':'B'}
     b1_atom2=Nomo_Atom(params=block1_atom2_para,f=lambda u:1.0, g=lambda u:u)
 
     block1_atom3_para={
             'u_min':0.0,
-            'u_max':1.0,
-            'title':'b1 a1',
+            'u_max':10.0,
+            'title':'b1 a3',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
             'scale_type':'linear',
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'A'}
+            'tag':'B'}
 
     b1_atom3=Nomo_Atom(params=block1_atom3_para,f=lambda u:2.0, g=lambda u:u)
 
     # block 2
     block2_atom1_para={
             'u_min':0.0,
-            'u_max':1.0,
-            'title':'b1 a1',
+            'u_max':10.0,
+            'title':'b2 a1',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
             'scale_type':'linear',
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'A'}
+            'tag':'C'}
     b2_atom1=Nomo_Atom(params=block1_atom1_para,f=lambda u:u, g=lambda u:0.0)
 
-    block1_atom2_para={
+    block2_atom2_para={
             'u_min':0.0,
-            'u_max':1.0,
-            'title':'b1 a1',
+            'u_max':10.0,
+            'title':'b2 a2',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
             'scale_type':'linear',
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'A'}
+            'tag':'D'}
     b2_atom2=Nomo_Atom(params=block2_atom2_para,f=lambda u:u, g=lambda u:1.0)
 
-    block1_atom3_para={
+    block2_atom3_para={
             'u_min':0.0,
-            'u_max':1.0,
-            'title':'b1 a1',
+            'u_max':10.0,
+            'title':'b2 a3',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
             'scale_type':'linear',
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'A'}
+            'tag':'E'}
 
     b2_atom3=Nomo_Atom(params=block2_atom3_para,f=lambda u:u, g=lambda u:2.0)
 
@@ -356,8 +401,9 @@ if __name__=='__main__':
     block2.add_atom(b2_atom2)
     block2.add_atom(b2_atom3)
 
-    wrapper=Nomo_Wrapper()
+    wrapper=Nomo_Wrapper(paper_width=20.0,paper_height=10.0)
     wrapper.add_block(block1)
     wrapper.add_block(block2)
+    wrapper.do_transformation()
     c=canvas.canvas()
     wrapper.draw_nomogram(c)

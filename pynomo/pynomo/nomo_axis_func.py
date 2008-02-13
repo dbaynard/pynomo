@@ -257,7 +257,7 @@ class Axis_Wrapper:
         """
         dx=abs(x2-x1)
         dy=abs(y1-y2)
-        if dx>0:
+        if dx>0.0:
             return dy/dx
         else:
             return 1e120 # = big number
@@ -482,7 +482,7 @@ class Axes_Wrapper:
         row8,const8=self._make_row_(coordinate='y',coord_value=y3d,x=x3,y=y3)
 
         matrix=array([row1,row2,row3,row4,row5,row6,row7,row8])
-        print matrix
+        #print matrix
         b=array([const1,const2,const3,const4,const5,const6,const7,const8])
         coeff_vector=linalg.solve(matrix,b)
         alpha1=-1.0 # fixed
@@ -524,30 +524,32 @@ class Axes_Wrapper:
         """
         # let's find the point with largest y-value
         y_high=-1e120 #big negative number
-        for axis in self.axes_list:
+        for idx,axis in enumerate(self.axes_list):
             x,y=axis.calc_highest_point()
             if y>y_high:
                 y_high=y
                 x_high=x
+                high_idx=idx
         # let's find the point with smallest y-value
         y_low=1e120 #big number
-        for axis in self.axes_list:
+        for idx,axis in enumerate(self.axes_list):
             x,y=axis.calc_lowest_point()
             if y<y_low:
                 y_low=y
                 x_low=x
+                low_idx=idx
         # let's find the top-line with minimum slope
         slope_high=1e120 # big number
-        for axis in self.axes_list:
+        for idx,axis in enumerate(self.axes_list):
             x,y,slope=axis.calc_min_slope(x_high,y_high)
-            if slope<slope_high:
+            if slope<slope_high and not idx==high_idx:
                 y_slope_high=y
                 x_slope_high=x
         # let's find the bottom-lne with minimum slope
         slope_low=1e120 # big number
-        for axis in self.axes_list:
+        for idx,axis in enumerate(self.axes_list):
             x,y,slope=axis.calc_min_slope(x_low,y_low)
-            if slope<slope_low:
+            if slope<slope_low and not idx==low_idx:
                 y_slope_low=y
                 x_slope_low=x
         """ let's set the points to a ractangle form (not self-intersecting)
@@ -585,6 +587,7 @@ class Axes_Wrapper:
         x4d,y4d=self.paper_width,0
         # find the left polygon
         x1,y1,x2,y2,x3,y3,x4,y4=self._find_polygon_horizontal_()
+        print "polygon coords:"
         print x1,y1,x2,y2,x3,y3,x4,y4
         # calculate transformation
         alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
@@ -669,12 +672,12 @@ class Axes_Wrapper:
         """
         returns rotation transformation. angle in degrees.
         """
-        angle_r=angle/180*pi # angle in radians
-        alpha1=sin(angle_r)
-        beta1=cos(angle_r)
+        angle_r=angle/180.0*pi # angle in radians
+        alpha1=cos(angle_r)
+        beta1=-sin(angle_r)
         gamma1=0.0
-        alpha2=cos(angle_r)
-        beta2=-sin(angle_r)
+        alpha2=sin(angle_r)
+        beta2=cos(angle_r)
         gamma2=0.0
         alpha3=0.0
         beta3=0.0
@@ -727,6 +730,9 @@ if __name__=='__main__':
     test3_ax=Axis_Wrapper(f3,g3,0.0,1.0)
     test4_ax=Axis_Wrapper(f4,g4,0.0,2.0)
     test5_ax=Axis_Wrapper(f5,g5,0.0,3.0)
+    test3a_ax=Axis_Wrapper(f3,g3,0.0,1.0)
+    test4a_ax=Axis_Wrapper(f4,g4,0.0,2.0)
+    test5a_ax=Axis_Wrapper(f5,g5,0.0,3.0)
     test_wrap=Axes_Wrapper()
     #print test_wrap._calc_transformation_matrix_(1, 1, 1, 2, 1, 3, 1, 4, 3, 3, 3, 4, 3, 5, 3, 6)
     test_wrap.add_axis(test3_ax)
@@ -742,15 +748,16 @@ if __name__=='__main__':
     test_wrap1.add_axis(test4_ax)
     test_wrap1.add_axis(test5_ax)
     #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
-    test_wrap1.rotate_canvas(90)
+    test_wrap1.rotate_canvas(45.0)
     test_wrap1._print_result_pdf_("final_rot.pdf")
 
 
     test_wrap2=Axes_Wrapper()
-    test_wrap2.add_axis(test3_ax)
-    test_wrap2.add_axis(test4_ax)
-    test_wrap2.add_axis(test5_ax)
+    test_wrap2.add_axis(test3a_ax)
+    test_wrap2.add_axis(test4a_ax)
+    test_wrap2.add_axis(test5a_ax)
     #test_wrap._calc_min_func_([3.0,0,0,0,2,0,0,0,1])
+    test_wrap2.rotate_canvas(45.0)
     test_wrap2._print_result_pdf_("ini_poly.pdf")
     test_wrap2.make_polygon_trafo()
     test_wrap2._print_result_pdf_("final_poly.pdf")

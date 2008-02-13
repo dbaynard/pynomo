@@ -41,7 +41,7 @@ class Nomo_Wrapper:
         self.filename=filename
         self.paper_width=paper_width
         self.paper_height=paper_height
-        self._build_axes_wrapper_()
+        #self._build_axes_wrapper_()
 
     def add_block(self,nomo_block):
         """
@@ -78,12 +78,12 @@ class Nomo_Wrapper:
         gamma3=1.0
         return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
-    def _find_total_trafo_(self,method=None):
+    def _find_trafo_(self,method=None):
         """
         Finds transformation according to given method
         uses class Axis_Wrapper in nomo_axis_func.py
         """
-        self._build_axes_wrapper_()
+        #self._build_axes_wrapper_()
         self.axes_wrapper.fit_to_paper()
         self.axes_wrapper._print_result_pdf_("dummy1.pdf")
         self.alpha1,self.beta1,self.gamma1,\
@@ -99,7 +99,7 @@ class Nomo_Wrapper:
 #                           alpha2=self.alpha2,beta2=self.beta2,gamma2=self.gamma2,
 #                           alpha3=self.alpha3,beta3=self.beta3,gamma3=self.gamma3)
 
-    def _build_axes_wrapper_(self):
+    def build_axes_wrapper(self):
         """
         builds full instance of class Axes_Wrapper to find
         transformation
@@ -111,16 +111,57 @@ class Nomo_Wrapper:
                 self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
                                                         atom.params['u_min'],
                                                         atom.params['u_max']))
-    def do_transformation(self,method=None):
+    def do_transformation(self,method='scale paper',params=None):
         """
         main function to find and update transformation up to atoms
         """
-        self._find_total_trafo_(method=method)
-        # update block trafos
+        try:
+            {'scale paper': self._do_scale_to_canvas_trafo_,
+             'optimize':self._do_optimize_trafo_,
+             'polygon':self._do_polygon_trafo_,
+             'rotate': self._do_rotate_trafo_}[method](params)
+        except KeyError:
+            print "Wrong transformation identifier"
+
+        self.alpha1,self.beta1,self.gamma1,\
+        self.alpha2,self.beta2,self.gamma2,\
+        self.alpha3,self.beta3,self.gamma3 = self.axes_wrapper.give_trafo()
+
+        self._find_trafo_(method=method)
+        # update last block trafos, note that trafo to align blocks should not be
+        # changed
         for block in self.block_stack:
-            block.add_transformation(alpha1=self.alpha1,beta1=self.beta1,gamma1=self.gamma1,
+            block.change_last_transformation(alpha1=self.alpha1,beta1=self.beta1,gamma1=self.gamma1,
                            alpha2=self.alpha2,beta2=self.beta2,gamma2=self.gamma2,
                            alpha3=self.alpha3,beta3=self.beta3,gamma3=self.gamma3)
+
+    def _do_scale_to_canvas_trafo_(self,params):
+        """
+        Finds transformation to scale to canvas
+        """
+        self.axes_wrapper.fit_to_paper()
+        self.axes_wrapper._print_result_pdf_("dummy1_paper.pdf")
+
+    def _do_optimize_trafo_(self,params):
+        """
+        Finds "optimal" transformation
+        """
+        self.axes_wrapper.optimize_transformation()
+        self.axes_wrapper._print_result_pdf_("dummy1_optimize.pdf")
+
+    def _do_polygon_trafo_(self,params):
+        """
+        Finds "polygon" transformation
+        """
+        self.axes_wrapper.make_polygon_trafo()
+        self.axes_wrapper._print_result_pdf_("dummy1_polygon.pdf")
+
+    def _do_rotate_trafo_(self,params):
+        """
+        Finds transformation to scale to canvas
+        """
+        self.axes_wrapper.rotate_canvas(params)
+        self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
 
     def draw_nomogram(self,canvas):
         """
@@ -169,6 +210,20 @@ class Nomo_Block:
         trafo_mat = array([[alpha1,beta1,gamma1],
                           [alpha2,beta2,gamma2],
                           [alpha3,beta3,gamma3]])
+        self.trafo_stack.append(trafo_mat)
+        self._calculate_total_trafo_mat_() # update coeffs
+
+    def change_last_transformation(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
+                                   alpha2=0.0,beta2=1.0,gamma2=0.0,
+                                   alpha3=0.0,beta3=0.0,gamma3=1.0):
+        """
+        adds transformation to be applied as a basis.
+        all transformation matrices are multiplied together
+        """
+        trafo_mat = array([[alpha1,beta1,gamma1],
+                          [alpha2,beta2,gamma2],
+                          [alpha3,beta3,gamma3]])
+        self.trafo_stack.pop() # last away
         self.trafo_stack.append(trafo_mat)
         self._calculate_total_trafo_mat_() # update coeffs
 
@@ -311,7 +366,7 @@ if __name__=='__main__':
 
     # build atoms
     block1_atom1_para={
-            'u_min':0.0,
+            'u_min':3.0,
             'u_max':10.0,
             'title':'b1 a1',
             'title_x_shift':0.0,
@@ -324,7 +379,7 @@ if __name__=='__main__':
     b1_atom1=Nomo_Atom(params=block1_atom1_para,f=lambda u:0, g=lambda u:u)
 
     block1_atom2_para={
-            'u_min':0.0,
+            'u_min':3.0,
             'u_max':10.0,
             'title':'b1 a2',
             'title_x_shift':0.0,
@@ -337,7 +392,7 @@ if __name__=='__main__':
     b1_atom2=Nomo_Atom(params=block1_atom2_para,f=lambda u:1.0, g=lambda u:u)
 
     block1_atom3_para={
-            'u_min':0.0,
+            'u_min':3.0,
             'u_max':10.0,
             'title':'b1 a3',
             'title_x_shift':0.0,
@@ -362,7 +417,7 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'C'}
-    b2_atom1=Nomo_Atom(params=block1_atom1_para,f=lambda u:u, g=lambda u:0.0)
+    b2_atom1=Nomo_Atom(params=block2_atom1_para,f=lambda u:u, g=lambda u:0.0+0.1*u)
 
     block2_atom2_para={
             'u_min':0.0,
@@ -375,7 +430,7 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'D'}
-    b2_atom2=Nomo_Atom(params=block2_atom2_para,f=lambda u:u, g=lambda u:1.0)
+    b2_atom2=Nomo_Atom(params=block2_atom2_para,f=lambda u:u, g=lambda u:1.0+0.1*u)
 
     block2_atom3_para={
             'u_min':0.0,
@@ -389,7 +444,7 @@ if __name__=='__main__':
             'tick_side':'right',
             'tag':'E'}
 
-    b2_atom3=Nomo_Atom(params=block2_atom3_para,f=lambda u:u, g=lambda u:2.0)
+    b2_atom3=Nomo_Atom(params=block2_atom3_para,f=lambda u:u, g=lambda u:2.0+0.1*u)
 
     block1=Nomo_Block()
     block1.add_atom(b1_atom1)
@@ -404,6 +459,10 @@ if __name__=='__main__':
     wrapper=Nomo_Wrapper(paper_width=20.0,paper_height=10.0)
     wrapper.add_block(block1)
     wrapper.add_block(block2)
-    wrapper.do_transformation()
+    wrapper.build_axes_wrapper() # build structure for optimization
+    #wrapper.do_transformation(method='scale paper')
+    wrapper.do_transformation(method='rotate',params=45.0)
+    #wrapper.do_transformation(method='polygon')
+    wrapper.do_transformation(method='optimize')
     c=canvas.canvas()
     wrapper.draw_nomogram(c)

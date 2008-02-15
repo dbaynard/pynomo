@@ -171,6 +171,52 @@ class Nomo_Wrapper:
             block.draw(canvas)
         c.writePDFfile(self.filename)
 
+    def align_blocks(self):
+        """
+        aligns blocks w.r.t. each other according to 'tag' fields
+        in Atom params dictionary
+        """
+        for idx1,block1 in enumerate(self.block_stack):
+            for idx2,block2 in enumerate(self.block_stack):
+                if idx2>idx1:
+                    for atom1 in block1.atom_stack:
+                        for atom2 in block2.atom_stack:
+                            if atom1.params['tag']==atom2.params['tag']\
+                            and not atom1.params['tag']=='none':
+                                print atom1.params['tag']
+                                alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+                                self._find_trafo_2_atoms_(atom1,atom2)
+                                block2.add_transformation(alpha1,beta1,gamma1,
+                                                           alpha2,beta2,gamma2,
+                                                           alpha3,beta3,gamma3)
+
+
+    def _find_trafo_2_atoms_(self,atom1,atom2):
+        """
+        finds transformation that aligns atom2 to atom1
+        In practice takes endpoints and a third point in 90 degree
+        to form a triangle for both atoms to be aligned
+        """
+        # taking points from atom1
+        u_start=atom1.params['u_min']
+        u_stop=atom1.params['u_max']
+        x1_atom_1=atom1.give_x(u_start)
+        y1_atom_1=atom1.give_y(u_start)
+        x2_atom_1=atom1.give_x(u_stop)
+        y2_atom_1=atom1.give_y(u_stop)
+        x3_atom_1=x1_atom_1+(y2_atom_1-y1_atom_1)*0.01
+        y3_atom_1=y1_atom_1-(x2_atom_1-x1_atom_1)*0.01
+
+        x1_atom_2=atom2.give_x(u_start)
+        y1_atom_2=atom2.give_y(u_start)
+        x2_atom_2=atom2.give_x(u_stop)
+        y2_atom_2=atom2.give_y(u_stop)
+        x3_atom_2=x1_atom_2+(y2_atom_2-y1_atom_2)*0.01
+        y3_atom_2=y1_atom_2-(x2_atom_2-x1_atom_2)*0.01
+        alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+        self._calc_trafo_(x1_atom_2,y1_atom_2,x2_atom_2,y2_atom_2,x3_atom_2,y3_atom_2,
+                     x1_atom_1,y1_atom_1,x2_atom_1,y2_atom_1,x3_atom_1,y3_atom_1)
+        return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
 class Nomo_Block:
     """
@@ -211,7 +257,7 @@ class Nomo_Block:
                           [alpha2,beta2,gamma2],
                           [alpha3,beta3,gamma3]])
         self.trafo_stack.append(trafo_mat)
-        self._calculate_total_trafo_mat_() # update coeffs
+        self._calculate_total_trafo_mat_() # update coeffs (also in atoms)
 
     def change_last_transformation(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
                                    alpha2=0.0,beta2=1.0,gamma2=0.0,
@@ -225,7 +271,7 @@ class Nomo_Block:
                           [alpha3,beta3,gamma3]])
         self.trafo_stack.pop() # last away
         self.trafo_stack.append(trafo_mat)
-        self._calculate_total_trafo_mat_() # update coeffs
+        self._calculate_total_trafo_mat_() # update coeffs (also in atoms)
 
     def _calculate_total_trafo_mat_(self):
         """
@@ -297,7 +343,7 @@ class Nomo_Atom:
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'A'} # for aligning block wrt others
+            'tag':'none'} # for aligning block wrt others
         self.params=self.params_default
         self.params.update(params)
         self.set_trafo() # initialize
@@ -375,7 +421,7 @@ if __name__=='__main__':
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'A'}
+            'tag':'none'}
     b1_atom1=Nomo_Atom(params=block1_atom1_para,f=lambda u:0, g=lambda u:u)
 
     block1_atom2_para={
@@ -388,11 +434,11 @@ if __name__=='__main__':
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'B'}
+            'tag':'none'}
     b1_atom2=Nomo_Atom(params=block1_atom2_para,f=lambda u:1.0, g=lambda u:u)
 
     block1_atom3_para={
-            'u_min':3.0,
+            'u_min':0.0,
             'u_max':10.0,
             'title':'b1 a3',
             'title_x_shift':0.0,
@@ -401,7 +447,7 @@ if __name__=='__main__':
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'B'}
+            'tag':'A'}
 
     b1_atom3=Nomo_Atom(params=block1_atom3_para,f=lambda u:2.0, g=lambda u:u)
 
@@ -416,7 +462,7 @@ if __name__=='__main__':
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'C'}
+            'tag':'none'}
     b2_atom1=Nomo_Atom(params=block2_atom1_para,f=lambda u:u, g=lambda u:0.0+0.1*u)
 
     block2_atom2_para={
@@ -429,7 +475,7 @@ if __name__=='__main__':
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'D'}
+            'tag':'none'}
     b2_atom2=Nomo_Atom(params=block2_atom2_para,f=lambda u:u, g=lambda u:1.0+0.1*u)
 
     block2_atom3_para={
@@ -442,7 +488,7 @@ if __name__=='__main__':
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'E'}
+            'tag':'A'}
 
     b2_atom3=Nomo_Atom(params=block2_atom3_para,f=lambda u:u, g=lambda u:2.0+0.1*u)
 
@@ -459,6 +505,7 @@ if __name__=='__main__':
     wrapper=Nomo_Wrapper(paper_width=20.0,paper_height=10.0)
     wrapper.add_block(block1)
     wrapper.add_block(block2)
+    wrapper.align_blocks()
     wrapper.build_axes_wrapper() # build structure for optimization
     #wrapper.do_transformation(method='scale paper')
     wrapper.do_transformation(method='rotate',params=45.0)

@@ -161,7 +161,7 @@ class Axis_Wrapper:
         x00,y00=self.line[0]
         x0=self.give_trafo_x(x00, y00)
         y0=self.give_trafo_y(x00, y00)
-        print x0,y0
+        #print x0,y0
         line = path.path(path.moveto(x0, y0))
         for x,y in self.line:
             xt=self.give_trafo_x(x, y)
@@ -429,8 +429,8 @@ class Axes_Wrapper:
         #self.beta2=self.multiplier_y*self.beta2
         #self.gamma2=self.multiplier_y*self.gamma2
         self._set_transformation_to_all_axis_()
-        self._calc_bounding_box_()
-        self._trafo_to_paper_()
+        #self._calc_bounding_box_()
+        ##self._trafo_to_paper_()
 
     def fit_to_paper(self):
         """

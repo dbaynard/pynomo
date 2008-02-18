@@ -340,7 +340,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         """
         defines function F1
         """
-        params['F']=lambda u:-1
+        params['F']=lambda u:-1.0
         params['G']=lambda u:params['function'](u)
         self.atom_F1=Nomo_Atom(params)
         self.add_atom(self.atom_F1)
@@ -352,7 +352,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         """
         defines function F2
         """
-        params['F']=lambda u:0
+        params['F']=lambda u:0.0
         params['G']=lambda u:-0.5*params['function'](u)
         self.atom_F2=Nomo_Atom(params)
         self.add_atom(self.atom_F2)

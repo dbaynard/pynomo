@@ -329,15 +329,91 @@ class Nomo_Block:
         for atom in self.atom_stack:
             atom.draw(canvas)
 
+class Nomo_Block_Type_1(Nomo_Block):
+    """
+    type F1+F2=F3
+    """
+    def __init__(self):
+        super(Nomo_Block_Type_1,self).__init__()
+
+    def define_F1(self,params):
+        """
+        defines function F1
+        """
+        params['F']=lambda u:-1
+        params['G']=lambda u:params['function'](u)
+        self.atom_F1=Nomo_Atom(params)
+        self.add_atom(self.atom_F1)
+        # for axis calculations
+        self.F1_axis=Axis_Wrapper(f=params['F'],g=params['G'],
+                             start=params['u_min'],stop=params['u_max'])
+
+    def define_F2(self,params):
+        """
+        defines function F2
+        """
+        params['F']=lambda u:0
+        params['G']=lambda u:-0.5*params['function'](u)
+        self.atom_F2=Nomo_Atom(params)
+        self.add_atom(self.atom_F2)
+        # for axis calculations
+        self.F2_axis=Axis_Wrapper(f=params['F'],g=params['G'],
+                             start=params['u_min'],stop=params['u_max'])
+
+    def define_F3(self,params):
+        """
+        defines function F3
+        """
+        params['F']=lambda u:1.0
+        params['G']=lambda u:-1.0*params['function'](u)
+        self.atom_F3=Nomo_Atom(params)
+        self.add_atom(self.atom_F3)
+        # for axis calculations original parameters
+        self.F3_axis=Axis_Wrapper(f=params['F'],g=params['G'],
+                             start=params['u_min'],stop=params['u_max'])
+
+
+    def set_width_height_propotion_original(self,width=10.0,height=10.0,proportion=1.0):
+        """
+        sets original width, height and x-distance proportion for the nomogram before
+        transformations
+        """
+        p=proportion
+        delta_1=proportion*width/(1+proportion)
+        delta_3=width/(proportion+1)
+        f1_max=self.F1_axis.calc_highest_point()
+        f1_min=self.F1_axis.calc_lowest_point()
+        f2_max=self.F2_axis.calc_highest_point()
+        f2_min=self.F2_axis.calc_lowest_point()
+        f3_max=self.F3_axis.calc_highest_point()
+        f3_min=self.F3_axis.calc_lowest_point()
+        # assume mu_3=1, mu_1 = proportion for a moment
+        max_y=max(p*f1_max,p/(1+p)*f2_max,f3_max)
+        min_y=min(p*f1_max,p/(1+p)*f2_max,f3_max)
+        y_distance=max_y-min_y
+        multiplier=height/y_distance
+        mu_1=p*multiplier
+        mu_3=multiplier
+        # redefine scaled functions
+        self.atom_F1.f=self.F1_axis.f*delta_1
+        self.atom_F1.g=self.F1_axis.g*mu_1
+        self.atom_F2.f=self.F2_axis.f
+        self.atom_F2.g=self.F2_axis.g*(mu_1*mu_3)/(mu_1+mu_3)
+        self.atom_F3.f=self.F1_axis.f*delta_3
+        self.atom_F3.g=self.F1_axis.g*mu_3
+
+
 class Nomo_Atom:
     """
     class for single axis or equivalent.
     """
-    def __init__(self,params,f=lambda u:u,g=lambda v:v):
+    def __init__(self,params):
         # default parameters
         self.params_default={
             'u_min':0.1,
             'u_max':1.0,
+            'F':lambda u:u, # x-coordinate
+            'G':lambda u:u, # y-coordinate
             'title':'f1',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -349,8 +425,8 @@ class Nomo_Atom:
         self.params=self.params_default
         self.params.update(params)
         self.set_trafo() # initialize
-        self.f = f # x-coord func
-        self.g = g # y-coord func
+        self.f = self.params['F'] # x-coord func
+        self.g = self.params['G'] # y-coord func
 
     def set_trafo(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
                            alpha2=0.0,beta2=1.0,gamma2=0.0,
@@ -417,6 +493,8 @@ if __name__=='__main__':
     block1_atom1_para={
             'u_min':3.0,
             'u_max':10.0,
+            'F':lambda u:0,
+            'G':lambda u:u,
             'title':'b1 a1',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -425,11 +503,13 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'none'}
-    b1_atom1=Nomo_Atom(params=block1_atom1_para,f=lambda u:0, g=lambda u:u)
+    b1_atom1=Nomo_Atom(params=block1_atom1_para)
 
     block1_atom2_para={
             'u_min':3.0,
             'u_max':10.0,
+            'F':lambda u:1.0,
+            'G':lambda u:u,
             'title':'b1 a2',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -438,11 +518,13 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'none'}
-    b1_atom2=Nomo_Atom(params=block1_atom2_para,f=lambda u:1.0, g=lambda u:u)
+    b1_atom2=Nomo_Atom(params=block1_atom2_para)
 
     block1_atom3_para={
             'u_min':0.0,
             'u_max':10.0,
+            'F':lambda u:2.0,
+            'G':lambda u:u,
             'title':'b1 a3',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -452,12 +534,14 @@ if __name__=='__main__':
             'tick_side':'right',
             'tag':'A'}
 
-    b1_atom3=Nomo_Atom(params=block1_atom3_para,f=lambda u:2.0, g=lambda u:u)
+    b1_atom3=Nomo_Atom(params=block1_atom3_para)
 
     # block 2
     block2_atom1_para={
             'u_min':0.0,
             'u_max':10.0,
+            'F':lambda u:u,
+            'G':lambda u:0.0+0.1*u,
             'title':'b2 a1',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -466,11 +550,13 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'B'}
-    b2_atom1=Nomo_Atom(params=block2_atom1_para,f=lambda u:u, g=lambda u:0.0+0.1*u)
+    b2_atom1=Nomo_Atom(params=block2_atom1_para)
 
     block2_atom2_para={
             'u_min':0.0,
             'u_max':10.0,
+            'F':lambda u:u,
+            'G':lambda u:1.0+0.1*u,
             'title':'b2 a2',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -479,11 +565,13 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'none'}
-    b2_atom2=Nomo_Atom(params=block2_atom2_para,f=lambda u:u, g=lambda u:1.0+0.1*u)
+    b2_atom2=Nomo_Atom(params=block2_atom2_para)
 
     block2_atom3_para={
             'u_min':1.0,
             'u_max':10.0,
+            'F':lambda u:u,
+            'G':lambda u:2.0+0.1*u,
             'title':'b2 a3',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -493,12 +581,14 @@ if __name__=='__main__':
             'tick_side':'left',
             'tag':'A'}
 
-    b2_atom3=Nomo_Atom(params=block2_atom3_para,f=lambda u:u, g=lambda u:2.0+0.1*u)
+    b2_atom3=Nomo_Atom(params=block2_atom3_para)
 
     # block 3
     block3_atom1_para={
             'u_min':0.0,
             'u_max':10.0,
+            'F':lambda u:u,
+            'G':lambda u:0.0+0.5*u,
             'title':'b3 a1',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -507,11 +597,13 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'none'}
-    b3_atom1=Nomo_Atom(params=block3_atom1_para,f=lambda u:u, g=lambda u:0.0+0.5*u)
+    b3_atom1=Nomo_Atom(params=block3_atom1_para)
 
     block3_atom2_para={
             'u_min':0.0,
             'u_max':10.0,
+            'F':lambda u:0.1*u**2,
+            'G':lambda u:1.0+0.5*u,
             'title':'b3 a2',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -520,11 +612,13 @@ if __name__=='__main__':
             'tick_text_levels':10,
             'tick_side':'right',
             'tag':'none'}
-    b3_atom2=Nomo_Atom(params=block3_atom2_para,f=lambda u:0.1*u**2, g=lambda u:1.0+0.5*u)
+    b3_atom2=Nomo_Atom(params=block3_atom2_para)
 
     block3_atom3_para={
             'u_min':1.0,
             'u_max':10.0,
+            'F':lambda u:u,
+            'G':lambda u:2.0+0.5*u,
             'title':'b3 a3',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
@@ -534,7 +628,7 @@ if __name__=='__main__':
             'tick_side':'left',
             'tag':'B'}
 
-    b3_atom3=Nomo_Atom(params=block3_atom3_para,f=lambda u:u, g=lambda u:2.0+0.5*u)
+    b3_atom3=Nomo_Atom(params=block3_atom3_para)
 
 
     block1=Nomo_Block()

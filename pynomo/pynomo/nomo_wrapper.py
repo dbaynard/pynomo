@@ -220,7 +220,7 @@ class Nomo_Wrapper:
                      x1_atom_1,y1_atom_1,x2_atom_1,y2_atom_1,x3_atom_1,y3_atom_1)
         return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
-class Nomo_Block:
+class Nomo_Block(object):
     """
     class to hold separate nomograph blocks connected by a single line in
     order to build the whole nomograph consisting of multiple blocks
@@ -333,15 +333,24 @@ class Nomo_Block_Type_1(Nomo_Block):
     """
     type F1+F2=F3
     """
-    def __init__(self):
+    def __init__(self,mirror_x=False,mirror_y=False):
         super(Nomo_Block_Type_1,self).__init__()
+        #self.super.__init__()
+        if mirror_x==True: # if make mirror w.r.t x-axis
+            self.x_mirror=-1.0
+        else:
+            self.x_mirror=1.0
+        if mirror_y==True: # if make mirror w.r.t x-axis
+            self.y_mirror=-1.0
+        else:
+            self.y_mirror=1.0
 
     def define_F1(self,params):
         """
         defines function F1
         """
-        params['F']=lambda u:-1.0
-        params['G']=lambda u:params['function'](u)
+        params['F']=lambda u:-1.0*self.x_mirror
+        params['G']=lambda u:params['function'](u)*self.y_mirror
         self.atom_F1=Nomo_Atom(params)
         self.add_atom(self.atom_F1)
         # for axis calculations
@@ -353,7 +362,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         defines function F2
         """
         params['F']=lambda u:0.0
-        params['G']=lambda u:-0.5*params['function'](u)
+        params['G']=lambda u:-0.5*params['function'](u)*self.y_mirror
         self.atom_F2=Nomo_Atom(params)
         self.add_atom(self.atom_F2)
         # for axis calculations
@@ -364,8 +373,8 @@ class Nomo_Block_Type_1(Nomo_Block):
         """
         defines function F3
         """
-        params['F']=lambda u:1.0
-        params['G']=lambda u:-1.0*params['function'](u)
+        params['F']=lambda u:1.0*self.x_mirror
+        params['G']=lambda u:-1.0*params['function'](u)*self.y_mirror
         self.atom_F3=Nomo_Atom(params)
         self.add_atom(self.atom_F3)
         # for axis calculations original parameters
@@ -381,26 +390,28 @@ class Nomo_Block_Type_1(Nomo_Block):
         p=proportion
         delta_1=proportion*width/(1+proportion)
         delta_3=width/(proportion+1)
-        f1_max=self.F1_axis.calc_highest_point()
-        f1_min=self.F1_axis.calc_lowest_point()
-        f2_max=self.F2_axis.calc_highest_point()
-        f2_min=self.F2_axis.calc_lowest_point()
-        f3_max=self.F3_axis.calc_highest_point()
-        f3_min=self.F3_axis.calc_lowest_point()
+        print delta_1
+        print delta_3
+        x_dummy,f1_max=self.F1_axis.calc_highest_point()
+        x_dummy,f1_min=self.F1_axis.calc_lowest_point()
+        x_dummy,f2_max=self.F2_axis.calc_highest_point()
+        x_dummy,f2_min=self.F2_axis.calc_lowest_point()
+        x_dummy,f3_max=self.F3_axis.calc_highest_point()
+        x_dummy,f3_min=self.F3_axis.calc_lowest_point()
         # assume mu_3=1, mu_1 = proportion for a moment
-        max_y=max(p*f1_max,p/(1+p)*f2_max,f3_max)
+        max_y=max(1.0*p*f1_max,p/(1.0+p)*f2_max,1.0*f3_max)
         min_y=min(p*f1_max,p/(1+p)*f2_max,f3_max)
         y_distance=max_y-min_y
         multiplier=height/y_distance
         mu_1=p*multiplier
         mu_3=multiplier
         # redefine scaled functions
-        self.atom_F1.f=self.F1_axis.f*delta_1
-        self.atom_F1.g=self.F1_axis.g*mu_1
-        self.atom_F2.f=self.F2_axis.f
-        self.atom_F2.g=self.F2_axis.g*(mu_1*mu_3)/(mu_1+mu_3)
-        self.atom_F3.f=self.F1_axis.f*delta_3
-        self.atom_F3.g=self.F1_axis.g*mu_3
+        self.atom_F1.f=lambda u:self.F1_axis.f(u)*delta_1
+        self.atom_F1.g=lambda u:self.F1_axis.g(u)*mu_1
+        self.atom_F2.f=lambda u:self.F2_axis.f(u)
+        self.atom_F2.g=lambda u:self.F2_axis.g(u)*2*(mu_1*mu_3)/(mu_1+mu_3)
+        self.atom_F3.f=lambda u:self.F3_axis.f(u)*delta_3
+        self.atom_F3.g=lambda u:self.F3_axis.g(u)*mu_3
 
 
 class Nomo_Atom:
@@ -630,6 +641,49 @@ if __name__=='__main__':
 
     b3_atom3=Nomo_Atom(params=block3_atom3_para)
 
+    block4_f1_para={
+            'u_min':1.0,
+            'u_max':10.0,
+            'function':lambda u:u,
+            'title':'f1'
+                    }
+
+    block4_f2_para={
+            'u_min':2.0,
+            'u_max':10.0,
+            'function':lambda u:u,
+            'title':'f2'
+                    }
+    block4_f3_para={
+            'u_min':0.0,
+            'u_max':10.0,
+            'function':lambda u:u,
+            'title':'f3',
+            'tag':'C'
+                    }
+
+    block5_f1_para={
+            'u_min':1.0,
+            'u_max':10.0,
+            'function':lambda u:u,
+            'title':'f1a',
+            'tag':'C',
+            'tick_side':'left'
+                    }
+
+    block5_f2_para={
+            'u_min':2.0,
+            'u_max':10.0,
+            'function':lambda u:u,
+            'title':'f2b'
+                    }
+    block5_f3_para={
+            'u_min':0.0,
+            'u_max':10.0,
+            'function':lambda u:u,
+            'title':'f3c'
+                    }
+
 
     block1=Nomo_Block()
     block1.add_atom(b1_atom1)
@@ -646,15 +700,29 @@ if __name__=='__main__':
     block3.add_atom(b3_atom2)
     block3.add_atom(b3_atom3)
 
+    block4=Nomo_Block_Type_1()
+    block4.define_F1(block4_f1_para)
+    block4.define_F2(block4_f2_para)
+    block4.define_F3(block4_f3_para)
+    block4.set_width_height_propotion_original(width=5.0,height=15.0,proportion=1.2)
+
+    block5=Nomo_Block_Type_1(mirror_x=True)
+    block5.define_F1(block5_f1_para)
+    block5.define_F2(block5_f2_para)
+    block5.define_F3(block5_f3_para)
+    block5.set_width_height_propotion_original(width=5.0,height=15.0,proportion=1.2)
+
     wrapper=Nomo_Wrapper(paper_width=40.0,paper_height=20.0)
-    wrapper.add_block(block1)
-    wrapper.add_block(block2)
-    wrapper.add_block(block3)
+    #wrapper.add_block(block1)
+    #wrapper.add_block(block2)
+    #wrapper.add_block(block3)
+    wrapper.add_block(block4)
+    wrapper.add_block(block5)
     wrapper.align_blocks()
     wrapper.build_axes_wrapper() # build structure for optimization
     #wrapper.do_transformation(method='scale paper')
-    wrapper.do_transformation(method='rotate',params=30.0)
-    wrapper.do_transformation(method='rotate',params=30.0)
+    ##wrapper.do_transformation(method='rotate',params=10.0)
+    #wrapper.do_transformation(method='rotate',params=30.0)
     #wrapper.do_transformation(method='rotate',params=20.0)
     #wrapper.do_transformation(method='rotate',params=90.0)
     #wrapper.do_transformation(method='polygon')

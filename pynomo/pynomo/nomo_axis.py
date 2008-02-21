@@ -241,7 +241,7 @@ class Nomo_Axis:
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
         for number, label_string in manual_axis_data.iteritems():
             text_distance=1.0/4
-            if self.side=='left':
+            if self.side=='left':    
                 text_attr=[text.valign.middle,text.halign.right,text.size.small]
                 texts.append((label_string,f(number)-text_distance,
                           g(number),text_attr))

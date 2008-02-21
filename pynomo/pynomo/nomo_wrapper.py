@@ -811,11 +811,11 @@ if __name__=='__main__':
     wrapper.align_blocks()
     wrapper.build_axes_wrapper() # build structure for optimization
     #wrapper.do_transformation(method='scale paper')
-    ##wrapper.do_transformation(method='rotate',params=10.0)
+    wrapper.do_transformation(method='rotate',params=10.0)
     #wrapper.do_transformation(method='rotate',params=30.0)
     #wrapper.do_transformation(method='rotate',params=20.0)
     #wrapper.do_transformation(method='rotate',params=90.0)
-    #wrapper.do_transformation(method='polygon')
+    wrapper.do_transformation(method='polygon')
     #wrapper.do_transformation(method='optimize')
     wrapper.do_transformation(method='scale paper')
     c=canvas.canvas()

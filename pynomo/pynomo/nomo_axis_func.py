@@ -243,7 +243,7 @@ class Axis_Wrapper:
         for x,y in line:
             x_trafo=self.give_trafo_x(x, y)
             y_trafo=self.give_trafo_y(x, y)
-            slope=self._calc_slope_(x,y,x_ref,y_ref)
+            slope=self._calc_slope_(x_trafo,y_trafo,x_ref,y_ref)
             if slope<slope_best:
                 y_best=y_trafo
                 x_best=x_trafo
@@ -545,6 +545,7 @@ class Axes_Wrapper:
             if slope<slope_high and not idx==high_idx:
                 y_slope_high=y
                 x_slope_high=x
+                slope_high=slope
         # let's find the bottom-lne with minimum slope
         slope_low=1e120 # big number
         for idx,axis in enumerate(self.axes_list):
@@ -552,6 +553,7 @@ class Axes_Wrapper:
             if slope<slope_low and not idx==low_idx:
                 y_slope_low=y
                 x_slope_low=x
+                slope_low=slope
         """ let's set the points to a ractangle form (not self-intersecting)
             (x1,y1)   -  (x3,y3)
                |  polygon  |
@@ -580,13 +582,25 @@ class Axes_Wrapper:
                |  polygon  |      ---->      |   polygon  |
             (x2,y2)     (x4,y4)          (x2d,y2d)      (x4d,y4d)
         """
-        # define right polygon
-        x1d,y1d=0,self.paper_height
-        x2d,y2d=0,0
-        x3d,y3d=self.paper_width,self.paper_height
-        x4d,y4d=self.paper_width,0
         # find the left polygon
         x1,y1,x2,y2,x3,y3,x4,y4=self._find_polygon_horizontal_()
+        # define right polygon
+        x1d,y1d=x1,self.paper_height
+        x2d,y2d=x2,0.0
+        x3d,y3d=x3,self.paper_height
+        x4d,y4d=x4,0.0
+
+        c = canvas.canvas()
+        self._plot_axes_(c)
+        c.fill(path.circle(x1, y1, 0.02))
+        c.text(x1+1, y1,'1')
+        c.fill(path.circle(x2, y2, 0.03))
+        c.text(x2+1, y2,'2')
+        c.fill(path.circle(x3, y3, 0.04))
+        c.text(x3+1, y3,'3')
+        c.fill(path.circle(x4, y4, 0.05))
+        c.text(x4+1, y4,'4')
+        c.writePDFfile('poly_debug.pdf')
         print "polygon coords:"
         print x1,y1,x2,y2,x3,y3,x4,y4
         # calculate transformation

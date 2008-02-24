@@ -113,9 +113,15 @@ class Nomo_Wrapper:
                                        paper_height=self.paper_height)
         for block in self.block_stack:
             for atom in block.atom_stack:
-                self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
-                                                        atom.params['u_min'],
-                                                        atom.params['u_max']))
+                if not atom.params['reference']==True:
+                    self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
+                                                            atom.params['u_min'],
+                                                            atom.params['u_max']))
+                else: # this atom is reference axis
+                    self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x_ref,atom.give_y_ref,
+                                                            atom.u_min_ref,
+                                                            atom.u_max_ref))
+
 
     def do_transformation(self,method='scale paper',params=None):
         """
@@ -239,6 +245,8 @@ class Nomo_Block(object):
         # initial transformation
         self.atom_stack=[] # atoms
         self.trafo_stack=[] # stack for transformation matrices for block
+        self.axis_wrapper_stack=[] # stack of Axis_Wrapper objects in order to calculate
+                                   # general block parameters like highest point, etc.
         self.add_transformation() # adds initial unit transformation
 
 
@@ -321,13 +329,50 @@ class Nomo_Block(object):
 #        return ((self.alpha2*x+self.beta2*y+self.gamma2)\
 #        /(self.alpha3*x+self.beta3*y+self.gamma3))
 
-
     def draw(self,canvas):
         """
         draws the Atoms of block
         """
         for atom in self.atom_stack:
             atom.draw(canvas)
+
+    def _calc_y_limits_original_(self):
+        """
+        calculates min y and max y coordinates using axis_wrapper_stack
+        that contains original coordinates without further transformations.
+        This function is intended mainly for reflection axis-calculations
+        """
+        min_y=1.0e120 #large number
+        max_y=-1.0e120 #large number
+        for axis in self.axis_wrapper_stack:
+            dummy,min_value=axis.calc_lowest_point()
+            if min_value<min_y:
+                min_y=min_value
+            dummy,max_value=axis.calc_highest_point()
+            if max_value>max_y:
+                max_y=max_value
+        return min_y,max_y
+
+    def set_reference_axes(self):
+        """
+        Axes that are set to be reference axes are tuned w.r.t. to
+        other "real" axes that have values.
+        """
+        min_y,max_y = self._calc_y_limits_original_()
+        print "min_y,max_y"
+        print min_y,max_y
+        y_range=max_y-min_y
+        for atom in self.atom_stack:
+            if atom.params['reference']==True:
+                y_addition=y_range*atom.params['reference padding']
+                print "y_addition"
+                print y_addition
+                atom.f_ref=atom.f
+                atom.g_ref=lambda u:u
+                atom.u_min_ref=min_y-y_addition
+                atom.u_max_ref=max_y+y_addition
+                atom.params['tick_levels']=5
+                atom.params['tick_text_levels']=5
 
 class Nomo_Block_Type_1(Nomo_Block):
     """
@@ -356,6 +401,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         # for axis calculations
         self.F1_axis=Axis_Wrapper(f=params['F'],g=params['G'],
                              start=params['u_min'],stop=params['u_max'])
+        #self.axis_wrapper_stack.append(self.F1_axis)
 
     def define_F2(self,params):
         """
@@ -368,6 +414,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         # for axis calculations
         self.F2_axis=Axis_Wrapper(f=params['F'],g=params['G'],
                              start=params['u_min'],stop=params['u_max'])
+        #self.axis_wrapper_stack.append(self.F2_axis)
 
     def define_F3(self,params):
         """
@@ -380,7 +427,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         # for axis calculations original parameters
         self.F3_axis=Axis_Wrapper(f=params['F'],g=params['G'],
                              start=params['u_min'],stop=params['u_max'])
-
+        #self.axis_wrapper_stack.append(self.F3_axis)
 
     def set_width_height_propotion_original(self,width=10.0,height=10.0,proportion=1.0):
         """
@@ -412,6 +459,21 @@ class Nomo_Block_Type_1(Nomo_Block):
         self.atom_F2.g=lambda u:self.F2_axis.g(u)*2*(mu_1*mu_3)/(mu_1+mu_3)
         self.atom_F3.f=lambda u:self.F3_axis.f(u)*delta_3
         self.atom_F3.g=lambda u:self.F3_axis.g(u)*mu_3
+
+        self.F1_axis_ref=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
+                             start=self.atom_F1.params['u_min'],
+                             stop=self.atom_F1.params['u_max'])
+        self.axis_wrapper_stack.append(self.F1_axis)
+        self.F2_axis_ref=Axis_Wrapper(f=self.atom_F2.f,g=self.atom_F2.g,
+                             start=self.atom_F2.params['u_min'],
+                             stop=self.atom_F2.params['u_max'])
+        self.axis_wrapper_stack.append(self.F2_axis)
+
+        self.F3_axis_ref=Axis_Wrapper(f=self.atom_F3.f,g=self.atom_F3.g,
+                             start=self.atom_F3.params['u_min'],
+                             stop=self.atom_F3.params['u_max'])
+        self.axis_wrapper_stack.append(self.F3_axis)
+
 
 class Nomo_Block_Type_2(Nomo_Block):
     """
@@ -472,6 +534,17 @@ class Nomo_Block_Type_2(Nomo_Block):
         self.atom_F3=Nomo_Atom(self.params_F3)
         self.add_atom(self.atom_F3)
 
+        self.F1_axis=Axis_Wrapper(f=self.params_F1['F'],g=self.params_F1['G'],
+                             start=self.params_F1['u_min'],stop=self.params_F1['u_max'])
+        self.axis_wrapper_stack.append(self.F1_axis)
+
+        self.F2_axis=Axis_Wrapper(f=self.params_F2['F'],g=self.params_F2['G'],
+                             start=self.params_F2['u_min'],stop=self.params_F2['u_max'])
+        self.axis_wrapper_stack.append(self.F2_axis)
+
+        self.F3_axis=Axis_Wrapper(f=self.params_F3['F'],g=self.params_F3['G'],
+                             start=self.params_F3['u_min'],stop=self.params_F3['u_max'])
+        self.axis_wrapper_stack.append(self.F3_axis)
 
 class Nomo_Atom:
     """
@@ -491,12 +564,17 @@ class Nomo_Atom:
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'none'} # for aligning block wrt others
+            'tag':'none', # for aligning block wrt others
+            'reference':False,
+            'reference padding': 0.20 # fraction of reference line over other lines
+            }
         self.params=self.params_default
         self.params.update(params)
         self.set_trafo() # initialize
         self.f = self.params['F'] # x-coord func
         self.g = self.params['G'] # y-coord func
+        self.f_ref = self.params['F'] # x-coord func for reflection axis
+        self.g_ref = self.params['G'] # y-coord func for reflection axis
 
     def set_trafo(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
                            alpha2=0.0,beta2=1.0,gamma2=0.0,
@@ -530,17 +608,44 @@ class Nomo_Atom:
         (self.alpha3*self.f(u)+self.beta3*self.g(u)+self.gamma3)
         return value
 
+    def give_x_ref(self,u):
+        """
+        x-function for reflection axis
+        """
+        value=(self.alpha1*self.f_ref(u)+self.beta1*self.g_ref(u)+self.gamma1)/\
+        (self.alpha3*self.f_ref(u)+self.beta3*self.g_ref(u)+self.gamma3)
+        return value
+
+    def give_y_ref(self,u):
+        """
+        y-function for reflection axis
+        """
+        value=(self.alpha2*self.f_ref(u)+self.beta2*self.g_ref(u)+self.gamma2)/\
+        (self.alpha3*self.f_ref(u)+self.beta3*self.g_ref(u)+self.gamma3)
+        return value
+
+
     def draw(self,canvas):
         """
         draws the axis
         """
         p=self.params
-        Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
-                  start=p['u_min'],stop=p['u_max'],
-                  turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
-                  tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
-                  side=p['tick_side'])
-
+        if not p['reference']==True:
+            Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
+                      start=p['u_min'],stop=p['u_max'],
+                      turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
+                      tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
+                      side=p['tick_side'])
+        else: # reference axis
+            print "u_min_ref"
+            print self.u_min_ref
+            print "u_max_ref"
+            print self.u_max_ref
+            Nomo_Axis(func_f=self.give_x_ref,func_g=self.give_y_ref,
+            start=self.u_min_ref,stop=self.u_max_ref,
+            turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
+            tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
+            side=p['tick_side'])
 
 if __name__=='__main__':
     """
@@ -718,14 +823,15 @@ if __name__=='__main__':
             'u_max':10.0,
             'function':lambda u:u,
             'title':'f3',
-            'tag':'C'
+            'tag':'C',
+            'reference':True
                     }
 
     block5_f1_para={
             'u_min':1.0,
             'u_max':10.0,
             'function':lambda u:u,
-            'title':'f1 ba',
+            'title':'f1 b',
             'tag':'C',
             'tick_side':'left'
                     }
@@ -734,7 +840,8 @@ if __name__=='__main__':
             'u_min':2.0,
             'u_max':10.0,
             'function':lambda u:u,
-            'title':'f2 b'
+            'title':'f2 b',
+            'reference':True
                     }
     block5_f3_para={
             'u_min':0.0,
@@ -764,7 +871,8 @@ if __name__=='__main__':
             'u_min':0.0,
             'u_max':10.0,
             'function':lambda u:u,
-            'title':'f3 c'
+            'title':'f3 c',
+            'reference':False
                     }
 
 
@@ -788,18 +896,21 @@ if __name__=='__main__':
     block4.define_F2(block4_f2_para)
     block4.define_F3(block4_f3_para)
     block4.set_width_height_propotion_original(width=5.0,height=15.0,proportion=1.2)
+    block4.set_reference_axes()
 
     block5=Nomo_Block_Type_1(mirror_x=True)
     block5.define_F1(block5_f1_para)
     block5.define_F2(block5_f2_para)
     block5.define_F3(block5_f3_para)
     block5.set_width_height_propotion_original(width=5.0,height=15.0,proportion=1.2)
+    block5.set_reference_axes()
 
     block6=Nomo_Block_Type_2(mirror_x=True)
     block6.define_F1(block6_f1_para)
     block6.define_F2(block6_f2_para)
     block6.define_F3(block6_f3_para)
     block6.set_block(height=10.0,width=3.0)
+    block6.set_reference_axes()
 
     wrapper=Nomo_Wrapper(paper_width=40.0,paper_height=20.0)
     #wrapper.add_block(block1)
@@ -811,11 +922,11 @@ if __name__=='__main__':
     wrapper.align_blocks()
     wrapper.build_axes_wrapper() # build structure for optimization
     #wrapper.do_transformation(method='scale paper')
-    wrapper.do_transformation(method='rotate',params=10.0)
+    #wrapper.do_transformation(method='rotate',params=10.0)
     #wrapper.do_transformation(method='rotate',params=30.0)
     #wrapper.do_transformation(method='rotate',params=20.0)
     #wrapper.do_transformation(method='rotate',params=90.0)
-    wrapper.do_transformation(method='polygon')
+    #wrapper.do_transformation(method='polygon')
     #wrapper.do_transformation(method='optimize')
     wrapper.do_transformation(method='scale paper')
     c=canvas.canvas()

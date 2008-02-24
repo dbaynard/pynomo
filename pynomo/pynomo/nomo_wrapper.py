@@ -644,7 +644,7 @@ class Nomo_Atom:
             Nomo_Axis(func_f=self.give_x_ref,func_g=self.give_y_ref,
             start=self.u_min_ref,stop=self.u_max_ref,
             turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
-            tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
+            tick_levels=0,tick_text_levels=0,
             side=p['tick_side'])
 
 if __name__=='__main__':
@@ -838,14 +838,14 @@ if __name__=='__main__':
 
     block5_f2_para={
             'u_min':2.0,
-            'u_max':10.0,
+            'u_max':11.0,
             'function':lambda u:u,
             'title':'f2 b',
             'reference':True
                     }
     block5_f3_para={
             'u_min':0.0,
-            'u_max':10.0,
+            'u_max':11.0,
             'function':lambda u:u,
             'title':'f3 b',
             'tag':'D',
@@ -854,7 +854,7 @@ if __name__=='__main__':
 
     block6_f1_para={
             'u_min':1.0,
-            'u_max':10.0,
+            'u_max':12.0,
             'function':lambda u:u,
             'title':'f1 c',
             'tag':'D',
@@ -863,13 +863,13 @@ if __name__=='__main__':
 
     block6_f2_para={
             'u_min':0.1,
-            'u_max':10.0,
+            'u_max':4.0,
             'function':lambda u:u,
             'title':'f2 c'
                     }
     block6_f3_para={
             'u_min':0.0,
-            'u_max':10.0,
+            'u_max':12.0,
             'function':lambda u:u,
             'title':'f3 c',
             'reference':False
@@ -895,14 +895,14 @@ if __name__=='__main__':
     block4.define_F1(block4_f1_para)
     block4.define_F2(block4_f2_para)
     block4.define_F3(block4_f3_para)
-    block4.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.4)
+    block4.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
     block4.set_reference_axes()
 
     block5=Nomo_Block_Type_1(mirror_x=True)
     block5.define_F1(block5_f1_para)
     block5.define_F2(block5_f2_para)
     block5.define_F3(block5_f3_para)
-    block5.set_width_height_propotion_original(width=5.0,height=15.0,proportion=1.2)
+    block5.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
     block5.set_reference_axes()
 
     block6=Nomo_Block_Type_2(mirror_x=True)
@@ -912,7 +912,7 @@ if __name__=='__main__':
     block6.set_block(height=10.0,width=3.0)
     block6.set_reference_axes()
 
-    wrapper=Nomo_Wrapper(paper_width=40.0,paper_height=20.0)
+    wrapper=Nomo_Wrapper(paper_width=40.0,paper_height=60.0)
     #wrapper.add_block(block1)
     #wrapper.add_block(block2)
     #wrapper.add_block(block3)
@@ -926,7 +926,7 @@ if __name__=='__main__':
     #wrapper.do_transformation(method='rotate',params=30.0)
     #wrapper.do_transformation(method='rotate',params=20.0)
     #wrapper.do_transformation(method='rotate',params=90.0)
-    #wrapper.do_transformation(method='polygon')
+    wrapper.do_transformation(method='polygon')
     #wrapper.do_transformation(method='optimize')
     wrapper.do_transformation(method='scale paper')
     c=canvas.canvas()

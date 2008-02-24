@@ -100,7 +100,8 @@ class Nomo_Axis:
 
 
     def _make_linear_axis_(self,start,stop,f,g,turn=1):
-        """ Makes a linear scale according to functions f(u) and g(u)
+        """
+        Makes a linear scale according to functions f(u) and g(u)
         with values u in range [start, stop].
         """
         line = path.path(path.moveto(f(start), g(start)))
@@ -111,7 +112,8 @@ class Nomo_Axis:
         self._determine_turn_()
         turn=self.turn
         # which number to divide. how many decades there are
-        scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
+        ##scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
+        scale_max=10.0**round(math.log10(math.fabs(start-stop)))
         tick_min=scale_max/(500.0)
         tick_max=scale_max/10.0
         tick_1=scale_max/20.0

@@ -340,7 +340,7 @@ class Nomo_Block(object):
         """
         calculates min y and max y coordinates using axis_wrapper_stack
         that contains original coordinates without further transformations.
-        This function is intended mainly for reflection axis-calculations
+        This function is intended mainly for reference axis-calculations
         """
         min_y=1.0e120 #large number
         max_y=-1.0e120 #large number
@@ -398,8 +398,8 @@ class Nomo_Block_Type_1(Nomo_Block):
         params['G']=lambda u:params['function'](u)*self.y_mirror
         self.atom_F1=Nomo_Atom(params)
         self.add_atom(self.atom_F1)
-        # for axis calculations
-        self.F1_axis=Axis_Wrapper(f=params['F'],g=params['G'],
+        # for inital axis calculations
+        self.F1_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
                              start=params['u_min'],stop=params['u_max'])
         #self.axis_wrapper_stack.append(self.F1_axis)
 
@@ -412,7 +412,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         self.atom_F2=Nomo_Atom(params)
         self.add_atom(self.atom_F2)
         # for axis calculations
-        self.F2_axis=Axis_Wrapper(f=params['F'],g=params['G'],
+        self.F2_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
                              start=params['u_min'],stop=params['u_max'])
         #self.axis_wrapper_stack.append(self.F2_axis)
 
@@ -425,7 +425,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         self.atom_F3=Nomo_Atom(params)
         self.add_atom(self.atom_F3)
         # for axis calculations original parameters
-        self.F3_axis=Axis_Wrapper(f=params['F'],g=params['G'],
+        self.F3_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
                              start=params['u_min'],stop=params['u_max'])
         #self.axis_wrapper_stack.append(self.F3_axis)
 
@@ -439,12 +439,12 @@ class Nomo_Block_Type_1(Nomo_Block):
         delta_3=width/(proportion+1)
         print delta_1
         print delta_3
-        x_dummy,f1_max=self.F1_axis.calc_highest_point()
-        x_dummy,f1_min=self.F1_axis.calc_lowest_point()
-        x_dummy,f2_max=self.F2_axis.calc_highest_point()
-        x_dummy,f2_min=self.F2_axis.calc_lowest_point()
-        x_dummy,f3_max=self.F3_axis.calc_highest_point()
-        x_dummy,f3_min=self.F3_axis.calc_lowest_point()
+        x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
+        x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
+        x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
+        x_dummy,f2_min=self.F2_axis_ini.calc_lowest_point()
+        x_dummy,f3_max=self.F3_axis_ini.calc_highest_point()
+        x_dummy,f3_min=self.F3_axis_ini.calc_lowest_point()
         # assume mu_3=1, mu_1 = proportion for a moment
         max_y=max(1.0*p*f1_max,p/(1.0+p)*f2_max,1.0*f3_max)
         min_y=min(p*f1_max,p/(1+p)*f2_max,f3_max)
@@ -453,23 +453,23 @@ class Nomo_Block_Type_1(Nomo_Block):
         mu_1=p*multiplier
         mu_3=multiplier
         # redefine scaled functions
-        self.atom_F1.f=lambda u:self.F1_axis.f(u)*delta_1
-        self.atom_F1.g=lambda u:self.F1_axis.g(u)*mu_1
-        self.atom_F2.f=lambda u:self.F2_axis.f(u)
-        self.atom_F2.g=lambda u:self.F2_axis.g(u)*2*(mu_1*mu_3)/(mu_1+mu_3)
-        self.atom_F3.f=lambda u:self.F3_axis.f(u)*delta_3
-        self.atom_F3.g=lambda u:self.F3_axis.g(u)*mu_3
+        self.atom_F1.f=lambda u:self.F1_axis_ini.f(u)*delta_1
+        self.atom_F1.g=lambda u:self.F1_axis_ini.g(u)*mu_1
+        self.atom_F2.f=lambda u:self.F2_axis_ini.f(u)
+        self.atom_F2.g=lambda u:self.F2_axis_ini.g(u)*2*(mu_1*mu_3)/(mu_1+mu_3)
+        self.atom_F3.f=lambda u:self.F3_axis_ini.f(u)*delta_3
+        self.atom_F3.g=lambda u:self.F3_axis_ini.g(u)*mu_3
 
-        self.F1_axis_ref=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
+        self.F1_axis=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
                              start=self.atom_F1.params['u_min'],
                              stop=self.atom_F1.params['u_max'])
         self.axis_wrapper_stack.append(self.F1_axis)
-        self.F2_axis_ref=Axis_Wrapper(f=self.atom_F2.f,g=self.atom_F2.g,
+        self.F2_axis=Axis_Wrapper(f=self.atom_F2.f,g=self.atom_F2.g,
                              start=self.atom_F2.params['u_min'],
                              stop=self.atom_F2.params['u_max'])
         self.axis_wrapper_stack.append(self.F2_axis)
 
-        self.F3_axis_ref=Axis_Wrapper(f=self.atom_F3.f,g=self.atom_F3.g,
+        self.F3_axis=Axis_Wrapper(f=self.atom_F3.f,g=self.atom_F3.g,
                              start=self.atom_F3.params['u_min'],
                              stop=self.atom_F3.params['u_max'])
         self.axis_wrapper_stack.append(self.F3_axis)
@@ -806,7 +806,7 @@ if __name__=='__main__':
     b3_atom3=Nomo_Atom(params=block3_atom3_para)
 
     block4_f1_para={
-            'u_min':1.0,
+            'u_min':-3.0,
             'u_max':10.0,
             'function':lambda u:u,
             'title':'f1'
@@ -895,7 +895,7 @@ if __name__=='__main__':
     block4.define_F1(block4_f1_para)
     block4.define_F2(block4_f2_para)
     block4.define_F3(block4_f3_para)
-    block4.set_width_height_propotion_original(width=5.0,height=15.0,proportion=1.2)
+    block4.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.4)
     block4.set_reference_axes()
 
     block5=Nomo_Block_Type_1(mirror_x=True)

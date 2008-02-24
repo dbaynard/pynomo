@@ -76,12 +76,32 @@ class Nomo_Axis:
         for example:
         u=0.2, tick=0.1 gives True
         u=0.25, tick=0.1 gives False """
-        return math.fabs(math.modf(u/tick)[0]) < (scale_max*1e-8) or math.fabs((math.modf(u/tick)[0]-1)) < (scale_max*1e-8)
+        closest_number=self._find_closest_tick_number_(u,tick)
+        result=False
+        if math.fabs(u-closest_number)< (scale_max*1e-6):
+            result=True
+        return result
+        #return math.fabs(math.modf(u/tick)[0]) < (scale_max*1e-5) or math.fabs((math.modf(u/tick)[0]-1)) < (scale_max*1e-8)
+
+    def _find_closest_tick_number_(self,number,tick_divisor):
+        """
+        finds closest number with integer number of divisors from zero
+        """
+        n=number//tick_divisor
+        tick_number=n*tick_divisor
+        error=math.fabs(tick_number-number)
+        if math.fabs(((n+1)*tick_divisor)-number)< error:
+            tick_number=(n+1)*tick_divisor
+            error=math.fabs(tick_number-number)
+        if math.fabs(((n-1)*tick_divisor)-number)< error:
+            tick_number=(n-1)*tick_divisor
+            error=math.fabs(tick_number-number)
+        return tick_number
 
 
     def _make_linear_axis_(self,start,stop,f,g,turn=1):
         """ Makes a linear scale according to functions f(u) and g(u)
-        with values u in range [start, stop]. turn=-1 makes ticks to change side
+        with values u in range [start, stop].
         """
         line = path.path(path.moveto(f(start), g(start)))
         thin_line=path.path(path.moveto(f(start), g(start)))
@@ -92,13 +112,19 @@ class Nomo_Axis:
         turn=self.turn
         # which number to divide. how many decades there are
         scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
-        tick_min=scale_max/500.0
+        tick_min=scale_max/(500.0)
         tick_max=scale_max/10.0
         tick_1=scale_max/20.0
         tick_2=scale_max/100.0
+        start_new=self._find_closest_tick_number_(start,tick_min)
+        stop_new=self._find_closest_tick_number_(stop,tick_min)
+        print "tick_min %f"%tick_min
+        print "start_new %f"%start_new
+        print "stop_new %f"%stop_new
         texts=list([])
-        steps=math.fabs(start-stop)/tick_min+1
-        for u in scipy.linspace(start,stop,steps):
+        steps=round(math.fabs(start_new-stop_new)/tick_min)+1
+        for u in scipy.linspace(start_new,stop_new,steps):
+            #print u
             dx=(f(u+du)-f(u))*turn
             dy=(g(u+du)-g(u))*turn
             dx_unit=dx/math.sqrt(dx**2+dy**2)
@@ -241,7 +267,7 @@ class Nomo_Axis:
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
         for number, label_string in manual_axis_data.iteritems():
             text_distance=1.0/4
-            if self.side=='left':    
+            if self.side=='left':
                 text_attr=[text.valign.middle,text.halign.right,text.size.small]
                 texts.append((label_string,f(number)-text_distance,
                           g(number),text_attr))
@@ -414,5 +440,8 @@ if __name__=='__main__':
     # for some reason, this does not work when stop is 359 ??
     gr5=Nomo_Axis(func_f=f1d,func_g=g1d,start=0.0,stop=360.0,turn=-1,title='func 1',
                   canvas=c,type='linear',side='left')
+
+    gr10=Nomo_Axis(func_f=lambda u:20.0,func_g=lambda x:(x+12.5)/2.0,start=-17.1757381043,stop=19.5610135785,turn=-1,title='test neg.',
+                  canvas=c,type='linear',side='right')
     #gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
     c.writePDFfile("test_nomo_axis")

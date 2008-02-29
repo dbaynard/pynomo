@@ -231,11 +231,19 @@ class Nomo_Block(object):
     class to hold separate nomograph blocks connected by a single line in
     order to build the whole nomograph consisting of multiple blocks
     """
-    def __init__(self,mirror=False):
+    def __init__(self,mirror_x=False,mirror_y=False):
         """
         if mirror=True the transformation wrt to other blocks is mirrored
         """
-
+        #self.super.__init__()
+        if mirror_x==True: # if make mirror w.r.t x-axis
+            self.x_mirror=-1.0
+        else:
+            self.x_mirror=1.0
+        if mirror_y==True: # if make mirror w.r.t x-axis
+            self.y_mirror=-1.0
+        else:
+            self.y_mirror=1.0
         """
         Idea is that block has one own tranformation that aligns it with respect to other
         blocks and one overall transformation that optimizes axes w.r.t. paper size.
@@ -379,16 +387,8 @@ class Nomo_Block_Type_1(Nomo_Block):
     type F1+F2=F3
     """
     def __init__(self,mirror_x=False,mirror_y=False):
-        super(Nomo_Block_Type_1,self).__init__()
-        #self.super.__init__()
-        if mirror_x==True: # if make mirror w.r.t x-axis
-            self.x_mirror=-1.0
-        else:
-            self.x_mirror=1.0
-        if mirror_y==True: # if make mirror w.r.t x-axis
-            self.y_mirror=-1.0
-        else:
-            self.y_mirror=1.0
+        super(Nomo_Block_Type_1,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+
 
     def define_F1(self,params):
         """
@@ -480,16 +480,7 @@ class Nomo_Block_Type_2(Nomo_Block):
     type F1=F2*F3
     """
     def __init__(self,mirror_x=False,mirror_y=False):
-        super(Nomo_Block_Type_2,self).__init__()
-        #self.super.__init__()
-        if mirror_x==True: # if make mirror w.r.t x-axis
-            self.x_mirror=-1.0
-        else:
-            self.x_mirror=1.0
-        if mirror_y==True: # if make mirror w.r.t x-axis
-            self.y_mirror=-1.0
-        else:
-            self.y_mirror=1.0
+        super(Nomo_Block_Type_2,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
 
     def define_F1(self,params):
         """

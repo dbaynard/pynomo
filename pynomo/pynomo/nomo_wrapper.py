@@ -1100,7 +1100,7 @@ if __name__=='__main__':
     #wrapper.do_transformation(method='rotate',params=30.0)
     #wrapper.do_transformation(method='rotate',params=20.0)
     #wrapper.do_transformation(method='rotate',params=90.0)
-    #wrapper.do_transformation(method='polygon')
+    wrapper.do_transformation(method='polygon')
     #wrapper.do_transformation(method='optimize')
     wrapper.do_transformation(method='scale paper')
     c=canvas.canvas()

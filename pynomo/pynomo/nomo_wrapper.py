@@ -367,14 +367,14 @@ class Nomo_Block(object):
         other "real" axes that have values.
         """
         min_y,max_y = self._calc_y_limits_original_()
-        print "min_y,max_y"
-        print min_y,max_y
+        #print "min_y,max_y"
+        #print min_y,max_y
         y_range=max_y-min_y
         for atom in self.atom_stack:
             if atom.params['reference']==True:
                 y_addition=y_range*atom.params['reference padding']
-                print "y_addition"
-                print y_addition
+                #print "y_addition"
+                #print y_addition
                 atom.f_ref=atom.f
                 atom.g_ref=lambda u:u
                 atom.u_min_ref=min_y-y_addition
@@ -536,6 +536,138 @@ class Nomo_Block_Type_2(Nomo_Block):
         self.F3_axis=Axis_Wrapper(f=self.params_F3['F'],g=self.params_F3['G'],
                              start=self.params_F3['u_min'],stop=self.params_F3['u_max'])
         self.axis_wrapper_stack.append(self.F3_axis)
+
+class Nomo_Block_Type_3(Nomo_Block):
+    """
+    type F1+F2+...+FN=0 parallel line nomogram
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_3,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+        self.F_stack=[] # stack of function definitions
+        self.N=0 # number of lines
+
+    def add_F(self,params):
+        """
+        appends function F
+        """
+        self.F_stack.append(params)
+        self.N=self.N+1
+
+    def set_block(self,height=10.0,width=10.0):
+        """
+        sets up equations in block after definitions are given
+        """
+        # builds self.x_func,self.y_func,
+        # self.xR_func and self.yR_func
+        self._make_definitions_()
+        for idx in range(1,self.N+1,1):
+            params=self.F_stack[idx-1] # original parameters
+            params['F']=self._give_x_func_(idx)
+            params['G']=self._give_y_func_(idx)
+            temp_atom=Nomo_Atom(params)
+            self.add_atom(temp_atom)
+            temp_axis=Axis_Wrapper(f=temp_atom.f,g=temp_atom.g,
+                             start=temp_atom.params['u_min'],
+                             stop=temp_atom.params['u_max'])
+            self.axis_wrapper_stack.append(temp_axis)
+        # let's make reference axis atoms
+        for ref_para in self.ref_params:
+            self.add_atom(Nomo_Atom(ref_para))
+
+    def _give_x_func_(self,idx):
+        """
+        copied trick to solve function defitions inside loop
+        (I could not figure out how to use lambda...)
+        this is quite stupid code, but can't help ?
+        """
+        def f(u): return self.x_func[idx](u)
+        return f
+
+    def _give_y_func_(self,idx):
+        """
+        copied trick to solve function defitions inside loop
+        (I could not figure out how to use lambda...)
+        this is quite stupid code, but can't help ?
+        """
+        def f(u): return self.y_func[idx](u)
+        return f
+
+    def _make_definitions_(self):
+        """
+        defines functions. Copied originally from nomograp_N_lin.py
+        """
+        N=self.N
+        self.x_func={} # x coordinate to map points into canvas
+        self.y_func={} # y coordinate to map points into canvas
+        self.xR_func={} # turning-point axis
+        self.yR_func={}
+        fn2x_table={} # mapping from function fn to x-coord
+        r_table={}
+        x_max=(N-4)+N # how many x values are needed including turning axes
+        fn2x_table[1]=0.0
+        fn2x_table[2]=1.0
+        fn2x_table[N]=x_max*1.0
+        fn2x_table[N-1]=x_max-1.0
+        f_mid=range(3,(N-1),1) # function numbers between reflection axes
+        x_mid=[(f-3)*2.0+3.0 for f in f_mid]
+        for idx,x in enumerate(x_mid):
+            fn2x_table[f_mid[idx]]=x*1.0
+            r_table[idx+1]=x-1.0
+        r_table[N-3]=x_max-2.0
+        """
+        fn2x_table: table of x-coordinates of functions
+        r_table: table of x-coordinates of functions
+        """
+        print "fn2x_table "
+        print fn2x_table
+        # make fn functions
+        for idx in range(2,N,1):
+            self.x_func[idx]=self._makeDoX_(fn2x_table[idx])
+            self.y_func[idx]=self._makeDoY_(idx)
+        self.x_func[1]=lambda x:fn2x_table[1]*1.0*self.x_mirror
+        self.x_func[N]=lambda x:fn2x_table[N]*1.0*self.x_mirror
+        #self.y_func[1]=lambda u:self.functions['f1'](u)
+        self.y_func[1]=lambda u:self.F_stack[0]['function'](u)**self.y_mirror
+        #self.y_func[N]=lambda u:(-1)**(N+1)*self.functions['f%i'%N](u)
+        self.y_func[N]=lambda u:(-1)**(N+1)*self.F_stack[N-1]['function'](u)*self.y_mirror
+        # make reflection axes
+        """
+        for idx in range(1,N-2):
+            self.xR_func[idx]=self._makeDoX_(r_table[idx])
+            self.yR_func[idx]=lambda y:y
+        """
+        self.ref_params=[]
+        ref_para_ini={ # this is for reference
+            'u_min':0.0,
+            'u_max':1.0,
+            'function':lambda u:u,
+            'title':'RRR',
+            'reference':True
+                    }
+        for idx in range(1,N-2):
+            ref_para=copy(ref_para_ini)
+            ref_para['F']=self._makeDoX_(r_table[idx])
+            ref_para['G']=lambda y:y
+            self.ref_params.append(ref_para)
+
+    def _makeDoX_(self,value):
+        """
+        copied trick to solve function defitions inside loop
+        (I could not figure out how to use lambda...)
+        """
+        def f(dummy): return value*self.x_mirror
+        return f
+
+    def _makeDoY_(self,idx):
+        """
+        copied trick to solve function definitions inside loop
+        (I could not figure out how to use lambda...)
+        """
+        #def ff(u): return (-1)**(idx+1)*0.5*self.functions['f%i'%idx](u)
+        def ff(u): return (-1)**(idx+1)*0.5*self.F_stack[idx-1]['function'](u)*self.y_mirror
+        return ff
+
+
 
 class Nomo_Atom:
     """
@@ -866,6 +998,47 @@ if __name__=='__main__':
             'reference':False
                     }
 
+    block7_f1_para={
+            'u_min':-12.0,
+            'u_max':12.0,
+            'function':lambda u:u,
+            'title':'N1',
+            'tag':'none',
+            'tick_side':'right'
+                    }
+    block7_f2_para={
+            'u_min':-12.0,
+            'u_max':12.0,
+            'function':lambda u:u,
+            'title':'N2',
+            'tag':'none',
+            'tick_side':'right'
+                    }
+    block7_f3_para={
+            'u_min':-12.0,
+            'u_max':12.0,
+            'function':lambda u:u,
+            'title':'N3',
+            'tag':'none',
+            'tick_side':'right'
+                    }
+    block7_f4_para={
+            'u_min':-12.0,
+            'u_max':12.0,
+            'function':lambda u:u,
+            'title':'N4',
+            'tag':'none',
+            'tick_side':'right'
+                    }
+
+    block7_f5_para={
+            'u_min':-12.0,
+            'u_max':12.0,
+            'function':lambda u:u,
+            'title':'N5',
+            'tag':'none',
+            'tick_side':'right'
+                    }
 
     block1=Nomo_Block()
     block1.add_atom(b1_atom1)
@@ -903,13 +1076,23 @@ if __name__=='__main__':
     block6.set_block(height=10.0,width=3.0)
     block6.set_reference_axes()
 
-    wrapper=Nomo_Wrapper(paper_width=40.0,paper_height=60.0)
+    block7=Nomo_Block_Type_3(mirror_x=True)
+    block7.add_F(block7_f1_para)
+    block7.add_F(block7_f2_para)
+    block7.add_F(block7_f3_para)
+    block7.add_F(block7_f4_para)
+    block7.add_F(block7_f5_para)
+    block7.set_block()
+    block7.set_reference_axes()
+
+    wrapper=Nomo_Wrapper(paper_width=2*40.0,paper_height=2*60.0)
     #wrapper.add_block(block1)
     #wrapper.add_block(block2)
     #wrapper.add_block(block3)
     wrapper.add_block(block4)
     wrapper.add_block(block5)
     wrapper.add_block(block6)
+    wrapper.add_block(block7)
     wrapper.align_blocks()
     wrapper.build_axes_wrapper() # build structure for optimization
     #wrapper.do_transformation(method='scale paper')
@@ -917,7 +1100,7 @@ if __name__=='__main__':
     #wrapper.do_transformation(method='rotate',params=30.0)
     #wrapper.do_transformation(method='rotate',params=20.0)
     #wrapper.do_transformation(method='rotate',params=90.0)
-    wrapper.do_transformation(method='polygon')
+    #wrapper.do_transformation(method='polygon')
     #wrapper.do_transformation(method='optimize')
     wrapper.do_transformation(method='scale paper')
     c=canvas.canvas()

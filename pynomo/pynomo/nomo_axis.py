@@ -120,9 +120,9 @@ class Nomo_Axis:
         tick_2=scale_max/100.0
         start_new=self._find_closest_tick_number_(start,tick_min)
         stop_new=self._find_closest_tick_number_(stop,tick_min)
-        print "tick_min %f"%tick_min
-        print "start_new %f"%start_new
-        print "stop_new %f"%stop_new
+        #print "tick_min %f"%tick_min
+        #print "start_new %f"%start_new
+        #print "stop_new %f"%stop_new
         texts=list([])
         steps=round(math.fabs(start_new-stop_new)/tick_min)+1
         for u in scipy.linspace(start_new,stop_new,steps):

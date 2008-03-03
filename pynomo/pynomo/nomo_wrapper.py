@@ -382,6 +382,35 @@ class Nomo_Block(object):
                 atom.params['tick_levels']=5
                 atom.params['tick_text_levels']=5
 
+    def _build_axes_wrapper_block_(self):
+        """
+        builds full instance of class Axes_Wrapper to find
+        transformation for block
+        to be called after set_block function
+        """
+        self.axes_wrapper=Axes_Wrapper(paper_width=self.width,
+                                       paper_height=self.height)
+        for atom in self.atom_stack:
+            if not atom.params['reference']==True:
+                self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
+                                                        atom.params['u_min'],
+                                                        atom.params['u_max']))
+            else: # this atom is reference axis
+                self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x_ref,atom.give_y_ref,
+                                                        atom.u_min_ref,
+                                                        atom.u_max_ref))
+    def _scale_to_box_(self):
+        """
+        adds transformation to scale to box. To be used to scale to paper
+        """
+        self.axes_wrapper.fit_to_paper()
+        alpha1,beta1,gamma1,\
+        alpha2,beta2,gamma2,\
+        alpha3,beta3,gamma3 = self.axes_wrapper.give_trafo()
+        self.add_transformation(alpha1=alpha1,beta1=beta1,gamma1=gamma1,
+                           alpha2=alpha2,beta2=beta2,gamma2=gamma2,
+                           alpha3=alpha3,beta3=beta3,gamma3=gamma3)
+
 class Nomo_Block_Type_1(Nomo_Block):
     """
     type F1+F2=F3
@@ -429,11 +458,13 @@ class Nomo_Block_Type_1(Nomo_Block):
                              start=params['u_min'],stop=params['u_max'])
         #self.axis_wrapper_stack.append(self.F3_axis)
 
-    def set_width_height_propotion_original(self,width=10.0,height=10.0,proportion=1.0):
+    def set_block(self,width=10.0,height=10.0,proportion=1.0):
         """
         sets original width, height and x-distance proportion for the nomogram before
         transformations
         """
+        self.width=width
+        self.height=height
         p=proportion
         delta_1=proportion*width/(1+proportion)
         delta_3=width/(proportion+1)
@@ -473,6 +504,7 @@ class Nomo_Block_Type_1(Nomo_Block):
                              start=self.atom_F3.params['u_min'],
                              stop=self.atom_F3.params['u_max'])
         self.axis_wrapper_stack.append(self.F3_axis)
+        self.set_reference_axes()
 
 
 class Nomo_Block_Type_2(Nomo_Block):
@@ -507,6 +539,8 @@ class Nomo_Block_Type_2(Nomo_Block):
         """
         sets the N-nomogram of the block using geometrical approach from Levens
         """
+        self.width=width
+        self.height=height
         length_f1=max(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
         length_f3=max(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))
         m1=height/length_f1
@@ -536,6 +570,7 @@ class Nomo_Block_Type_2(Nomo_Block):
         self.F3_axis=Axis_Wrapper(f=self.params_F3['F'],g=self.params_F3['G'],
                              start=self.params_F3['u_min'],stop=self.params_F3['u_max'])
         self.axis_wrapper_stack.append(self.F3_axis)
+        self.set_reference_axes()
 
 class Nomo_Block_Type_3(Nomo_Block):
     """
@@ -545,6 +580,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         super(Nomo_Block_Type_3,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
         self.F_stack=[] # stack of function definitions
         self.N=0 # number of lines
+        axes_wrapper_N=Axes_Wrapper() # to calculate bounding box
 
     def add_F(self,params):
         """
@@ -559,6 +595,8 @@ class Nomo_Block_Type_3(Nomo_Block):
         """
         # builds self.x_func,self.y_func,
         # self.xR_func and self.yR_func
+        self.width=width
+        self.height=height
         self._make_definitions_()
         for idx in range(1,self.N+1,1):
             params=self.F_stack[idx-1] # original parameters
@@ -573,6 +611,11 @@ class Nomo_Block_Type_3(Nomo_Block):
         # let's make reference axis atoms
         for ref_para in self.ref_params:
             self.add_atom(Nomo_Atom(ref_para))
+        # build reference axes
+        self.set_reference_axes()
+        # scale to fit the paper
+        self._build_axes_wrapper_block_()
+        self._scale_to_box_()
 
     def _give_x_func_(self,idx):
         """
@@ -604,6 +647,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         fn2x_table={} # mapping from function fn to x-coord
         r_table={}
         x_max=(N-4)+N # how many x values are needed including turning axes
+        self.x_scaling=self.width/x_max # to make correct width
         fn2x_table[1]=0.0
         fn2x_table[2]=1.0
         fn2x_table[N]=x_max*1.0
@@ -618,8 +662,8 @@ class Nomo_Block_Type_3(Nomo_Block):
         fn2x_table: table of x-coordinates of functions
         r_table: table of x-coordinates of functions
         """
-        print "fn2x_table "
-        print fn2x_table
+        #print "fn2x_table "
+        #print fn2x_table
         # make fn functions
         for idx in range(2,N,1):
             self.x_func[idx]=self._makeDoX_(fn2x_table[idx])
@@ -631,11 +675,6 @@ class Nomo_Block_Type_3(Nomo_Block):
         #self.y_func[N]=lambda u:(-1)**(N+1)*self.functions['f%i'%N](u)
         self.y_func[N]=lambda u:(-1)**(N+1)*self.F_stack[N-1]['function'](u)*self.y_mirror
         # make reflection axes
-        """
-        for idx in range(1,N-2):
-            self.xR_func[idx]=self._makeDoX_(r_table[idx])
-            self.yR_func[idx]=lambda y:y
-        """
         self.ref_params=[]
         ref_para_ini={ # this is for reference
             'u_min':0.0,
@@ -720,6 +759,8 @@ class Nomo_Block_Type_4(Nomo_Block):
         float_axis is the axis that's scaling is set by other's scaling
         padding is how much axis extend w.r.t. width/height
         """
+        self.width=width
+        self.height=height
         x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
         #x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
         x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
@@ -753,7 +794,7 @@ class Nomo_Block_Type_4(Nomo_Block):
         self.add_atom(self.atom_F1)
 
         self.params_F2['F']=lambda u:width*self.x_mirror
-        self.params_F2['G']=lambda u:height-m2*self.params_F2['function'](u)*self.y_mirror
+        self.params_F2['G']=lambda u:(height-m2*self.params_F2['function'](u))*self.y_mirror
         self.atom_F2=Nomo_Atom(self.params_F2)
         self.add_atom(self.atom_F2)
 
@@ -762,10 +803,23 @@ class Nomo_Block_Type_4(Nomo_Block):
         self.atom_F3=Nomo_Atom(self.params_F3)
         self.add_atom(self.atom_F3)
 
-        self.params_F4['F']=lambda u:width-m4*self.params_F4['function'](u)*self.x_mirror
+        self.params_F4['F']=lambda u:(width-m4*self.params_F4['function'](u))*self.x_mirror
         self.params_F4['G']=lambda u:height*self.y_mirror
         self.atom_F4=Nomo_Atom(self.params_F4)
         self.add_atom(self.atom_F4)
+        # set side of text in axes
+        if self.x_mirror<0:
+            self.atom_F1.params['tick_side']='right'
+            self.atom_F2.params['tick_side']='left'
+        else:
+            self.atom_F1.params['tick_side']='left'
+            self.atom_F2.params['tick_side']='right'
+        if self.y_mirror<0:
+            self.atom_F3.params['tick_side']='right'
+            self.atom_F4.params['tick_side']='right'
+        else:
+            self.atom_F3.params['tick_side']='left'
+            self.atom_F4.params['tick_side']='left'
 
         # let's make centerline
         center_line_para={
@@ -779,6 +833,7 @@ class Nomo_Block_Type_4(Nomo_Block):
             'tick_text_levels':0.0,
                     }
         self.add_atom(Nomo_Atom(center_line_para))
+
 
 class Nomo_Atom:
     """
@@ -897,7 +952,7 @@ if __name__=='__main__':
     5. optimize transformation
     6. draw nomogram in nomowrapper
     """
-    do_test_1=False
+    do_test_1=True
     do_test_2=True
     if do_test_1:
         # build atoms
@@ -1172,22 +1227,21 @@ if __name__=='__main__':
         block4.define_F1(block4_f1_para)
         block4.define_F2(block4_f2_para)
         block4.define_F3(block4_f3_para)
-        block4.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
-        block4.set_reference_axes()
+        block4.set_block(width=5.0,height=25.0,proportion=1.2)
+
 
         block5=Nomo_Block_Type_1(mirror_x=True)
         block5.define_F1(block5_f1_para)
         block5.define_F2(block5_f2_para)
         block5.define_F3(block5_f3_para)
-        block5.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
-        block5.set_reference_axes()
+        block5.set_block(width=5.0,height=25.0,proportion=1.2)
 
         block6=Nomo_Block_Type_2(mirror_x=True)
         block6.define_F1(block6_f1_para)
         block6.define_F2(block6_f2_para)
         block6.define_F3(block6_f3_para)
         block6.set_block(height=10.0,width=3.0)
-        block6.set_reference_axes()
+
 
         block7=Nomo_Block_Type_3(mirror_x=True)
         block7.add_F(block7_f1_para)
@@ -1196,7 +1250,6 @@ if __name__=='__main__':
         block7.add_F(block7_f4_para)
         block7.add_F(block7_f5_para)
         block7.set_block()
-        block7.set_reference_axes()
 
         wrapper=Nomo_Wrapper(paper_width=2*40.0,paper_height=2*60.0)
         #wrapper.add_block(block1)
@@ -1240,7 +1293,8 @@ if __name__=='__main__':
                 'tag':'none',
                 'tick_side':'right',
                 'tick_levels':2,
-                'tick_text_levels':2
+                'tick_text_levels':2,
+                'tag':'A'
                         }
 
         block8_f3_para={
@@ -1262,8 +1316,99 @@ if __name__=='__main__':
                 'tag':'none',
                 'tick_side':'right',
                 'tick_levels':2,
+                'tick_text_levels':2,
+                'tag':'B'
+                        }
+        block9_f1_para={
+                'u_min':1.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'F1',
+                'tag':'none',
+                'tick_side':'left',
+                'tick_levels':2,
+                'tick_text_levels':2,
+                'tag':'A'
+                        }
+
+        block9_f2_para={
+                'u_min':0.1,
+                'u_max':2.0,
+                'function':lambda u:u,
+                'title':'F2',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':1,
+                'tick_text_levels':1
+                        }
+
+        block9_f3_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'F3',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
                 'tick_text_levels':2
                         }
+
+        block10_f1_para={
+                'u_min':1.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'F1',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2,
+                'tag':'B'
+                        }
+
+        block10_f2_para={
+                'u_min':1.0,
+                'u_max':18.0,
+                'function':lambda u:u,
+                'title':'F2',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
+        block10_f3_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'F3',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
+        block10_f4_para={
+                'u_min':1.0,
+                'u_max':14.0,
+                'function':lambda u:u,
+                'title':'F4',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                }
+
+        block10_f5_para={
+                'u_min':1.0,
+                'u_max':14.0,
+                'function':lambda u:u,
+                'title':'F4',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
         block8=Nomo_Block_Type_4(mirror_x=False)
         block8.define_F1(block8_f1_para)
         block8.define_F2(block8_f2_para)
@@ -1271,12 +1416,29 @@ if __name__=='__main__':
         block8.define_F4(block8_f4_para)
         block8.set_block()
         block8.set_reference_axes()
+        block9=Nomo_Block_Type_2(mirror_x=True)
+        block9.define_F1(block9_f1_para)
+        block9.define_F2(block9_f2_para)
+        block9.define_F3(block9_f3_para)
+        block9.set_block()
+
+        block10=Nomo_Block_Type_3(mirror_x=False)
+        block10.add_F(block10_f1_para)
+        block10.add_F(block10_f2_para)
+        block10.add_F(block10_f3_para)
+        block10.add_F(block10_f4_para)
+        block10.add_F(block10_f5_para)
+        block10.set_block(width=10.0,height=10.0)
+        #block10.set_reference_axes()
+
         wrapper1=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type4.pdf')
         wrapper1.add_block(block8)
+        wrapper1.add_block(block9)
+        wrapper1.add_block(block10)
         wrapper1.align_blocks()
         wrapper1.build_axes_wrapper() # build structure for optimization
         #wrapper1.do_transformation(method='scale paper')
-        #wrapper1.do_transformation(method='rotate',params=10.0)
+        wrapper1.do_transformation(method='rotate',params=10.0)
         #wrapper1.do_transformation(method='rotate',params=30.0)
         #wrapper1.do_transformation(method='rotate',params=20.0)
         #wrapper1.do_transformation(method='rotate',params=90.0)

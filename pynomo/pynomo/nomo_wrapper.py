@@ -174,7 +174,7 @@ class Nomo_Wrapper:
         """
         for block in self.block_stack:
             block.draw(canvas)
-        c.writePDFfile(self.filename)
+        canvas.writePDFfile(self.filename)
 
     def align_blocks(self):
         """
@@ -667,7 +667,118 @@ class Nomo_Block_Type_3(Nomo_Block):
         def ff(u): return (-1)**(idx+1)*0.5*self.F_stack[idx-1]['function'](u)*self.y_mirror
         return ff
 
+class Nomo_Block_Type_4(Nomo_Block):
+    """
+    type F1/F2=F3/F4
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_4,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
 
+    def define_F1(self,params):
+        """
+        defines function F1
+        """
+        self.params_F1=params
+        params['F']=lambda u:0.0
+        params['G']=lambda u:params['function'](u)
+        self.F1_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                                      start=params['u_min'],stop=params['u_max'])
+
+    def define_F2(self,params):
+        """
+        defines function F2
+        """
+        self.params_F2=params
+        params['F']=lambda u:0.0
+        params['G']=lambda u:params['function'](u)
+        self.F2_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                                      start=params['u_min'],stop=params['u_max'])
+
+    def define_F3(self,params):
+        """
+        defines function F3
+        """
+        self.params_F3=params
+        params['F']=lambda u:0.0
+        params['G']=lambda u:params['function'](u)
+        self.F3_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                                      start=params['u_min'],stop=params['u_max'])
+
+    def define_F4(self,params):
+        """
+        defines function F4
+        """
+        self.params_F4=params
+        params['F']=lambda u:0.0
+        params['G']=lambda u:params['function'](u)
+        self.F4_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                                      start=params['u_min'],stop=params['u_max'])
+
+    def set_block(self,height=10.0,width=10.0,float_axis='F1 or F2',padding=0.9):
+        """
+        sets up equations in block after definitions are given
+        float_axis is the axis that's scaling is set by other's scaling
+        padding is how much axis extend w.r.t. width/height
+        """
+        x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
+        #x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
+        x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
+        #x_dummy,f2_min=self.F2_axis_ini.calc_lowest_point()
+        x_dummy,f3_max=self.F3_axis_ini.calc_highest_point()
+        #x_dummy,f3_min=self.F3_axis_ini.calc_lowest_point()
+        x_dummy,f4_max=self.F4_axis_ini.calc_highest_point()
+        #x_dummy,f4_min=self.F4_axis_ini.calc_lowest_point()
+        #scaling factor.
+        print f1_max,f2_max,f3_max,f4_max
+
+        m1=height/f1_max*padding
+        m2=height/f2_max*padding
+        m3=width/f3_max*padding
+        m4=width/f4_max*padding
+        # one has to be scaling according to others
+        if float_axis=='F1 or F2':
+            if (m1/m2)>(m3/m4):
+                m1=m3/m4*m2
+            if (m1/m2)<=(m3/m4):
+                m2=m4/m3*m1
+        else:
+            if (m3/m4)>(m1/m2):
+                m3=m1/m2*m4
+            if (m3/m4)<=(m1/m2):
+                m4=m2/m1*m3
+
+        self.params_F1['F']=lambda u:0.0*self.x_mirror
+        self.params_F1['G']=lambda u:m1*self.params_F1['function'](u)*self.y_mirror
+        self.atom_F1=Nomo_Atom(self.params_F1)
+        self.add_atom(self.atom_F1)
+
+        self.params_F2['F']=lambda u:width*self.x_mirror
+        self.params_F2['G']=lambda u:height-m2*self.params_F2['function'](u)*self.y_mirror
+        self.atom_F2=Nomo_Atom(self.params_F2)
+        self.add_atom(self.atom_F2)
+
+        self.params_F3['F']=lambda u:m3*self.params_F3['function'](u)*self.x_mirror
+        self.params_F3['G']=lambda u:0.0*self.y_mirror
+        self.atom_F3=Nomo_Atom(self.params_F3)
+        self.add_atom(self.atom_F3)
+
+        self.params_F4['F']=lambda u:width-m4*self.params_F4['function'](u)*self.x_mirror
+        self.params_F4['G']=lambda u:height*self.y_mirror
+        self.atom_F4=Nomo_Atom(self.params_F4)
+        self.add_atom(self.atom_F4)
+
+        # let's make centerline
+        center_line_para={
+            'u_min':0.0,
+            'u_max':1.0,
+            'function':lambda u:u,
+            'F':lambda u:u*width*self.x_mirror,
+            'G':lambda u:u*height*self.y_mirror,
+            'title':'',
+            'tick_levels':0.0,
+            'tick_text_levels':0.0,
+                    }
+        self.add_atom(Nomo_Atom(center_line_para))
 
 class Nomo_Atom:
     """
@@ -786,322 +897,392 @@ if __name__=='__main__':
     5. optimize transformation
     6. draw nomogram in nomowrapper
     """
+    do_test_1=False
+    do_test_2=True
+    if do_test_1:
+        # build atoms
+        block1_atom1_para={
+                'u_min':3.0,
+                'u_max':10.0,
+                'F':lambda u:0,
+                'G':lambda u:u,
+                'title':'b1 a1',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'right',
+                'tag':'none'}
+        b1_atom1=Nomo_Atom(params=block1_atom1_para)
 
-    # build atoms
-    block1_atom1_para={
-            'u_min':3.0,
-            'u_max':10.0,
-            'F':lambda u:0,
-            'G':lambda u:u,
-            'title':'b1 a1',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'right',
-            'tag':'none'}
-    b1_atom1=Nomo_Atom(params=block1_atom1_para)
+        block1_atom2_para={
+                'u_min':3.0,
+                'u_max':10.0,
+                'F':lambda u:1.0,
+                'G':lambda u:u,
+                'title':'b1 a2',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'right',
+                'tag':'none'}
+        b1_atom2=Nomo_Atom(params=block1_atom2_para)
 
-    block1_atom2_para={
-            'u_min':3.0,
-            'u_max':10.0,
-            'F':lambda u:1.0,
-            'G':lambda u:u,
-            'title':'b1 a2',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'right',
-            'tag':'none'}
-    b1_atom2=Nomo_Atom(params=block1_atom2_para)
+        block1_atom3_para={
+                'u_min':0.0,
+                'u_max':10.0,
+                'F':lambda u:2.0,
+                'G':lambda u:u,
+                'title':'b1 a3',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'right',
+                'tag':'A'}
 
-    block1_atom3_para={
-            'u_min':0.0,
-            'u_max':10.0,
-            'F':lambda u:2.0,
-            'G':lambda u:u,
-            'title':'b1 a3',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'right',
-            'tag':'A'}
+        b1_atom3=Nomo_Atom(params=block1_atom3_para)
 
-    b1_atom3=Nomo_Atom(params=block1_atom3_para)
+        # block 2
+        block2_atom1_para={
+                'u_min':0.0,
+                'u_max':10.0,
+                'F':lambda u:u,
+                'G':lambda u:0.0+0.1*u,
+                'title':'b2 a1',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'right',
+                'tag':'B'}
+        b2_atom1=Nomo_Atom(params=block2_atom1_para)
 
-    # block 2
-    block2_atom1_para={
-            'u_min':0.0,
-            'u_max':10.0,
-            'F':lambda u:u,
-            'G':lambda u:0.0+0.1*u,
-            'title':'b2 a1',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'right',
-            'tag':'B'}
-    b2_atom1=Nomo_Atom(params=block2_atom1_para)
+        block2_atom2_para={
+                'u_min':0.0,
+                'u_max':10.0,
+                'F':lambda u:u,
+                'G':lambda u:1.0+0.1*u,
+                'title':'b2 a2',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'right',
+                'tag':'none'}
+        b2_atom2=Nomo_Atom(params=block2_atom2_para)
 
-    block2_atom2_para={
-            'u_min':0.0,
-            'u_max':10.0,
-            'F':lambda u:u,
-            'G':lambda u:1.0+0.1*u,
-            'title':'b2 a2',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'right',
-            'tag':'none'}
-    b2_atom2=Nomo_Atom(params=block2_atom2_para)
+        block2_atom3_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'F':lambda u:u,
+                'G':lambda u:2.0+0.1*u,
+                'title':'b2 a3',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'left',
+                'tag':'A'}
 
-    block2_atom3_para={
-            'u_min':1.0,
-            'u_max':10.0,
-            'F':lambda u:u,
-            'G':lambda u:2.0+0.1*u,
-            'title':'b2 a3',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'left',
-            'tag':'A'}
+        b2_atom3=Nomo_Atom(params=block2_atom3_para)
 
-    b2_atom3=Nomo_Atom(params=block2_atom3_para)
+        # block 3
+        block3_atom1_para={
+                'u_min':0.0,
+                'u_max':10.0,
+                'F':lambda u:u,
+                'G':lambda u:0.0+0.5*u,
+                'title':'b3 a1',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'right',
+                'tag':'none'}
+        b3_atom1=Nomo_Atom(params=block3_atom1_para)
 
-    # block 3
-    block3_atom1_para={
-            'u_min':0.0,
-            'u_max':10.0,
-            'F':lambda u:u,
-            'G':lambda u:0.0+0.5*u,
-            'title':'b3 a1',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'right',
-            'tag':'none'}
-    b3_atom1=Nomo_Atom(params=block3_atom1_para)
+        block3_atom2_para={
+                'u_min':0.0,
+                'u_max':10.0,
+                'F':lambda u:0.1*u**2,
+                'G':lambda u:1.0+0.5*u,
+                'title':'b3 a2',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'right',
+                'tag':'none'}
+        b3_atom2=Nomo_Atom(params=block3_atom2_para)
 
-    block3_atom2_para={
-            'u_min':0.0,
-            'u_max':10.0,
-            'F':lambda u:0.1*u**2,
-            'G':lambda u:1.0+0.5*u,
-            'title':'b3 a2',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'right',
-            'tag':'none'}
-    b3_atom2=Nomo_Atom(params=block3_atom2_para)
+        block3_atom3_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'F':lambda u:u,
+                'G':lambda u:2.0+0.5*u,
+                'title':'b3 a3',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':10,
+                'tick_text_levels':10,
+                'tick_side':'left',
+                'tag':'B'}
 
-    block3_atom3_para={
-            'u_min':1.0,
-            'u_max':10.0,
-            'F':lambda u:u,
-            'G':lambda u:2.0+0.5*u,
-            'title':'b3 a3',
-            'title_x_shift':0.0,
-            'title_y_shift':0.25,
-            'scale_type':'linear',
-            'tick_levels':10,
-            'tick_text_levels':10,
-            'tick_side':'left',
-            'tag':'B'}
+        b3_atom3=Nomo_Atom(params=block3_atom3_para)
 
-    b3_atom3=Nomo_Atom(params=block3_atom3_para)
+        block4_f1_para={
+                'u_min':-3.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'f1'
+                        }
 
-    block4_f1_para={
-            'u_min':-3.0,
-            'u_max':10.0,
-            'function':lambda u:u,
-            'title':'f1'
-                    }
+        block4_f2_para={
+                'u_min':2.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'f2'
+                        }
+        block4_f3_para={
+                'u_min':0.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'f3',
+                'tag':'C',
+                'reference':True
+                        }
 
-    block4_f2_para={
-            'u_min':2.0,
-            'u_max':10.0,
-            'function':lambda u:u,
-            'title':'f2'
-                    }
-    block4_f3_para={
-            'u_min':0.0,
-            'u_max':10.0,
-            'function':lambda u:u,
-            'title':'f3',
-            'tag':'C',
-            'reference':True
-                    }
+        block5_f1_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'f1 b',
+                'tag':'C',
+                'tick_side':'left'
+                        }
 
-    block5_f1_para={
-            'u_min':1.0,
-            'u_max':10.0,
-            'function':lambda u:u,
-            'title':'f1 b',
-            'tag':'C',
-            'tick_side':'left'
-                    }
+        block5_f2_para={
+                'u_min':2.0,
+                'u_max':11.0,
+                'function':lambda u:u,
+                'title':'f2 b',
+                'reference':True
+                        }
+        block5_f3_para={
+                'u_min':0.0,
+                'u_max':11.0,
+                'function':lambda u:u,
+                'title':'f3 b',
+                'tag':'D',
+                'tick_side':'left'
+                        }
 
-    block5_f2_para={
-            'u_min':2.0,
-            'u_max':11.0,
-            'function':lambda u:u,
-            'title':'f2 b',
-            'reference':True
-                    }
-    block5_f3_para={
-            'u_min':0.0,
-            'u_max':11.0,
-            'function':lambda u:u,
-            'title':'f3 b',
-            'tag':'D',
-            'tick_side':'left'
-                    }
+        block6_f1_para={
+                'u_min':1.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'f1 c',
+                'tag':'D',
+                'tick_side':'right'
+                        }
 
-    block6_f1_para={
-            'u_min':1.0,
-            'u_max':12.0,
-            'function':lambda u:u,
-            'title':'f1 c',
-            'tag':'D',
-            'tick_side':'right'
-                    }
+        block6_f2_para={
+                'u_min':0.1,
+                'u_max':4.0,
+                'function':lambda u:u,
+                'title':'f2 c'
+                        }
+        block6_f3_para={
+                'u_min':0.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'f3 c',
+                'reference':False
+                        }
 
-    block6_f2_para={
-            'u_min':0.1,
-            'u_max':4.0,
-            'function':lambda u:u,
-            'title':'f2 c'
-                    }
-    block6_f3_para={
-            'u_min':0.0,
-            'u_max':12.0,
-            'function':lambda u:u,
-            'title':'f3 c',
-            'reference':False
-                    }
+        block7_f1_para={
+                'u_min':-12.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'N1',
+                'tag':'none',
+                'tick_side':'right'
+                        }
+        block7_f2_para={
+                'u_min':-12.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'N2',
+                'tag':'none',
+                'tick_side':'right'
+                        }
+        block7_f3_para={
+                'u_min':-12.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'N3',
+                'tag':'none',
+                'tick_side':'right'
+                        }
+        block7_f4_para={
+                'u_min':-12.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'N4',
+                'tag':'none',
+                'tick_side':'right'
+                        }
 
-    block7_f1_para={
-            'u_min':-12.0,
-            'u_max':12.0,
-            'function':lambda u:u,
-            'title':'N1',
-            'tag':'none',
-            'tick_side':'right'
-                    }
-    block7_f2_para={
-            'u_min':-12.0,
-            'u_max':12.0,
-            'function':lambda u:u,
-            'title':'N2',
-            'tag':'none',
-            'tick_side':'right'
-                    }
-    block7_f3_para={
-            'u_min':-12.0,
-            'u_max':12.0,
-            'function':lambda u:u,
-            'title':'N3',
-            'tag':'none',
-            'tick_side':'right'
-                    }
-    block7_f4_para={
-            'u_min':-12.0,
-            'u_max':12.0,
-            'function':lambda u:u,
-            'title':'N4',
-            'tag':'none',
-            'tick_side':'right'
-                    }
+        block7_f5_para={
+                'u_min':-12.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'N5',
+                'tag':'none',
+                'tick_side':'right'
+                        }
 
-    block7_f5_para={
-            'u_min':-12.0,
-            'u_max':12.0,
-            'function':lambda u:u,
-            'title':'N5',
-            'tag':'none',
-            'tick_side':'right'
-                    }
+        block1=Nomo_Block()
+        block1.add_atom(b1_atom1)
+        block1.add_atom(b1_atom2)
+        block1.add_atom(b1_atom3)
 
-    block1=Nomo_Block()
-    block1.add_atom(b1_atom1)
-    block1.add_atom(b1_atom2)
-    block1.add_atom(b1_atom3)
+        block2=Nomo_Block()
+        block2.add_atom(b2_atom1)
+        block2.add_atom(b2_atom2)
+        block2.add_atom(b2_atom3)
 
-    block2=Nomo_Block()
-    block2.add_atom(b2_atom1)
-    block2.add_atom(b2_atom2)
-    block2.add_atom(b2_atom3)
+        block3=Nomo_Block()
+        block3.add_atom(b3_atom1)
+        block3.add_atom(b3_atom2)
+        block3.add_atom(b3_atom3)
 
-    block3=Nomo_Block()
-    block3.add_atom(b3_atom1)
-    block3.add_atom(b3_atom2)
-    block3.add_atom(b3_atom3)
+        block4=Nomo_Block_Type_1()
+        block4.define_F1(block4_f1_para)
+        block4.define_F2(block4_f2_para)
+        block4.define_F3(block4_f3_para)
+        block4.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
+        block4.set_reference_axes()
 
-    block4=Nomo_Block_Type_1()
-    block4.define_F1(block4_f1_para)
-    block4.define_F2(block4_f2_para)
-    block4.define_F3(block4_f3_para)
-    block4.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
-    block4.set_reference_axes()
+        block5=Nomo_Block_Type_1(mirror_x=True)
+        block5.define_F1(block5_f1_para)
+        block5.define_F2(block5_f2_para)
+        block5.define_F3(block5_f3_para)
+        block5.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
+        block5.set_reference_axes()
 
-    block5=Nomo_Block_Type_1(mirror_x=True)
-    block5.define_F1(block5_f1_para)
-    block5.define_F2(block5_f2_para)
-    block5.define_F3(block5_f3_para)
-    block5.set_width_height_propotion_original(width=5.0,height=25.0,proportion=1.2)
-    block5.set_reference_axes()
+        block6=Nomo_Block_Type_2(mirror_x=True)
+        block6.define_F1(block6_f1_para)
+        block6.define_F2(block6_f2_para)
+        block6.define_F3(block6_f3_para)
+        block6.set_block(height=10.0,width=3.0)
+        block6.set_reference_axes()
 
-    block6=Nomo_Block_Type_2(mirror_x=True)
-    block6.define_F1(block6_f1_para)
-    block6.define_F2(block6_f2_para)
-    block6.define_F3(block6_f3_para)
-    block6.set_block(height=10.0,width=3.0)
-    block6.set_reference_axes()
+        block7=Nomo_Block_Type_3(mirror_x=True)
+        block7.add_F(block7_f1_para)
+        block7.add_F(block7_f2_para)
+        block7.add_F(block7_f3_para)
+        block7.add_F(block7_f4_para)
+        block7.add_F(block7_f5_para)
+        block7.set_block()
+        block7.set_reference_axes()
 
-    block7=Nomo_Block_Type_3(mirror_x=True)
-    block7.add_F(block7_f1_para)
-    block7.add_F(block7_f2_para)
-    block7.add_F(block7_f3_para)
-    block7.add_F(block7_f4_para)
-    block7.add_F(block7_f5_para)
-    block7.set_block()
-    block7.set_reference_axes()
+        wrapper=Nomo_Wrapper(paper_width=2*40.0,paper_height=2*60.0)
+        #wrapper.add_block(block1)
+        #wrapper.add_block(block2)
+        #wrapper.add_block(block3)
+        wrapper.add_block(block4)
+        wrapper.add_block(block5)
+        wrapper.add_block(block6)
+        wrapper.add_block(block7)
+        wrapper.align_blocks()
+        wrapper.build_axes_wrapper() # build structure for optimization
+        #wrapper.do_transformation(method='scale paper')
+        #wrapper.do_transformation(method='rotate',params=10.0)
+        #wrapper.do_transformation(method='rotate',params=30.0)
+        #wrapper.do_transformation(method='rotate',params=20.0)
+        #wrapper.do_transformation(method='rotate',params=90.0)
+        wrapper.do_transformation(method='polygon')
+        #wrapper.do_transformation(method='optimize')
+        wrapper.do_transformation(method='scale paper')
+        c=canvas.canvas()
+        wrapper.draw_nomogram(c)
+    # end of test1
 
-    wrapper=Nomo_Wrapper(paper_width=2*40.0,paper_height=2*60.0)
-    #wrapper.add_block(block1)
-    #wrapper.add_block(block2)
-    #wrapper.add_block(block3)
-    wrapper.add_block(block4)
-    wrapper.add_block(block5)
-    wrapper.add_block(block6)
-    wrapper.add_block(block7)
-    wrapper.align_blocks()
-    wrapper.build_axes_wrapper() # build structure for optimization
-    #wrapper.do_transformation(method='scale paper')
-    #wrapper.do_transformation(method='rotate',params=10.0)
-    #wrapper.do_transformation(method='rotate',params=30.0)
-    #wrapper.do_transformation(method='rotate',params=20.0)
-    #wrapper.do_transformation(method='rotate',params=90.0)
-    wrapper.do_transformation(method='polygon')
-    #wrapper.do_transformation(method='optimize')
-    wrapper.do_transformation(method='scale paper')
-    c=canvas.canvas()
-    wrapper.draw_nomogram(c)
+    if do_test_2:
+        block8_f1_para={
+                'u_min':1.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'F1',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
+        block8_f2_para={
+                'u_min':1.0,
+                'u_max':18.0,
+                'function':lambda u:u,
+                'title':'F2',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
+        block8_f3_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'F3',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
+        block8_f4_para={
+                'u_min':1.0,
+                'u_max':14.0,
+                'function':lambda u:u,
+                'title':'F4',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+        block8=Nomo_Block_Type_4(mirror_x=False)
+        block8.define_F1(block8_f1_para)
+        block8.define_F2(block8_f2_para)
+        block8.define_F3(block8_f3_para)
+        block8.define_F4(block8_f4_para)
+        block8.set_block()
+        block8.set_reference_axes()
+        wrapper1=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type4.pdf')
+        wrapper1.add_block(block8)
+        wrapper1.align_blocks()
+        wrapper1.build_axes_wrapper() # build structure for optimization
+        #wrapper1.do_transformation(method='scale paper')
+        #wrapper1.do_transformation(method='rotate',params=10.0)
+        #wrapper1.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=20.0)
+        #wrapper1.do_transformation(method='rotate',params=90.0)
+        #wrapper1.do_transformation(method='polygon')
+        #wrapper1.do_transformation(method='optimize')
+        wrapper1.do_transformation(method='scale paper')
+        cc=canvas.canvas()
+        wrapper1.draw_nomogram(cc)
+    # end of test_2

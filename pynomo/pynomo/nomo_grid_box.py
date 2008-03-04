@@ -47,27 +47,47 @@ class Nomo_Grid_Box(object):
                                }
         self.params=params_default_values
         self.params.update(params)
+        self.u_func=self.params['u_func']
+        self.v_func=self.params['v_func']
         #testing
         #self.line,self.sections=self._build_x_line(p=1.0)
+        self._scale_funcs_vertical_()
         self._build_v_lines_()
         self._calc_bound_box_ini_()
-        self._scale_u_func_()
         self._build_u_lines_()
+
+#        v_func_temp=self.v_func
+#        self.v_func=lambda x,v:v_func_temp((x-self.x_left_ini)/\
+#                                           (self.x_right_ini-self.x_left_ini)*\
+#                                           self.params['width'],v)
+#        self._scale_funcs_vertical_()
+#        self._build_v_lines_()
+#        self._calc_bound_box_ini_()
+#        self._build_u_lines_()
+
         self._draw_debug_ini_()
 
-    def _scale_u_func_(self):
+    def _scale_ini_to_width_height_(self):
         """
-        scales u-function such that maximum value gives 1.0 and minimum 0.0
+        scales initial coordinates to width and to height
         """
-        max_fu=self.params['u_func'](self.params['u_values'][0])
+        # bounding box initial have to still ok
+        pass
+
+    def _scale_funcs_vertical_(self):
+        """
+        scales functions such that maximum value gives 1.0 and minimum 0.0
+        """
+        max_fu=self.u_func(self.params['u_values'][0])
         min_fu=max_fu
         for u in self.params['u_values']:
-            fu=self.params['u_func'](u)
+            fu=self.u_func(u)
             if fu>max_fu:
                 max_fu=fu
             if fu<min_fu:
                 min_fu=fu
-        self.u_func = lambda u:(self.params['u_func'](u)-min_fu)/(max_fu-min_fu)
+        self.u_func = lambda u:(self.params['u_func'](u)-min_fu)/(max_fu-min_fu)*self.params['height']
+        self.v_func = lambda x,v:(self.params['v_func'](x,v)-min_fu)/(max_fu-min_fu)*self.params['height']
 
     def _build_u_scale_(self):
         """
@@ -113,8 +133,9 @@ class Nomo_Grid_Box(object):
         code copied originally form nomo_axis_func.py: _calculate_points_
         p is the parametric value of the top scale
         """
-        func2=self.params['v_func']
-        func_top=lambda x:(func2(x,p)-1.0)**2 # minimum at 1.0
+        #func2=self.params['v_func']
+        func2=self.v_func
+        func_top=lambda x:(func2(x,p)-self.params['height'])**2 # minimum at height
         func_bottom=lambda x:(func2(x,p))**2 # minimum at 0.0
         f=lambda x:x
         g=lambda x:func2(x,p)
@@ -198,7 +219,7 @@ class Nomo_Grid_Box(object):
                     y_bottom=y
                 if y>y_top:
                     y_top=y
-                    print "y_top %f"%y_top
+                    #print "y_top %f"%y_top
         #print x_left,x_right,y_bottom,y_top
         self.x_left_ini=x_left
         self.x_right_ini=x_right

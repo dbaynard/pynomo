@@ -35,15 +35,40 @@ class Nomo_Grid_Box(object):
         """
         params_default_values={'width':10.0,
                                'height':10.0,
-                               'u_start':0.0,
-                               'u_stop':1.0,
                                'u_func':lambda u:u,
-                               'v_start':0.0,
-                               'v_stop':1.0*pi/2,
                                'v_func':lambda x,para:x+para,
+                               'line_func':lambda x:x, # function for centerline assuming square
+                               'draw_line':True,
+                               'w_func':lambda x:x, # function for w axis
+                               'w_func_inv':lambda x:x, # inverse function for w axis
+                               'w_min':0.1,
+                               'w_max':1.0,
+                               'manual_w_scale':False,
+                               'x_min':0.1,
+                               'x_max':1.0,
+                               'manual_x_scale':False, # if inital x_scale is set manually, use two values above
                                'u_values':[0.0,0.25*pi/2,0.5*pi/2,0.75*pi/2,1.0*pi/2],
                                'v_values':[0.0,0.25*pi/2,0.5*pi/2,0.75*pi/2,1.0*pi/2],
-                               'manual_axis_data':None # manual labels
+                               'wd_values':[],
+                               'w_values':[],
+                               'u_tag':'none', # manual labels
+                               'w_tag':'none',
+                               'wd_tag':'none',
+                               'u_reference':False, # manual labels
+                               'v_reference':False,
+                               'w_reference':True,
+                               'wd_reference':False,
+                               'scale_type_u':'manual line',
+                               'scale_type_w':'linear',
+                               'scale_type_wd':'linear',
+                               'u_title':'u',
+                               'v_title':'v',
+                               'w_title':'',
+                               'wd_title':'',
+                               'u_tick_side':'left',
+                               'v_tick_side':'right',
+                               'w_tick_side':'right',
+                               'wd_tick_side':'left'
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -59,30 +84,119 @@ class Nomo_Grid_Box(object):
         self._scale_()
         self._draw_debug_ini_('after.pdf')
 
+        self.give_u_data()
+        self.give_v_data()
+        self.give_w_data()
+        self.give_wd_data()
+
     def give_u_data(self):
         """
-        gives x(u),y(u)-functions and scale values
+        gives F(u),G(u)-functions and other params (left coordinate)
         """
-        pass
+        # calc func
+        u_func = self.u_func # defined in scaling
+        u_manual_axis_data = {}
+        for u_value in self.params['u_values']:
+            u_manual_axis_data[u_value]='%f'%u_value
+        self.params_u={
+            'u_min':min(self.params['u_values']),
+            'u_max':max(self.params['u_values']),
+            'F':lambda u:self.x_left, # x-coordinate
+            'G':u_func, # y-coordinate
+            'title':self.params['u_title'],
+            'scale_type':self.params['scale_type_u'], #'linear' 'log' 'manual point' 'manual line'
+            'manual_axis_data':u_manual_axis_data,
+            'tick_side':self.params['u_tick_side'],
+            'tag':self.params['u_tag'], # for aligning block wrt others
+            'reference':self.params['u_reference']
+            }
+        return self.params_u
 
     def give_v_data(self):
         """
-        gives x(v),y(v)-functions and scale values and corresponding titles
+        givesgives F(u),G(u)-functions and other params (top coordinate)
         function is linear and values are set manually to correct places
         """
-        pass
+        v_manual_axis_data = {}
+        # let's go through all lines and find x-coordinate of top points.
+        for idx1,v_line in enumerate(self.v_lines):
+            x_max,y_max = v_line[0]
+            for idx2,(x,y) in enumerate(v_line):
+                if y>y_max:
+                    x_max=x
+                    y_max=y
+            v_value=self.params['v_values'][idx1]
+            v_manual_axis_data[v_value]='%f'%x_max
+
+        self.params_v={
+            'u_min':min(self.params['v_values']),
+            'u_max':max(self.params['v_values']),
+            'F':lambda u:u, # x-coordinate
+            'G':lambda u:self.y_top, # y-coordinate
+            'title':self.params['v_title'],
+            'scale_type':'manual line', #this have to be hard coded
+            'manual_axis_data':v_manual_axis_data,
+            'tick_side':self.params['v_tick_side'],
+            'tag':'none', # this axis should not be aligned
+            'reference':self.params['v_reference']
+            }
+        return self.params_v
 
     def give_w_data(self):
         """
         gives x(w),y(w)-functions and w_min and w_max values.
+        w = f2(f3(x))
+        x = bottom coordinate of initial axes
+        f3 = line func
+        f2 = additional transformation
         """
-        pass
+        f3=self.params['line_func']
+        f2=self.params['w_func']
+        f2_inv=self.params['w_func_inv']
+        w_manual_axis_data={}
+        if self.params['scale_type_w']=='manual line':
+            for w_value in self.params['w_values']:
+                w_manual_axis_data[w_value]='%f'%w_value
+
+        w_min=f2(f3(self.x_left_ini))
+        w_max=f2(f3(self.x_right_ini))
+        w_diff=w_max-w_min
+        self.params_w={
+            'u_min':w_min,  #this is w_min
+            'u_max':w_max, # this is w_max
+            'F':lambda w:self.x_right, # x-coordinate
+            'G':lambda w:self.y_bottom+(f2_inv(w)-f2_inv(w_min))/(f2_inv(w_max)-f2_inv(w_min))\
+                        *self.params['height'], # y-coordinate
+            'title':self.params['w_title'],
+            'scale_type':self.params['scale_type_w'],
+            'manual_axis_data':w_manual_axis_data,
+            'tick_side':self.params['w_tick_side'],
+            'tag':self.params['w_tag'], # for aligning block wrt others
+            'reference':self.params['w_reference']
+            }
+        return self.params_w
 
     def give_wd_data(self):
         """
-        gives x(wd),y(wd)-functions and wd_min and wd_max values.
+        gives x(wd),y(wd)-functions and wd_min and wd_max values. (bottom coordinate)
         """
-        pass
+        wd_manual_axis_data={}
+        if self.params['scale_type_wd']=='manual line':
+            for wd_value in self.params['wd_values']:
+                wd_manual_axis_data[wd_value]='%f'%wd_value
+        self.params_wd={
+            'u_min':self.x_left_ini,
+            'u_max':self.x_right_ini,
+            'F':lambda u:u*self.x_factor, # x-coordinate
+            'G':lambda u:self.y_bottom, # y-coordinate
+            'title':self.params['wd_title'],
+            'scale_type':self.params['scale_type_wd'],
+            'manual_axis_data':wd_manual_axis_data,
+            'tick_side':self.params['wd_tick_side'],
+            'tag':self.params['wd_tag'], # for aligning block wrt others
+            'reference':self.params['wd_reference']
+            }
+        return self.params_wd
 
     def give_contours(self):
         """
@@ -111,7 +225,12 @@ class Nomo_Grid_Box(object):
         # scale functions
         self.u_func=lambda u:self.params['u_func'](u)*y_factor
         self.v_func=lambda x,v:self.params['v_func'](x/x_factor,v)*y_factor
-
+        self.x_left=self.x_left_ini*x_factor
+        self.x_right=self.x_right_ini*x_factor
+        self.y_bottom=self.y_bottom_ini*y_factor
+        self.y_top=self.y_top_ini*y_factor
+        self.x_factor=x_factor
+        self.y_factor=y_factor
 
     def _build_u_scale_(self):
         """
@@ -256,8 +375,12 @@ class Nomo_Grid_Box(object):
                     y_top=y
                     #print "y_top %f"%y_top
         #print x_left,x_right,y_bottom,y_top
-        self.x_left_ini=x_left
-        self.x_right_ini=x_right
+        if self.params['manual_x_scale']==True:
+            self.x_left_ini=self.params['x_min']
+            self.x_right_ini=self.params['x_max']
+        else:
+            self.x_left_ini=x_left
+            self.x_right_ini=x_right
         self.y_top_ini=y_top
         self.y_bottom_ini=y_bottom
         self.BB_width_ini=x_right-x_left

@@ -44,6 +44,11 @@ class Nomo_Grid_Box(object):
                                'w_min':0.1,
                                'w_max':1.0,
                                'manual_w_scale':False,
+                               'wd_func':lambda x:x, # function for w axis
+                               'wd_func_inv':lambda x:x, # inverse function for w axis
+                               'wd_min':0.1,
+                               'wd_max':1.0,
+                               'manual_wd_scale':False,
                                'x_min':0.1,
                                'x_max':1.0,
                                'manual_x_scale':False, # if inital x_scale is set manually, use two values above
@@ -97,7 +102,7 @@ class Nomo_Grid_Box(object):
         u_func = self.u_func # defined in scaling
         u_manual_axis_data = {}
         for u_value in self.params['u_values']:
-            u_manual_axis_data[u_value]='%f'%u_value
+            u_manual_axis_data[u_value]='%3.2f'%u_value
         self.params_u={
             'u_min':min(self.params['u_values']),
             'u_max':max(self.params['u_values']),
@@ -126,11 +131,12 @@ class Nomo_Grid_Box(object):
                     x_max=x
                     y_max=y
             v_value=self.params['v_values'][idx1]
-            v_manual_axis_data[v_value]='%f'%x_max
+            #v_manual_axis_data[v_value]='%f'%x_max
+            v_manual_axis_data[x_max]='%3.2f'%v_value
 
         self.params_v={
-            'u_min':min(self.params['v_values']),
-            'u_max':max(self.params['v_values']),
+            'u_min':self.x_left,
+            'u_max':self.x_right,
             'F':lambda u:u, # x-coordinate
             'G':lambda u:self.y_top, # y-coordinate
             'title':self.params['v_title'],
@@ -158,14 +164,14 @@ class Nomo_Grid_Box(object):
             for w_value in self.params['w_values']:
                 w_manual_axis_data[w_value]='%f'%w_value
 
-        w_min=f2(f3(self.x_left_ini))
-        w_max=f2(f3(self.x_right_ini))
+        w_min=f2_inv(f3(self.x_left_ini))
+        w_max=f2_inv(f3(self.x_right_ini))
         w_diff=w_max-w_min
         self.params_w={
             'u_min':w_min,  #this is w_min
             'u_max':w_max, # this is w_max
             'F':lambda w:self.x_right, # x-coordinate
-            'G':lambda w:self.y_bottom+(f2_inv(w)-f2_inv(w_min))/(f2_inv(w_max)-f2_inv(w_min))\
+            'G':lambda w:self.y_bottom+(f2(w)-f2(w_min))/(f2(w_max)-f2(w_min))\
                         *self.params['height'], # y-coordinate
             'title':self.params['w_title'],
             'scale_type':self.params['scale_type_w'],
@@ -184,10 +190,14 @@ class Nomo_Grid_Box(object):
         if self.params['scale_type_wd']=='manual line':
             for wd_value in self.params['wd_values']:
                 wd_manual_axis_data[wd_value]='%f'%wd_value
+        f1=self.params['wd_func']
+        f1_inv=self.params['wd_func_inv']
+        wd_min=f1_inv(self.x_left_ini)
+        wd_max=f1_inv(self.x_right_ini)
         self.params_wd={
-            'u_min':self.x_left_ini,
-            'u_max':self.x_right_ini,
-            'F':lambda u:u*self.x_factor, # x-coordinate
+            'u_min':wd_min,
+            'u_max':wd_max,
+            'F':lambda u:f1(u)*self.x_factor, # x-coordinate
             'G':lambda u:self.y_bottom, # y-coordinate
             'title':self.params['wd_title'],
             'scale_type':self.params['scale_type_wd'],
@@ -266,12 +276,12 @@ class Nomo_Grid_Box(object):
         """
         self.v_lines=[]
         self.v_sections=[]
-        for p in self.params['v_values']:
-            line,sections = self._build_v_line_(v_func=v_func,p=p)
+        for v in self.params['v_values']:
+            line,sections = self._build_v_line_(v_func=v_func,v=v)
             self.v_lines.append(line)
             self.v_sections.append(sections)
 
-    def _build_v_line_(self,v_func,p=1.0):
+    def _build_v_line_(self,v_func,v=1.0):
         """
         line starting from x scale
         code copied originally form nomo_axis_func.py: _calculate_points_
@@ -289,10 +299,10 @@ class Nomo_Grid_Box(object):
                 min_fu=fu
         # functions to find x-values in paper
         func2=v_func
-        func_top=lambda x:(func2(x,p)-max_fu)**2 # minimum at height
-        func_bottom=lambda x:(func2(x,p)-min_fu)**2 # minimum at 0.0
+        func_top=lambda x:(func2(x,v)-max_fu)**2 # minimum at height
+        func_bottom=lambda x:(func2(x,v)-min_fu)**2 # minimum at 0.0
         f=lambda x:x
-        g=lambda x:func2(x,p)
+        g=lambda x:func2(x,v)
         # find point of scale to meet point 1.0
         x_top=optimize.fmin(func_top,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
         x_bottom=optimize.fmin(func_bottom,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]

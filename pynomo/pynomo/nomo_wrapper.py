@@ -19,6 +19,7 @@
 
 from nomo_axis import *
 from nomo_axis_func import *
+from nomo_grid_box import *
 from numpy import *
 from pyx import *
 from copy import copy
@@ -834,6 +835,90 @@ class Nomo_Block_Type_4(Nomo_Block):
                     }
         self.add_atom(Nomo_Atom(center_line_para))
 
+class Nomo_Block_Type_5(Nomo_Block):
+    """
+             v
+       --------------------
+       |   \    \         |           y
+     u |----\----\--------| w         |           Diagonal "line_func" missing in pic.
+       |-----\----\-------|           |           Pic. without mirrorings.
+       |      \    \      |           |-----> x
+       --------------------
+              wd
+    u,v relate to coordinates x,y in rectangle as
+    func_u(u)=y
+    func_v(x,v)=y
+    w,wd relate to coordinates x,y in right and bottom axes of rectangle:
+    func_wd(wd)=x
+    line_func(x)=y=func_w(w)
+
+    x,y are same in all Eqs. above
+
+    Constructing this needs paper and pencil...
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_5,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+
+    def define_block(self,params):
+        """
+        defines the block. Dict params has all the definitions
+        """
+        self.params=params
+        self.grid_box=Nomo_Grid_Box(params=params)
+
+    def set_block(self):
+        """
+        sets block up
+        """
+        self._build_u_axis_()
+        self._build_v_axis_()
+        self._build_w_axis_()
+        self._build_wd_axis_()
+        self.set_reference_axes()
+
+    def _build_u_axis_(self):
+        """
+        builds u_axis
+        """
+        para_u=self.grid_box.params_u
+        self.atom_u=Nomo_Atom(para_u)
+        self.add_atom(self.atom_u)
+        self.u_axis=Axis_Wrapper(f=para_u['F'],g=para_u['G'],
+                             start=para_u['u_min'],stop=para_u['u_max'])
+        self.axis_wrapper_stack.append(self.u_axis)
+
+    def _build_v_axis_(self):
+        """
+        builds v_axis
+        """
+        para_v=self.grid_box.params_v
+        self.atom_v=Nomo_Atom(para_v)
+        self.add_atom(self.atom_v)
+        self.v_axis=Axis_Wrapper(f=para_v['F'],g=para_v['G'],
+                             start=para_v['u_min'],stop=para_v['u_max'])
+        self.axis_wrapper_stack.append(self.v_axis)
+
+    def _build_w_axis_(self):
+        """
+        builds w_axis
+        """
+        para_w=self.grid_box.params_w
+        self.atom_w=Nomo_Atom(para_w)
+        self.add_atom(self.atom_w)
+        self.w_axis=Axis_Wrapper(f=para_w['F'],g=para_w['G'],
+                             start=para_w['u_min'],stop=para_w['u_max'])
+        self.axis_wrapper_stack.append(self.w_axis)
+
+    def _build_wd_axis_(self):
+        """
+        builds w_axis
+        """
+        para_wd=self.grid_box.params_wd
+        self.atom_wd=Nomo_Atom(para_wd)
+        self.add_atom(self.atom_wd)
+        self.wd_axis=Axis_Wrapper(f=para_wd['F'],g=para_wd['G'],
+                             start=para_wd['u_min'],stop=para_wd['u_max'])
+        self.axis_wrapper_stack.append(self.wd_axis)
 
 class Nomo_Atom:
     """
@@ -924,7 +1009,7 @@ class Nomo_Atom:
                       start=p['u_min'],stop=p['u_max'],
                       turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
                       tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
-                      side=p['tick_side'])
+                      side=p['tick_side'],manual_axis_data=p['manual_axis_data'])
         else: # reference axis
             print "u_min_ref"
             print self.u_min_ref
@@ -952,8 +1037,9 @@ if __name__=='__main__':
     5. optimize transformation
     6. draw nomogram in nomowrapper
     """
-    do_test_1=True
-    do_test_2=True
+    do_test_1=False
+    do_test_2=False
+    do_test_3=True
     if do_test_1:
         # build atoms
         block1_atom1_para={
@@ -1448,3 +1534,34 @@ if __name__=='__main__':
         cc=canvas.canvas()
         wrapper1.draw_nomogram(cc)
     # end of test_2
+    if do_test_3:
+        def f1(x,u):
+            return log(x/(x-u/100.0))/log(1+u/100.0)
+        params={'width':10.0,
+           'height':10.0,
+           'u_func':lambda u:u,
+           'v_func':f1,
+           'u_values':[10.0,20.0,30.0,40.0,50.0,60.0],
+           'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
+           'u_reference':False, # manual labels
+           'v_reference':False,
+           'w_reference':False,
+           'wd_reference':False,
+           }
+        block11=Nomo_Block_Type_5(mirror_x=False)
+        block11.define_block(params)
+        block11.set_block()
+        wrapper2=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type5.pdf')
+        wrapper2.add_block(block11)
+        wrapper2.align_blocks()
+        wrapper2.build_axes_wrapper() # build structure for optimization
+        #wrapper2.do_transformation(method='scale paper')
+        wrapper2.do_transformation(method='rotate',params=1.0)
+        #wrapper2.do_transformation(method='rotate',params=30.0)
+        #wrapper2.do_transformation(method='rotate',params=20.0)
+        #wrapper2.do_transformation(method='rotate',params=90.0)
+        #wrapper2.do_transformation(method='polygon')
+        #wrapper2.do_transformation(method='optimize')
+        wrapper2.do_transformation(method='scale paper')
+        ccc=canvas.canvas()
+        wrapper2.draw_nomogram(ccc)

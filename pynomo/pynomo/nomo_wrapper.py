@@ -292,6 +292,20 @@ class Nomo_Block(object):
         self.trafo_stack.append(trafo_mat)
         self._calculate_total_trafo_mat_() # update coeffs (also in atoms)
 
+    def _give_trafo_x_(self,x,y):
+        """
+        transformed x-coordinate
+        """
+        return ((self.alpha1*x+self.beta1*y+self.gamma1)\
+        /(self.alpha3*x+self.beta3*y+self.gamma3))
+
+    def _give_trafo_y_(self,x,y):
+        """
+        transformed y-coordinate
+        """
+        return ((self.alpha2*x+self.beta2*y+self.gamma2)\
+        /(self.alpha3*x+self.beta3*y+self.gamma3))
+
     def _calculate_total_trafo_mat_(self):
         """
         calculates total transformation matrix and
@@ -539,20 +553,26 @@ class Nomo_Block_Type_2(Nomo_Block):
     def set_block(self,height=10.0,width=10.0):
         """
         sets the N-nomogram of the block using geometrical approach from Levens
+        f1 and f3 scales are set to equal length by using multipliers c1 and c2
         """
         self.width=width
         self.height=height
-        length_f1=max(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
+        length_f1_ini=max(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
+        length_f3_ini=max(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))
+        c1=length_f3_ini/length_f1_ini
+        c2=c1
+        length_f1=max(c1*self.F1(self.params_F1['u_min']),c1*self.F1(self.params_F1['u_max']))
         length_f3=max(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))
+        #    length_f1=length_f3
         m1=height/length_f1
         m3=height/length_f3
         K=sqrt(height**2+width**2)
         self.params_F1['F']=lambda u:0.0
-        self.params_F1['G']=lambda u:(self.F1(u)*m1)*self.y_mirror
+        self.params_F1['G']=lambda u:(c1*self.F1(u)*m1)*self.y_mirror
         self.atom_F1=Nomo_Atom(self.params_F1)
         self.add_atom(self.atom_F1)
-        self.params_F2['F']=lambda u:(width-K*m3/(m1*self.F2(u)+m3)*width/K)*self.x_mirror
-        self.params_F2['G']=lambda u:(height-K*m3/(m1*self.F2(u)+m3)*height/K)*self.y_mirror
+        self.params_F2['F']=lambda u:(width-K*m3/(m1*c2*self.F2(u)+m3)*width/K)*self.x_mirror
+        self.params_F2['G']=lambda u:(height-K*m3/(m1*c2*self.F2(u)+m3)*height/K)*self.y_mirror
         self.atom_F2=Nomo_Atom(self.params_F2)
         self.add_atom(self.atom_F2)
         self.params_F3['F']=lambda u:(width)*self.x_mirror
@@ -876,6 +896,38 @@ class Nomo_Block_Type_5(Nomo_Block):
         self._build_wd_axis_()
         self.set_reference_axes()
 
+    def draw(self,canvas):
+        """
+        overrides the parent draw function
+        draws also contours
+        """
+        super(Nomo_Block_Type_5,self).draw(canvas=canvas)
+        # draws the inner contour lines
+        x00,y00=self.grid_box.u_lines[0][0]
+        x00t=self._give_trafo_x_(x00, y00)
+        y00t=self._give_trafo_y_(x00, y00)
+        line = path.path(path.moveto(x00t, y00t))
+        for u_line in self.grid_box.u_lines:
+            x0,y0=u_line[0]
+            x0t=self._give_trafo_x_(x0, y0)
+            y0t=self._give_trafo_y_(x0, y0)
+            line.append(path.moveto(x0t, y0t))
+            for x,y in u_line:
+                xt=self._give_trafo_x_(x, y)
+                yt=self._give_trafo_y_(x, y)
+                line.append(path.lineto(xt, yt))
+        for v_line in self.grid_box.v_lines:
+            x0,y0=v_line[0]
+            x0t=self._give_trafo_x_(x0, y0)
+            y0t=self._give_trafo_y_(x0, y0)
+            line.append(path.moveto(x0t, y0t))
+            for x,y in v_line:
+                xt=self._give_trafo_x_(x, y)
+                yt=self._give_trafo_y_(x, y)
+                line.append(path.lineto(xt, yt))
+        canvas.stroke(line, [style.linewidth.normal])
+
+
     def _build_u_axis_(self):
         """
         builds u_axis
@@ -940,7 +992,8 @@ class Nomo_Atom:
             'tick_side':'right',
             'tag':'none', # for aligning block wrt others
             'reference':False,
-            'reference padding': 0.20 # fraction of reference line over other lines
+            'reference padding': 0.20, # fraction of reference line over other lines
+            'manual_axis_data':{}
             }
         self.params=self.params_default
         self.params.update(params)
@@ -1547,16 +1600,59 @@ if __name__=='__main__':
            'v_reference':False,
            'w_reference':False,
            'wd_reference':False,
+           'wd_tag':'A'
            }
         block11=Nomo_Block_Type_5(mirror_x=False)
         block11.define_block(params)
         block11.set_block()
+
+        block12_f3_para={
+                'u_min':0.03,
+                'u_max':0.16,
+                'function':lambda u:u,
+                'title':'x',
+                'tag':'A',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2,
+                'tag':'A'
+                        }
+
+        block12_f2_para={
+                'u_min':100.0,
+                'u_max':1000.0,
+                'function':lambda u:u,
+                'title':'Total sum A',
+                'tag':'none',
+                'tick_side':'left',
+                'tick_levels':1,
+                'tick_text_levels':1
+                        }
+
+        block12_f1_para={
+                'u_min':0.2,
+                'u_max':3.0,
+                'function':lambda u:u*12.0,
+                'title':'a',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
+        block12=Nomo_Block_Type_2(mirror_x=False)
+        block12.define_F1(block12_f1_para)
+        block12.define_F2(block12_f2_para)
+        block12.define_F3(block12_f3_para)
+        block12.set_block(height=10.0,width=5.0)
+
         wrapper2=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type5.pdf')
         wrapper2.add_block(block11)
+        wrapper2.add_block(block12)
         wrapper2.align_blocks()
         wrapper2.build_axes_wrapper() # build structure for optimization
         #wrapper2.do_transformation(method='scale paper')
-        wrapper2.do_transformation(method='rotate',params=1.0)
+        wrapper2.do_transformation(method='rotate',params=0.1)
         #wrapper2.do_transformation(method='rotate',params=30.0)
         #wrapper2.do_transformation(method='rotate',params=20.0)
         #wrapper2.do_transformation(method='rotate',params=90.0)

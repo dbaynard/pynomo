@@ -74,10 +74,12 @@ class Axis_Wrapper:
                 delta_u=du*section_length/dl
                 # let's calculate actual length
                 # and iterate until length is in factor 2 from target
+                """
                 while True:
                     delta_x=f(u+delta_u)-f(u)
                     delta_y=g(u+delta_u)-g(u)
                     delta_l=sqrt(delta_x**2+delta_y**2)
+
                     if delta_l>2.0*section_length:
                         delta_u=delta_u*0.999
                         #print "delta_u pienenee:%f"%delta_u
@@ -87,7 +89,7 @@ class Axis_Wrapper:
                             #print "delta_u kasvaa:%f"%delta_u
                     if delta_l<=2*section_length and delta_l>=0.5*section_length:
                         break
-
+                """
                 u+=delta_u
                 #print u,stop
                 count=count+1

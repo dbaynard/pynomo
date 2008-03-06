@@ -306,10 +306,10 @@ class Nomo_Grid_Box(object):
         # find point of scale to meet point 1.0
         x_top=optimize.fmin(func_top,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
         x_bottom=optimize.fmin(func_bottom,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
-        print "x_top %f"%x_top
-        print "x_bottom %f" % x_bottom
-        print "g(x_top) %f"%g(x_top)
-        print "g(x_bottom) %f" %g(x_bottom)
+        #print "x_top %f"%x_top
+        #print "x_bottom %f" % x_bottom
+        #print "g(x_top) %f"%g(x_top)
+        #print "g(x_bottom) %f" %g(x_bottom)
 
         start=min(x_top,x_bottom)
         stop=max(x_top,x_bottom)
@@ -352,7 +352,7 @@ class Nomo_Grid_Box(object):
                 #print "count %f"%count
             else:
                 line.append((f(stop), g(stop)))
-                print count
+                #print count
                 #print line
                 break
         # calculate sections
@@ -440,9 +440,10 @@ if __name__=='__main__':
            'height':10.0,
            'u_func':lambda u:u,
            'v_func':f1,
-           'u_values':[10.0,20.0,30.0,40.0,50.0,60.0],
+           'u_values':[10.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
            'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
-           'manual_axis_data':None # manual labels
+           'manual_axis_data':None, # manual labels
+           'v_tick_side':'left',
            }
     tic = time.time()
     test=Nomo_Grid_Box(params=params)

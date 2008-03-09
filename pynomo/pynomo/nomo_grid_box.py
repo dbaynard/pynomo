@@ -61,7 +61,7 @@ class Nomo_Grid_Box(object):
                                'wd_tag':'none',
                                'u_reference':False, # manual labels
                                'v_reference':False,
-                               'w_reference':True,
+                               'w_reference':False,
                                'wd_reference':False,
                                'scale_type_u':'manual line',
                                'scale_type_w':'linear',
@@ -71,9 +71,17 @@ class Nomo_Grid_Box(object):
                                'w_title':'',
                                'wd_title':'',
                                'u_tick_side':'left',
+                               'u_tick_levels':0,
+                               'u_tick_text_levels':0,
                                'v_tick_side':'right',
+                               'v_tick_levels':0,
+                               'v_tick_text_levels':0,
                                'w_tick_side':'right',
-                               'wd_tick_side':'left'
+                               'w_tick_levels':0,
+                               'w_tick_text_levels':0,
+                               'wd_tick_side':'left',
+                               'wd_tick_levels':0,
+                               'wd_tick_text_levels':0,
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -113,7 +121,9 @@ class Nomo_Grid_Box(object):
             'manual_axis_data':u_manual_axis_data,
             'tick_side':self.params['u_tick_side'],
             'tag':self.params['u_tag'], # for aligning block wrt others
-            'reference':self.params['u_reference']
+            'reference':self.params['u_reference'],
+            'tick_levels':self.params['u_tick_levels'], # not really used, yet
+            'tick_text_levels':self.params['u_tick_text_levels'] # not really used, yet
             }
         return self.params_u
 
@@ -144,7 +154,9 @@ class Nomo_Grid_Box(object):
             'manual_axis_data':v_manual_axis_data,
             'tick_side':self.params['v_tick_side'],
             'tag':'none', # this axis should not be aligned
-            'reference':self.params['v_reference']
+            'reference':self.params['v_reference'],
+            'tick_levels':self.params['v_tick_levels'], # not really used, yet
+            'tick_text_levels':self.params['v_tick_text_levels'] # not really used, yet
             }
         return self.params_v
 
@@ -178,7 +190,9 @@ class Nomo_Grid_Box(object):
             'manual_axis_data':w_manual_axis_data,
             'tick_side':self.params['w_tick_side'],
             'tag':self.params['w_tag'], # for aligning block wrt others
-            'reference':self.params['w_reference']
+            'reference':self.params['w_reference'],
+            'tick_levels':self.params['w_tick_levels'],
+            'tick_text_levels':self.params['w_tick_text_levels']
             }
         return self.params_w
 
@@ -204,7 +218,9 @@ class Nomo_Grid_Box(object):
             'manual_axis_data':wd_manual_axis_data,
             'tick_side':self.params['wd_tick_side'],
             'tag':self.params['wd_tag'], # for aligning block wrt others
-            'reference':self.params['wd_reference']
+            'reference':self.params['wd_reference'],
+            'tick_levels':self.params['wd_tick_levels'],
+            'tick_text_levels':self.params['wd_tick_text_levels']
             }
         return self.params_wd
 
@@ -442,7 +458,6 @@ if __name__=='__main__':
            'v_func':f1,
            'u_values':[10.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
            'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
-           'manual_axis_data':None, # manual labels
            'v_tick_side':'left',
            }
     tic = time.time()

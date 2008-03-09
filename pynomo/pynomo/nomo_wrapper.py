@@ -1057,6 +1057,9 @@ class Nomo_Atom:
         draws the axis
         """
         p=self.params
+        print p['title']
+        print p['tick_levels']
+        print p['tick_text_levels']
         if not p['reference']==True:
             Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
                       start=p['u_min'],stop=p['u_max'],
@@ -1589,54 +1592,65 @@ if __name__=='__main__':
     # end of test_2
     if do_test_3:
         def f1(x,u):
-            return log(x/(x-u/100.0))/log(1+u/100.0)
+            #return log(log(x/(x-u/100.0))/log(1+u/100.0))
+            return log(log(x/(x-u/(100.0*12.0)))/log(1+u/(100.0*12.0)))
         params={'width':10.0,
            'height':10.0,
-           'u_func':lambda u:u,
+           #'u_func':lambda u:log(u),
+           'u_func':lambda u:log(u*12.0),
            'v_func':f1,
-           'u_values':[10.0,20.0,30.0,40.0,50.0,60.0],
+           'u_values':[10.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
            'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
+           'v_tick_side':'left',
            'u_reference':False, # manual labels
            'v_reference':False,
            'w_reference':False,
            'wd_reference':False,
-           'wd_tag':'A'
+           'wd_tick_levels':0,
+           'wd_tick_text_levels':0,
+           'wd_tag':'A',
+           'w_tick_levels':0,
+           'w_tick_text_levels':0
            }
         block11=Nomo_Block_Type_5(mirror_x=False)
         block11.define_block(params)
         block11.set_block()
 
         block12_f3_para={
-                'u_min':0.03,
-                'u_max':0.16,
+                #'u_min':0.03,
+                'u_min':block11.grid_box.params_wd['u_min'],
+                #'u_max':0.16,
+                'u_max':block11.grid_box.params_wd['u_max'],
                 'function':lambda u:u,
                 'title':'x',
                 'tag':'A',
                 'tick_side':'right',
                 'tick_levels':2,
                 'tick_text_levels':2,
-                'tag':'A'
+                'tag':'A',
+                'reference':False,
+                'tick_levels':0,
+                'tick_text_levels':0
                         }
-
         block12_f2_para={
-                'u_min':100.0,
+                'u_min':30.0,
                 'u_max':1000.0,
                 'function':lambda u:u,
                 'title':'Total sum A',
                 'tag':'none',
                 'tick_side':'left',
-                'tick_levels':1,
-                'tick_text_levels':1
+                'tick_levels':3,
+                'tick_text_levels':2
                         }
-
         block12_f1_para={
                 'u_min':0.2,
                 'u_max':3.0,
-                'function':lambda u:u*12.0,
-                'title':'a',
+                #'function':lambda u:u*12.0,
+                'function':lambda u:u,
+                'title':'amortized payment',
                 'tag':'none',
                 'tick_side':'right',
-                'tick_levels':2,
+                'tick_levels':3,
                 'tick_text_levels':2
                         }
 
@@ -1652,7 +1666,7 @@ if __name__=='__main__':
         wrapper2.align_blocks()
         wrapper2.build_axes_wrapper() # build structure for optimization
         #wrapper2.do_transformation(method='scale paper')
-        wrapper2.do_transformation(method='rotate',params=0.1)
+        wrapper2.do_transformation(method='rotate',params=0.01)
         #wrapper2.do_transformation(method='rotate',params=30.0)
         #wrapper2.do_transformation(method='rotate',params=20.0)
         #wrapper2.do_transformation(method='rotate',params=90.0)

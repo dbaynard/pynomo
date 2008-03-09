@@ -82,6 +82,10 @@ class Nomo_Grid_Box(object):
                                'wd_tick_side':'left',
                                'wd_tick_levels':0,
                                'wd_tick_text_levels':0,
+                               'horizontal_guide_nr':51,
+                               'horizontal_guides':True,
+                               'vertical_guide_nr':51,
+                               'vertical_guides':True
                                }
         self.params=params_default_values
         self.params.update(params)

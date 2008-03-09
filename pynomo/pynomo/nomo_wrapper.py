@@ -21,6 +21,7 @@ from nomo_axis import *
 from nomo_axis_func import *
 from nomo_grid_box import *
 from numpy import *
+import scipy
 from pyx import *
 from copy import copy
 
@@ -926,6 +927,42 @@ class Nomo_Block_Type_5(Nomo_Block):
                 yt=self._give_trafo_y_(x, y)
                 line.append(path.lineto(xt, yt))
         canvas.stroke(line, [style.linewidth.normal])
+        self._draw_horizontal_guides(canvas)
+        self._draw_vertical_guides(canvas)
+
+    def _draw_horizontal_guides(self,canvas,axis_color=color.cmyk.Gray):
+        """
+        draws horizontal guides
+        """
+        p=self.grid_box.params
+        if p['horizontal_guides']:
+            line = path.path()
+            nr=p['horizontal_guide_nr']
+            for y in scipy.linspace(self.grid_box.y_top,self.grid_box.y_bottom,nr):
+                xt1=self._give_trafo_x_(self.grid_box.x_left, y)
+                yt1=self._give_trafo_y_(self.grid_box.x_left, y)
+                xt2=self._give_trafo_x_(self.grid_box.x_right, y)
+                yt2=self._give_trafo_y_(self.grid_box.x_right, y)
+                line.append(path.moveto(xt1, yt1))
+                line.append(path.lineto(xt2, yt2))
+            canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted])
+
+    def _draw_vertical_guides(self,canvas,axis_color=color.cmyk.Gray):
+        """
+        draws horizontal guides
+        """
+        p=self.grid_box.params
+        if p['vertical_guides']:
+            line = path.path()
+            nr=p['vertical_guide_nr']
+            for x in scipy.linspace(self.grid_box.x_left,self.grid_box.x_right,nr):
+                xt1=self._give_trafo_x_(x,self.grid_box.y_top)
+                yt1=self._give_trafo_y_(x,self.grid_box.y_top)
+                xt2=self._give_trafo_x_(x,self.grid_box.y_bottom)
+                yt2=self._give_trafo_y_(x,self.grid_box.y_bottom)
+                line.append(path.moveto(xt1, yt1))
+                line.append(path.lineto(xt2, yt2))
+            canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted])
 
 
     def _build_u_axis_(self):
@@ -1610,7 +1647,8 @@ if __name__=='__main__':
            'wd_tick_text_levels':0,
            'wd_tag':'A',
            'w_tick_levels':0,
-           'w_tick_text_levels':0
+           'w_tick_text_levels':0,
+           'horizontal_guides':False,
            }
         block11=Nomo_Block_Type_5(mirror_x=False)
         block11.define_block(params)

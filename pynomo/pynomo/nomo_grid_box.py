@@ -66,8 +66,8 @@ class Nomo_Grid_Box(object):
                                'scale_type_u':'manual line',
                                'scale_type_w':'linear',
                                'scale_type_wd':'linear',
-                               'u_title':'u',
-                               'v_title':'v',
+                               'u_title':'',
+                               'v_title':'',
                                'w_title':'',
                                'wd_title':'',
                                'u_tick_side':'left',
@@ -85,7 +85,19 @@ class Nomo_Grid_Box(object):
                                'horizontal_guide_nr':51,
                                'horizontal_guides':True,
                                'vertical_guide_nr':51,
-                               'vertical_guides':True
+                               'vertical_guides':True,
+                               'u_title_opposite_tick':False,
+                               'v_title_opposite_tick':False,
+                               'wd_title_opposite_tick':False,
+                               'w_title_opposite_tick':False,
+                               'u_title_distance_center':1.5,
+                               'v_title_distance_center':1.5,
+                               'wd_title_distance_center':1.5,
+                               'w_title_distance_center':1.5,
+                               'u_title_draw_center':True,
+                               'v_title_draw_center':True,
+                               'wd_title_draw_center':True,
+                               'w_title_draw_center':True,
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -127,7 +139,10 @@ class Nomo_Grid_Box(object):
             'tag':self.params['u_tag'], # for aligning block wrt others
             'reference':self.params['u_reference'],
             'tick_levels':self.params['u_tick_levels'], # not really used, yet
-            'tick_text_levels':self.params['u_tick_text_levels'] # not really used, yet
+            'tick_text_levels':self.params['u_tick_text_levels'], # not really used, yet
+            'title_opposite_tick':self.params['u_title_opposite_tick'],
+            'title_distance_center':self.params['u_title_distance_center'],
+            'title_draw_center':self.params['u_title_draw_center']
             }
         return self.params_u
 
@@ -160,7 +175,10 @@ class Nomo_Grid_Box(object):
             'tag':'none', # this axis should not be aligned
             'reference':self.params['v_reference'],
             'tick_levels':self.params['v_tick_levels'], # not really used, yet
-            'tick_text_levels':self.params['v_tick_text_levels'] # not really used, yet
+            'tick_text_levels':self.params['v_tick_text_levels'], # not really used, yet
+            'title_opposite_tick':self.params['v_title_opposite_tick'],
+            'title_distance_center':self.params['v_title_distance_center'],
+            'title_draw_center':self.params['v_title_draw_center']
             }
         return self.params_v
 
@@ -196,7 +214,10 @@ class Nomo_Grid_Box(object):
             'tag':self.params['w_tag'], # for aligning block wrt others
             'reference':self.params['w_reference'],
             'tick_levels':self.params['w_tick_levels'],
-            'tick_text_levels':self.params['w_tick_text_levels']
+            'tick_text_levels':self.params['w_tick_text_levels'],
+            'title_opposite_tick':self.params['w_title_opposite_tick'],
+            'title_distance_center':self.params['w_title_distance_center'],
+            'title_draw_center':self.params['w_title_draw_center']
             }
         return self.params_w
 
@@ -224,7 +245,10 @@ class Nomo_Grid_Box(object):
             'tag':self.params['wd_tag'], # for aligning block wrt others
             'reference':self.params['wd_reference'],
             'tick_levels':self.params['wd_tick_levels'],
-            'tick_text_levels':self.params['wd_tick_text_levels']
+            'tick_text_levels':self.params['wd_tick_text_levels'],
+            'title_opposite_tick':self.params['wd_title_opposite_tick'],
+            'title_distance_center':self.params['wd_title_distance_center'],
+            'title_draw_center':self.params['wd_title_draw_center']
             }
         return self.params_wd
 

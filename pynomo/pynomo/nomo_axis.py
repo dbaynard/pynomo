@@ -50,23 +50,27 @@ class Nomo_Axis:
                              'grid_length_0':3.0/4,
                              'grid_length_1':0.9/4,
                              'grid_length_2':0.5/4,
-                             'grid_length_3':0.3/4}
+                             'grid_length_3':0.3/4,
+                             'title_distance_center':0.5,
+                             'title_opposite_tick':True,
+                             'title_draw_center':False}
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
 
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
-            self.draw_axis(canvas)
         if type=='linear':
             self._make_linear_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
-            self.draw_axis(canvas)
         if type=='manual point':
             self._make_manual_axis_circle_(manual_axis_data)
-            self.draw_axis(canvas)
         if type=='manual line':
             self._make_manual_axis_line_(manual_axis_data)
-            self.draw_axis(canvas)
 
+        self.draw_axis(canvas)
+        if self.axis_appear['title_draw_center']:
+            self._draw_title_center_(canvas)
+        else:
+            self._draw_title_top_(canvas)
 
     def _test_tick_(self,u,tick,scale_max):
         """ tests if it is time to put a tick
@@ -343,7 +347,11 @@ class Nomo_Axis:
         c.stroke(self.thin_line, [style.linewidth.thin])
         for ttext,x,y,attr in self.texts:
             c.text(x,y,ttext,attr)
-        # make title
+
+    def _draw_title_top_(self,c):
+        """
+         make title to top
+        """
         # find out if start or stop has higher y-value
         if self.func_g(self.stop)>self.func_g(self.start):
             c.text(self.func_f(self.stop)+self.title_x_shift,
@@ -353,6 +361,40 @@ class Nomo_Axis:
             c.text(self.func_f(self.start)+self.title_x_shift,
                     self.func_g(self.start)+self.title_y_shift, self.title,
                     [text.halign.center])
+
+    def _draw_title_center_(self,c):
+        """
+        draws axis title to the axis center
+        """
+        f=self.func_f
+        g=self.func_g
+        u_mid=(self.start+self.stop)/2.0
+        x_start=f(self.start)
+        x_stop=f(self.stop)
+        y_start=g(self.start)
+        y_stop=g(self.stop)
+        center_x=(x_start+x_stop)/2.0
+        center_y=(y_start+y_stop)/2.0
+
+        du=math.fabs(self.start-self.stop)*1e-6
+        turn=self.turn
+        if not self.axis_appear['title_opposite_tick']:
+            turn=turn*(-1)
+        dx=(f(u_mid+du)-f(u_mid))*turn
+        dy=(g(u_mid+du)-g(u_mid))*turn
+        dx_unit=dx/math.sqrt(dx**2+dy**2)
+        dy_unit=dy/math.sqrt(dx**2+dy**2)
+        if dy_unit!=0:
+            angle=-math.atan(dx_unit/dy_unit)*180/math.pi+90.0
+        else:
+            angle=0-90.0
+        angle = (angle+90)%180-90
+        text_distance=self.axis_appear['title_distance_center']
+        c.text(center_x-text_distance*dy_unit,
+               center_y+text_distance*dx_unit,
+               self.title,[text.halign.center,trafo.rotate(angle)])
+        #text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
+        #texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
 
     def _put_text_(self,u):
         if self.text_style=='oldstyle':

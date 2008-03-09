@@ -927,10 +927,10 @@ class Nomo_Block_Type_5(Nomo_Block):
                 yt=self._give_trafo_y_(x, y)
                 line.append(path.lineto(xt, yt))
         canvas.stroke(line, [style.linewidth.normal])
-        self._draw_horizontal_guides(canvas)
-        self._draw_vertical_guides(canvas)
+        self._draw_horizontal_guides_(canvas)
+        self._draw_vertical_guides_(canvas)
 
-    def _draw_horizontal_guides(self,canvas,axis_color=color.cmyk.Gray):
+    def _draw_horizontal_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """
         draws horizontal guides
         """
@@ -947,7 +947,7 @@ class Nomo_Block_Type_5(Nomo_Block):
                 line.append(path.lineto(xt2, yt2))
             canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted])
 
-    def _draw_vertical_guides(self,canvas,axis_color=color.cmyk.Gray):
+    def _draw_vertical_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """
         draws horizontal guides
         """
@@ -1020,7 +1020,7 @@ class Nomo_Atom:
             'u_max':1.0,
             'F':lambda u:u, # x-coordinate
             'G':lambda u:u, # y-coordinate
-            'title':'f1',
+            'title':'no title given',
             'title_x_shift':0.0,
             'title_y_shift':0.25,
             'scale_type':'linear', #'linear' 'log' 'manual point' 'manual line'
@@ -1030,7 +1030,9 @@ class Nomo_Atom:
             'tag':'none', # for aligning block wrt others
             'reference':False,
             'reference padding': 0.20, # fraction of reference line over other lines
-            'manual_axis_data':{}
+            'manual_axis_data':{},
+            'title_distance_center':0.5,
+            'title_opposite_tick':True
             }
         self.params=self.params_default
         self.params.update(params)
@@ -1094,20 +1096,21 @@ class Nomo_Atom:
         draws the axis
         """
         p=self.params
-        print p['title']
-        print p['tick_levels']
-        print p['tick_text_levels']
+        #print p['title']
+        #print p['tick_levels']
+        #print p['tick_text_levels']
         if not p['reference']==True:
             Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
                       start=p['u_min'],stop=p['u_max'],
                       turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
                       tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
-                      side=p['tick_side'],manual_axis_data=p['manual_axis_data'])
+                      side=p['tick_side'],manual_axis_data=p['manual_axis_data'],
+                      axis_appear=p) # we take whole p dictionary in this case..
         else: # reference axis
-            print "u_min_ref"
-            print self.u_min_ref
-            print "u_max_ref"
-            print self.u_max_ref
+            #print "u_min_ref"
+            #print self.u_min_ref
+            #print "u_max_ref"
+            #print self.u_max_ref
             Nomo_Axis(func_f=self.give_x_ref,func_g=self.give_y_ref,
             start=self.u_min_ref,stop=self.u_max_ref,
             turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
@@ -1639,6 +1642,8 @@ if __name__=='__main__':
            'u_values':[10.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
            'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
            'v_tick_side':'left',
+           'u_title':'years',
+           'v_title':r'interest rate \%',
            'u_reference':False, # manual labels
            'v_reference':False,
            'w_reference':False,
@@ -1660,7 +1665,7 @@ if __name__=='__main__':
                 #'u_max':0.16,
                 'u_max':block11.grid_box.params_wd['u_max'],
                 'function':lambda u:u,
-                'title':'x',
+                'title':'',
                 'tag':'A',
                 'tick_side':'right',
                 'tick_levels':2,
@@ -1668,28 +1673,31 @@ if __name__=='__main__':
                 'tag':'A',
                 'reference':False,
                 'tick_levels':0,
-                'tick_text_levels':0
+                'tick_text_levels':0,
+                'title_draw_center':True
                         }
         block12_f2_para={
                 'u_min':30.0,
                 'u_max':1000.0,
                 'function':lambda u:u,
-                'title':'Total sum A',
+                'title':'Loan',
                 'tag':'none',
                 'tick_side':'left',
                 'tick_levels':3,
-                'tick_text_levels':2
+                'tick_text_levels':2,
+                'title_draw_center':True
                         }
         block12_f1_para={
                 'u_min':0.2,
                 'u_max':3.0,
                 #'function':lambda u:u*12.0,
                 'function':lambda u:u,
-                'title':'amortized payment',
+                'title':'monthly payment',
                 'tag':'none',
                 'tick_side':'right',
                 'tick_levels':3,
-                'tick_text_levels':2
+                'tick_text_levels':2,
+                'title_draw_center':True
                         }
 
         block12=Nomo_Block_Type_2(mirror_x=False)

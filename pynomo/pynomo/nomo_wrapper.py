@@ -176,7 +176,18 @@ class Nomo_Wrapper:
         """
         for block in self.block_stack:
             block.draw(canvas)
+        self._draw_title_(canvas)
         canvas.writePDFfile(self.filename)
+
+    def _draw_title_(self,c):
+        """
+        draws title
+        """
+        print self.params
+        c.text(self.params['title_x'], self.params['title_y'],
+        self.params['title_str'],
+        [text.parbox(self.params['title_box_width']),
+        text.halign.boxcenter, text.halign.flushcenter])
 
     def align_blocks(self):
         """
@@ -1706,7 +1717,12 @@ if __name__=='__main__':
         block12.define_F3(block12_f3_para)
         block12.set_block(height=10.0,width=5.0)
 
-        wrapper2=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type5.pdf')
+        wrapper2=Nomo_Wrapper(params={
+            'title_str':r'Amortized loan calculator    \copyright    Leif Roschier  2008',
+            'title_x': 17,
+            'title_y': 21,
+            'title_box_width': 5},
+            paper_width=20.0,paper_height=20.0,filename='type5.pdf')
         wrapper2.add_block(block11)
         wrapper2.add_block(block12)
         wrapper2.align_blocks()

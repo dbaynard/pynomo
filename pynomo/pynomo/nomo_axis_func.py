@@ -371,8 +371,31 @@ class Axes_Wrapper:
         transforms nomogram to paper proportions
         """
         self._calc_bounding_box_()
+        """
         multiplier_x=self.paper_width/self.Wt
         multiplier_y=self.paper_height/self.Ht
+        """
+        x1=self.x_left
+        y1=self.y_top
+        x2=self.x_left
+        y2=self.y_bottom
+        x3=self.x_right
+        y3=self.y_top
+        x4=self.x_right
+        y4=self.y_bottom
+        x1d=0.0
+        y1d=self.paper_height
+        x2d=0.0
+        y2d=0.0
+        x3d=self.paper_width
+        y3d=self.paper_height
+        x4d=self.paper_width
+        y4d=0.0
+
+        alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+        self._calc_transformation_matrix_(x1,y1,x2,y2,x3,y3,x4,y4,
+                                          x1d,y1d,x2d,y2d,x3d,y3d,x4d,y4d)
+        """
         alpha1=multiplier_x
         beta1=0.0
         gamma1=0.0
@@ -382,6 +405,7 @@ class Axes_Wrapper:
         alpha3=0.0
         beta3=0.0
         gamma3=1.0
+        """
         self._add_transformation_(alpha1=alpha1,beta1=beta1,gamma1=gamma1,
                                   alpha2=alpha2,beta2=beta2,gamma2=gamma2,
                                   alpha3=alpha3,beta3=beta3,gamma3=gamma3)

@@ -23,7 +23,8 @@ from nomo_grid_box import *
 from numpy import *
 import scipy
 from pyx import *
-from copy import copy
+#from copy import copy
+import copy
 
 class Nomo_Wrapper:
     """
@@ -60,15 +61,17 @@ class Nomo_Wrapper:
         yd = alpha2*x+beta2*y+gamma2
         alpha3=0, beta3=0, gamma3=0
         """
-        mat=array([[x1,y1,1.0,0.0,0.0,0.0],
+        matt=array([[x1,y1,1.0,0.0,0.0,0.0],
                    [0,0,0,x1,y1,1],
                    [x2,y2,1,0,0,0],
                    [0,0,0,x2,y2,1],
                    [x3,y3,1,0,0,0],
                    [0,0,0,x3,y3,1]])
         #print rank(mat)
-        inverse=linalg.inv(mat)
-        vec=dot(inverse,[x1d,y1d,x2d,y2d,x3d,y3d])
+        inverse=linalg.inv(matt)
+        #vec=dot(inverse,[[x1d,y1d,x2d,y2d,x3d,y3d]])
+        dest = array([x1d,y1d,x2d,y2d,x3d,y3d])
+        vec = linalg.solve(matt,dest)
         alpha1=vec[0]
         beta1=vec[1]
         gamma1=vec[2]
@@ -323,7 +326,7 @@ class Nomo_Block(object):
         calculates total transformation matrix and
         master coeffs self.alpha1,self.beta1,...
         """
-        stack_copy=copy(self.trafo_stack)
+        stack_copy=copy.copy(self.trafo_stack)
         stack_copy.reverse()
         trafo_mat=stack_copy.pop()
         for matrix in stack_copy:
@@ -717,7 +720,7 @@ class Nomo_Block_Type_3(Nomo_Block):
             'reference':True
                     }
         for idx in range(1,N-2):
-            ref_para=copy(ref_para_ini)
+            ref_para=copy.copy(ref_para_ini)
             ref_para['F']=self._makeDoX_(r_table[idx])
             ref_para['G']=lambda y:y
             self.ref_params.append(ref_para)

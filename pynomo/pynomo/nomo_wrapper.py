@@ -615,6 +615,7 @@ class Nomo_Block_Type_3(Nomo_Block):
     def __init__(self,mirror_x=False,mirror_y=False):
         super(Nomo_Block_Type_3,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
         self.F_stack=[] # stack of function definitions
+        self.shift_stack=[]
         self.N=0 # number of lines
         axes_wrapper_N=Axes_Wrapper() # to calculate bounding box
 
@@ -624,6 +625,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         """
         self.F_stack.append(params)
         self.N=self.N+1
+        self.shift_stack.append(0)  # initial correction 0
 
     def set_block(self,height=10.0,width=10.0):
         """
@@ -634,6 +636,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         self.width=width
         self.height=height
         self._make_definitions_()
+        self._calculate_shifts_()
         for idx in range(1,self.N+1,1):
             params=self.F_stack[idx-1] # original parameters
             params['F']=self._give_x_func_(idx)
@@ -671,6 +674,37 @@ class Nomo_Block_Type_3(Nomo_Block):
         def f(u): return self.y_func[idx](u)
         return f
 
+    def _calculate_shifts_(self):
+        """
+        calculates line positions (in y-direction) in order to
+        make line center points as concentric as possible by
+        using shifts that are additions to the functions
+        """
+        mean_values=[]
+        self.shifts=[]
+        # calculate means
+        for idx in range(1,self.N+1,1):
+            params=self.F_stack[idx-1]
+            min_value=self._makeDoY_(idx)(params['u_min'])
+            max_value=self._makeDoY_(idx)(params['u_max'])
+            if max_value<min_value:
+                min_value,max_value=max_value,min_value
+            mean_values.append((min_value+max_value)/2.0)
+        mean_value=mean(mean_values)
+        # calculate needed additions to funcs = shifts
+        shift_sum=0
+        for idx in range(1,self.N+1,1):
+            difference=mean_values[idx-1]-mean_value
+            shift=difference/self._calc_shift_(idx)
+            self.shifts.append(shift)
+            shift_sum=shift_sum+shift
+        #let's divide shift sum to all shifts = correction
+        correction=shift_sum/(self.N-1) # ends get factor 0.5
+        for idx in range(1,self.N+1,1):
+            self.shift_stack[idx-1]=-(self.shifts[idx-1]-correction)
+        self.shift_stack[0]=-(self.shifts[0]-correction/2)
+        self.shift_stack[self.N-1]=-(self.shifts[self.N-1]-correction/2)
+
     def _make_definitions_(self):
         """
         defines functions. Copied originally from nomograp_N_lin.py
@@ -707,9 +741,11 @@ class Nomo_Block_Type_3(Nomo_Block):
         self.x_func[1]=lambda x:fn2x_table[1]*1.0*self.x_mirror
         self.x_func[N]=lambda x:fn2x_table[N]*1.0*self.x_mirror
         #self.y_func[1]=lambda u:self.functions['f1'](u)
-        self.y_func[1]=lambda u:self.F_stack[0]['function'](u)**self.y_mirror
+        self.y_func[1]=lambda u:(self.F_stack[0]['function'](u)\
+                                             +self.shift_stack[0])*self.y_mirror
         #self.y_func[N]=lambda u:(-1)**(N+1)*self.functions['f%i'%N](u)
-        self.y_func[N]=lambda u:(-1)**(N+1)*self.F_stack[N-1]['function'](u)*self.y_mirror
+        self.y_func[N]=lambda u:(-1)**(N+1)*(self.F_stack[N-1]['function'](u)\
+                                             +self.shift_stack[N-1])*self.y_mirror
         # make reflection axes
         self.ref_params=[]
         ref_para_ini={ # this is for reference
@@ -739,8 +775,17 @@ class Nomo_Block_Type_3(Nomo_Block):
         (I could not figure out how to use lambda...)
         """
         #def ff(u): return (-1)**(idx+1)*0.5*self.functions['f%i'%idx](u)
-        def ff(u): return (-1)**(idx+1)*0.5*self.F_stack[idx-1]['function'](u)*self.y_mirror
+        def ff(u): return (-1)**(idx+1)*0.5*(self.F_stack[idx-1]['function'](u)\
+                                             +self.shift_stack[idx-1])*self.y_mirror
         return ff
+
+    def _calc_shift_(self,idx):
+        """
+        copied trick to solve function definitions inside loop
+        (I could not figure out how to use lambda...)
+        calculates how much additional constant shifts the curve
+        """
+        return (-1)**(idx+1)*0.5*1*self.y_mirror
 
 class Nomo_Block_Type_4(Nomo_Block):
     """
@@ -1147,9 +1192,10 @@ if __name__=='__main__':
     5. optimize transformation
     6. draw nomogram in nomowrapper
     """
-    do_test_1=False
-    do_test_2=False
+    do_test_1=True
+    do_test_2=True
     do_test_3=True
+    do_test_4=True
     if do_test_1:
         # build atoms
         block1_atom1_para={
@@ -1552,7 +1598,7 @@ if __name__=='__main__':
         block10_f1_para={
                 'u_min':1.0,
                 'u_max':12.0,
-                'function':lambda u:u,
+                'function':lambda u:u-7,
                 'title':'F1',
                 'tag':'none',
                 'tick_side':'right',
@@ -1564,7 +1610,7 @@ if __name__=='__main__':
         block10_f2_para={
                 'u_min':1.0,
                 'u_max':18.0,
-                'function':lambda u:u,
+                'function':lambda u:u+7,
                 'title':'F2',
                 'tag':'none',
                 'tick_side':'right',
@@ -1573,8 +1619,8 @@ if __name__=='__main__':
                         }
 
         block10_f3_para={
-                'u_min':1.0,
-                'u_max':10.0,
+                'u_min':-10,
+                'u_max':0.0,
                 'function':lambda u:u,
                 'title':'F3',
                 'tag':'none',
@@ -1586,7 +1632,7 @@ if __name__=='__main__':
         block10_f4_para={
                 'u_min':1.0,
                 'u_max':14.0,
-                'function':lambda u:u,
+                'function':lambda u:u+7,
                 'title':'F4',
                 'tag':'none',
                 'tick_side':'right',
@@ -1597,8 +1643,8 @@ if __name__=='__main__':
         block10_f5_para={
                 'u_min':1.0,
                 'u_max':14.0,
-                'function':lambda u:u,
-                'title':'F4',
+                'function':lambda u:u-7,
+                'title':'F5',
                 'tag':'none',
                 'tick_side':'right',
                 'tick_levels':2,
@@ -1740,3 +1786,78 @@ if __name__=='__main__':
         wrapper2.do_transformation(method='scale paper')
         ccc=canvas.canvas()
         wrapper2.draw_nomogram(ccc)
+        # end of test3
+    if do_test_4:
+        block20_f1_para={
+                'u_min':0.0,
+                'u_max':12.0,
+                'function':lambda u:u,
+                'title':'F1',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2,
+                'tag':'B'
+                        }
+        block20_f2_para={
+                'u_min':0.0,
+                'u_max':18.0,
+                'function':lambda u:u,
+                'title':'F2',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+        block20_f3_para={
+                'u_min':0.0,
+                'u_max':20.0,
+                'function':lambda u:-u,
+                'title':'F3',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+
+        block20_f4_para={
+                'u_min':0.0,
+                'u_max':14.0,
+                'function':lambda u:u,
+                'title':'F4',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                }
+        block20_f5_para={
+                'u_min':0.0,
+                'u_max':34.0,
+                'function':lambda u:u,
+                'title':'F5',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+        block20=Nomo_Block_Type_3(mirror_x=False)
+        block20.add_F(block20_f1_para)
+        block20.add_F(block20_f2_para)
+        block20.add_F(block20_f3_para)
+        block20.add_F(block20_f4_para)
+        block20.add_F(block20_f5_para)
+        block20.set_block(width=10.0,height=10.0)
+        wrapper4=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type6.pdf')
+        wrapper4.add_block(block20)
+        wrapper4.align_blocks()
+        wrapper4.build_axes_wrapper() # build structure for optimization
+        #wrapper1.do_transformation(method='scale paper')
+        #wrapper4.do_transformation(method='rotate',params=10.0)
+        #wrapper1.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=20.0)
+        #wrapper1.do_transformation(method='rotate',params=90.0)
+        #wrapper4.do_transformation(method='polygon')
+        #wrapper1.do_transformation(method='optimize')
+        wrapper4.do_transformation(method='scale paper')
+        cc4=canvas.canvas()
+        wrapper4.draw_nomogram(cc4)

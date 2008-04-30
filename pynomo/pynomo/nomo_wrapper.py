@@ -351,22 +351,6 @@ class Nomo_Block(object):
                            alpha2=self.alpha2,beta2=self.beta2,gamma2=self.gamma2,
                            alpha3=self.alpha3,beta3=self.beta3,gamma3=self.gamma3)
 
-#    Maybe not needed
-#
-#    def give_trafo_x(self,x,y):
-#        """
-#        transformed x-coordinate
-#        """
-#        return ((self.alpha1*x+self.beta1*y+self.gamma1)\
-#        /(self.alpha3*x+self.beta3*y+self.gamma3))
-#
-#    def give_trafo_y(self,x,y):
-#        """
-#        transformed y-coordinate
-#        """
-#        return ((self.alpha2*x+self.beta2*y+self.gamma2)\
-#        /(self.alpha3*x+self.beta3*y+self.gamma3))
-
     def draw(self,canvas):
         """
         draws the Atoms of block
@@ -498,8 +482,8 @@ class Nomo_Block_Type_1(Nomo_Block):
         p=proportion
         delta_1=proportion*width/(1+proportion)
         delta_3=width/(proportion+1)
-        print delta_1
-        print delta_3
+        #print delta_1
+        #print delta_3
         x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
         x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
         x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
@@ -851,7 +835,7 @@ class Nomo_Block_Type_4(Nomo_Block):
         x_dummy,f4_max=self.F4_axis_ini.calc_highest_point()
         #x_dummy,f4_min=self.F4_axis_ini.calc_lowest_point()
         #scaling factor.
-        print f1_max,f2_max,f3_max,f4_max
+        #print f1_max,f2_max,f3_max,f4_max
 
         m1=height/f1_max*padding
         m2=height/f2_max*padding
@@ -1068,6 +1052,92 @@ class Nomo_Block_Type_5(Nomo_Block):
                              start=para_wd['u_min'],stop=para_wd['u_max'])
         self.axis_wrapper_stack.append(self.wd_axis)
 
+class Nomo_Block_Type_6(Nomo_Block):
+    """
+    type F1 <-> F2 Ladder
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_6,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+
+    def define_parallel(self,params1,params2):
+        """
+        defines straight scales to be parallel with each other
+        """
+        params1['F']=lambda u:0.0*self.x_mirror
+        params1['G']=lambda u:params1['function'](u)*self.y_mirror
+        self.atom_F1=Nomo_Atom(params1)
+        self.add_atom(self.atom_F1)
+        # for initial axis calculations
+        self.F1_axis_ini=Axis_Wrapper(f=params1['F'],g=params1['G'],
+                             start=params1['u_min'],stop=params1['u_max'])
+
+        params2['F']=lambda u:1.0*self.x_mirror
+        params2['G']=lambda u:params2['function'](u)*self.y_mirror
+        self.atom_F2=Nomo_Atom(params2)
+        self.add_atom(self.atom_F2)
+        # for inital axis calculations
+        self.F2_axis_ini=Axis_Wrapper(f=params2['F'],g=params2['G'],
+                             start=params2['u_min'],stop=params2['u_max'])
+
+    def set_block(self,width=10.0,height=10.0):
+        """
+        sets original width, height and x-distance proportion for the nomogram before
+        transformations
+        """
+        self.width=width
+        self.height=height
+        #p=proportion
+        #delta_1=proportion*width/(1+proportion)
+        #delta_3=width/(proportion+1)
+        #print delta_1
+        #print delta_3
+        x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
+        x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
+        f1_length=f1_max-f1_min
+        x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
+        x_dummy,f2_min=self.F2_axis_ini.calc_lowest_point()
+        f2_length=f2_max-f2_min
+        # redefine scaled functions to be width x height
+        self.atom_F1.f=lambda u:self.F1_axis_ini.f(u)
+        self.atom_F1.g=lambda u:(self.F1_axis_ini.g(u)-f1_min)/f1_length*height
+        self.atom_F2.f=lambda u:self.F2_axis_ini.f(u)*width
+        self.atom_F2.g=lambda u:(self.F2_axis_ini.g(u)-f2_min)/f2_length*height
+
+        self.F1_axis=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
+                             start=self.atom_F1.params['u_min'],
+                             stop=self.atom_F1.params['u_max'])
+        self.axis_wrapper_stack.append(self.F1_axis)
+        self.F2_axis=Axis_Wrapper(f=self.atom_F2.f,g=self.atom_F2.g,
+                             start=self.atom_F2.params['u_min'],
+                             stop=self.atom_F2.params['u_max'])
+        self.axis_wrapper_stack.append(self.F2_axis)
+        self.set_reference_axes()
+
+    def draw(self,canvas):
+        """
+        overrides the parent draw function
+        draws also contours
+        """
+        super(Nomo_Block_Type_6,self).draw(canvas=canvas)
+
+    def _find_ladder_points_(self):
+        """
+        finds points and derivatives for ladder
+        1. find points (according to F1 or given)
+        -linear
+        -log
+        -given
+        2. find derivatives at points
+        - delta_x and delta_y unit vector
+        """
+        pass
+
+    def _draw_ladder_lines_(self):
+        """
+        draws the lines
+        """
+        pass
+
 class Nomo_Atom:
     """
     class for single axis or equivalent.
@@ -1192,10 +1262,11 @@ if __name__=='__main__':
     5. optimize transformation
     6. draw nomogram in nomowrapper
     """
-    do_test_1=True
-    do_test_2=True
-    do_test_3=True
-    do_test_4=True
+    do_test_1=False
+    do_test_2=False
+    do_test_3=False
+    do_test_4=False
+    do_test_5=True
     if do_test_1:
         # build atoms
         block1_atom1_para={
@@ -1847,7 +1918,7 @@ if __name__=='__main__':
         block20.add_F(block20_f4_para)
         block20.add_F(block20_f5_para)
         block20.set_block(width=10.0,height=10.0)
-        wrapper4=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type6.pdf')
+        wrapper4=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type3a.pdf')
         wrapper4.add_block(block20)
         wrapper4.align_blocks()
         wrapper4.build_axes_wrapper() # build structure for optimization
@@ -1861,3 +1932,45 @@ if __name__=='__main__':
         wrapper4.do_transformation(method='scale paper')
         cc4=canvas.canvas()
         wrapper4.draw_nomogram(cc4)
+
+    if do_test_5:
+        # build atoms
+        block30_f1_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'F1',
+                'tag':'none',
+                'tick_side':'left',
+                'tick_levels':2,
+                'scale_type':'linear',
+                'tick_text_levels':2
+                        }
+
+        block30_f2_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:log(u),
+                'title':'F2',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':2,
+                'tick_text_levels':2
+                        }
+        block30=Nomo_Block_Type_6()
+        block30.define_parallel(params1=block30_f1_para,params2=block30_f2_para)
+        block30.set_block(width=5.0,height=25.0)
+        wrapper5=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type6.pdf')
+        wrapper5.add_block(block30)
+        wrapper5.align_blocks()
+        wrapper5.build_axes_wrapper() # build structure for optimization
+        #wrapper1.do_transformation(method='scale paper')
+        #wrapper4.do_transformation(method='rotate',params=10.0)
+        #wrapper1.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=20.0)
+        #wrapper1.do_transformation(method='rotate',params=90.0)
+        #wrapper4.do_transformation(method='polygon')
+        #wrapper1.do_transformation(method='optimize')
+        wrapper5.do_transformation(method='scale paper')
+        cc5=canvas.canvas()
+        wrapper5.draw_nomogram(cc5)

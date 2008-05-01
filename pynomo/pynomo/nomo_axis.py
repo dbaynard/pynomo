@@ -80,27 +80,27 @@ class Nomo_Axis:
         for example:
         u=0.2, tick=0.1 gives True
         u=0.25, tick=0.1 gives False """
-        closest_number=self._find_closest_tick_number_(u,tick)
+        closest_number=_find_closest_tick_number_(u,tick)
         result=False
         if math.fabs(u-closest_number)< (scale_max*1e-6):
             result=True
         return result
         #return math.fabs(math.modf(u/tick)[0]) < (scale_max*1e-5) or math.fabs((math.modf(u/tick)[0]-1)) < (scale_max*1e-8)
 
-    def _find_closest_tick_number_(self,number,tick_divisor):
-        """
-        finds closest number with integer number of divisors from zero
-        """
-        n=number//tick_divisor
-        tick_number=n*tick_divisor
-        error=math.fabs(tick_number-number)
-        if math.fabs(((n+1)*tick_divisor)-number)< error:
-            tick_number=(n+1)*tick_divisor
-            error=math.fabs(tick_number-number)
-        if math.fabs(((n-1)*tick_divisor)-number)< error:
-            tick_number=(n-1)*tick_divisor
-            error=math.fabs(tick_number-number)
-        return tick_number
+#    def _find_closest_tick_number_(self,number,tick_divisor):
+#        """
+#        finds closest number with integer number of divisors from zero
+#        """
+#        n=number//tick_divisor
+#        tick_number=n*tick_divisor
+#        error=math.fabs(tick_number-number)
+#        if math.fabs(((n+1)*tick_divisor)-number)< error:
+#            tick_number=(n+1)*tick_divisor
+#            error=math.fabs(tick_number-number)
+#        if math.fabs(((n-1)*tick_divisor)-number)< error:
+#            tick_number=(n-1)*tick_divisor
+#            error=math.fabs(tick_number-number)
+#        return tick_number
 
 
     def _make_linear_axis_(self,start,stop,f,g,turn=1):
@@ -113,8 +113,10 @@ class Nomo_Axis:
         # for numerical derivative to find angle
         du=math.fabs(start-stop)*1e-6
         dy=(g(start+du)-g(start))
-        self._determine_turn_()
-        turn=self.turn
+        #self._determine_turn_()
+        turn=_determine_turn_(f=self.func_f,g=self.func_g,start=self.start,
+                              stop=self.stop,side=self.side)
+        #turn=self.turn
         # which number to divide. how many decades there are
         ##scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
         scale_max=10.0**round(math.log10(math.fabs(start-stop)))
@@ -122,8 +124,8 @@ class Nomo_Axis:
         tick_max=scale_max/10.0
         tick_1=scale_max/20.0
         tick_2=scale_max/100.0
-        start_new=self._find_closest_tick_number_(start,tick_min)
-        stop_new=self._find_closest_tick_number_(stop,tick_min)
+        start_new=_find_closest_tick_number_(start,tick_min)
+        stop_new=_find_closest_tick_number_(stop,tick_min)
         #print "tick_min %f"%tick_min
         #print "start_new %f"%start_new
         #print "stop_new %f"%stop_new
@@ -195,8 +197,10 @@ class Nomo_Axis:
         """
         # for numerical derivative to find angle
         du=math.fabs(start-stop)*1e-6
-        self._determine_turn_()
-        turn=self.turn
+        #self._determine_turn_()
+        turn=_determine_turn_(f=self.func_f,g=self.func_g,start=self.start,
+                              stop=self.stop,side=self.side)
+        #turn=self.turn
         texts=list([])
         if (start<stop):
             min=start
@@ -211,6 +215,8 @@ class Nomo_Axis:
         for decade in scipy.arange(min_decade,max_decade+1,1):
             for number in scipy.concatenate((scipy.arange(1,2,0.2),scipy.arange(2,3,0.5),scipy.arange(3,10,1))):
                 u=number*10.0**decade
+                if (u-min)>0: # to avoid too big du values
+                    du=(u-min)*1e-6
                 dx=(f(u+du)-f(u))*turn
                 dy=(g(u+du)-g(u))*turn
                 dx_unit=dx/math.sqrt(dx**2+dy**2)
@@ -266,8 +272,10 @@ class Nomo_Axis:
         """
         f=self.func_f
         g=self.func_g
-        self._determine_turn_()
-        turn=self.turn
+        #self._determine_turn_()
+        turn=_determine_turn_(f=self.func_f,g=self.func_g,start=self.start,
+                              stop=self.stop,side=self.side)
+        #turn=self.turn
         texts=list([])
         line = path.path(path.moveto(f(self.start), g(self.start)))
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
@@ -293,8 +301,10 @@ class Nomo_Axis:
         # for numerical derivative to find angle
         f=self.func_f
         g=self.func_g
-        self._determine_turn_()
-        turn=self.turn
+        #self._determine_turn_()
+        turn=_determine_turn_(f=self.func_f,g=self.func_g,start=self.start,
+                              stop=self.stop,side=self.side)
+        #turn=self.turn
         du=math.fabs(self.start-self.stop)*1e-6
         texts=list([])
         if (self.start<self.stop):
@@ -402,26 +412,100 @@ class Nomo_Axis:
         else:
             return r"$%3.2f$ " %u
 
-    def _determine_turn_(self):
-        """
-         determines if we are going upwards or downwards at start
-        """
-        g=self.func_g
-        f=self.func_f
-        start=self.start
-        stop=self.stop
-        du=(stop-start)*1e-6
-        dy=(g(start+du)-g(start))
-        if dy<=0 and self.side=='left':
-            self.turn=1.0
-        if dy>0 and self.side=='left':
-            self.turn=-1.0
-        if dy<=0 and self.side=='right':
-            self.turn=-1.0
-        if dy>0 and self.side=='right':
-            self.turn=1.0
+#    def _determine_turn_(self):
+#        """
+#         determines if we are going upwards or downwards at start
+#        """
+#        g=self.func_g
+#        f=self.func_f
+#        start=self.start
+#        stop=self.stop
+#        du=(stop-start)*1e-6
+#        dy=(g(start+du)-g(start))
+#        if dy<=0 and self.side=='left':
+#            self.turn=1.0
+#        if dy>0 and self.side=='left':
+#            self.turn=-1.0
+#        if dy<=0 and self.side=='right':
+#            self.turn=-1.0
+#        if dy>0 and self.side=='right':
+#            self.turn=1.0
+
+def _determine_turn_(f,g,start,stop,side):
+    """
+     determines if we are going upwards or downwards at start
+    _determine_turn_(f=self.func_f,g=self.func_g,start=self.start,
+                     stop=self.stop,side=self.side)
+    """
+    du=(stop-start)*1e-6
+    dy=(g(start+du)-g(start))
+    if dy<=0 and side=='left':
+        turn=1.0
+    if dy>0 and side=='left':
+        turn=-1.0
+    if dy<=0 and side=='right':
+        turn=-1.0
+    if dy>0 and side=='right':
+        turn=1.0
+    return turn
+
+
+def _find_closest_tick_number_(number,tick_divisor):
+    """
+    finds closest number with integer number of divisors from zero
+    """
+    n=number//tick_divisor
+    tick_number=n*tick_divisor
+    error=math.fabs(tick_number-number)
+    if math.fabs(((n+1)*tick_divisor)-number)< error:
+        tick_number=(n+1)*tick_divisor
+        error=math.fabs(tick_number-number)
+    if math.fabs(((n-1)*tick_divisor)-number)< error:
+        tick_number=(n-1)*tick_divisor
+        error=math.fabs(tick_number-number)
+    return tick_number
+
+def _find_linear_ticks_(start,stop):
+    """
+    finds tick values for linear axis
+    """
+    if start>stop:
+        start,stop=stop,start
+    scale_max=10.0**round(math.log10(math.fabs(start-stop)))
+    tick_0=scale_max/10.0
+    tick_1=scale_max/20.0
+    tick_2=scale_max/100.0
+    tick_3=scale_max/500.0
+    tick_4=scale_max/1000.0
+    tick_0_list=[]
+    tick_1_list=[]
+    tick_2_list=[]
+    tick_3_list=[]
+    tick_4_list=[]
+    start_major=_find_closest_tick_number_(start,tick_0)
+    stop_major=_find_closest_tick_number_(stop,tick_0)
+    for step in range(0,1001):
+        number=start_major+step*tick_4
+        if number>=start and number<=stop:
+            if step%100==0:
+                tick_0_list.append(number)
+            if step%50==0 and step%100!=0:
+                tick_1_list.append(number)
+            if step%10==0 and step%50!=0 and step%100!=0:
+                tick_2_list.append(number)
+            if step%5==0 and step%10!=0 and step%50!=0 and step%100!=0:
+                tick_3_list.append(number)
+            if step%1==0 and step%5!=0 and step%10!=0 and step%50!=0 and step%100!=0:
+                tick_4_list.append(number)
+    print tick_0_list
+    print tick_1_list
+    print tick_2_list
+    return tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list
+
 ## Testing
 if __name__=='__main__':
+    _find_linear_ticks_(990.0,999.0)
+    _find_linear_ticks_(-33,52)
     def f1(L):
         return 2*(L*L-8*L-5)/(3*L*L+2*L+7)
     def g1(L):

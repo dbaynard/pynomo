@@ -20,6 +20,7 @@
 from pyx import *
 import math
 import scipy
+import random
 
 class Nomo_Axis:
     """
@@ -27,7 +28,7 @@ class Nomo_Axis:
     """
     def __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
                  text_style='normal',title_x_shift=0,title_y_shift=0.25,
-                 tick_levels=10,tick_text_levels=10,
+                 tick_levels=3,tick_text_levels=2,
                  text_color=color.rgb.black, axis_color=color.rgb.black,
                  manual_axis_data={},axis_appear={},side='left'):
         self.func_f=func_f
@@ -47,10 +48,18 @@ class Nomo_Axis:
                              'text_distance_0':1.0,
                              'text_distance_1':1.0/4,
                              'text_distance_2':1.0/4,
+                             'text_distance_3':1.0/4,
+                             'text_distance_4':1.0/4,
                              'grid_length_0':3.0/4,
                              'grid_length_1':0.9/4,
                              'grid_length_2':0.5/4,
                              'grid_length_3':0.3/4,
+                             'grid_length_4':0.3/4,
+                             'text_size_0': text.size.small,
+                             'text_size_1': text.size.scriptsize,
+                             'text_size_2': text.size.tiny,
+                             'text_size_3': text.size.tiny,
+                             'text_size_4': text.size.tiny,
                              'title_distance_center':0.5,
                              'title_opposite_tick':True,
                              'title_draw_center':False}
@@ -103,7 +112,7 @@ class Nomo_Axis:
 #        return tick_number
 
 
-    def _make_linear_axis_(self,start,stop,f,g,turn=1):
+    def _make_linear_axis_old_(self,start,stop,f,g,turn=1):
         """
         Makes a linear scale according to functions f(u) and g(u)
         with values u in range [start, stop].
@@ -192,6 +201,138 @@ class Nomo_Axis:
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
+
+    def _make_linear_axis_(self,start,stop,f,g,turn=1):
+        """
+        Makes a linear scale according to functions f(u) and g(u)
+        with values u in range [start, stop].
+        """
+        # line lists
+        line = path.path(path.moveto(f(start), g(start)))
+        thin_line=path.path(path.moveto(f(start), g(start)))
+        # text list
+        texts=[]
+        # let's find tick positions
+        tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
+        _find_linear_ticks_(start,stop)
+        # let's find tick angles
+        dx_units_0,dy_units_0,angles_0=_find_tick_directions_(tick_0_list,f,g,self.side,start,stop)
+        dx_units_1,dy_units_1,angles_1=_find_tick_directions_(tick_1_list,f,g,self.side,start,stop)
+        dx_units_2,dy_units_2,angles_2=_find_tick_directions_(tick_2_list,f,g,self.side,start,stop)
+        dx_units_3,dy_units_3,angles_3=_find_tick_directions_(tick_3_list,f,g,self.side,start,stop)
+        dx_units_4,dy_units_4,angles_4=_find_tick_directions_(tick_4_list,f,g,self.side,start,stop)
+
+        # tick level 0
+        if self.tick_levels>0:
+            self._make_tick_lines_(tick_0_list,line,f,g,dx_units_0,dy_units_0,
+                              self.axis_appear['grid_length_0'])
+        # text level 0
+        if self.tick_text_levels>0:
+            self._make_texts_(tick_0_list,texts,f,g,dx_units_0,dy_units_0,angles_0,
+                     self.axis_appear['text_distance_0'],
+                     self.axis_appear['text_size_0'])
+        # tick level 1
+        if self.tick_levels>1:
+            self._make_tick_lines_(tick_1_list,line,f,g,dx_units_1,dy_units_1,
+                              self.axis_appear['grid_length_1'])
+        # text level 1
+        if self.tick_text_levels>1:
+            self._make_texts_(tick_1_list,texts,f,g,dx_units_1,dy_units_1,angles_1,
+                     self.axis_appear['text_distance_1'],
+                     self.axis_appear['text_size_1'])
+        # tick level 2
+        if self.tick_levels>2:
+            self._make_tick_lines_(tick_2_list,line,f,g,dx_units_2,dy_units_2,
+                              self.axis_appear['grid_length_2'])
+        # text level 2
+        if self.tick_text_levels>2:
+            self._make_texts_(tick_2_list,texts,f,g,dx_units_2,dy_units_2,angles_2,
+                     self.axis_appear['text_distance_2'],
+                     self.axis_appear['text_size_2'])
+        # tick level 3
+        if self.tick_levels>3:
+            self._make_tick_lines_(tick_3_list,thin_line,f,g,dx_units_3,dy_units_3,
+                              self.axis_appear['grid_length_3'])
+        # text level 3
+        if self.tick_text_levels>3:
+            self._make_texts_(tick_3_list,texts,f,g,dx_units_3,dy_units_3,angles_3,
+                     self.axis_appear['text_distance_3'],
+                     self.axis_appear['text_size_3'])
+        # tick level 4
+        if self.tick_levels>4:
+            self._make_tick_lines_(tick_4_list,thin_line,f,g,dx_units_4,dy_units_4,
+                              self.axis_appear['grid_length_4'])
+        # text level 4
+        if self.tick_text_levels>4:
+            self._make_texts_(tick_4_list,texts,f,g,dx_units_4,dy_units_4,angles_4,
+                     self.axis_appear['text_distance_4'],
+                     self.axis_appear['text_size_4'])
+        # make main line
+        self._make_main_line_(start,stop,line,f,g)
+
+        self.line=line
+        self.thin_line=thin_line
+        self.texts=texts
+
+
+    def _make_texts_(self,tick_list,text_list,f,g,dx_units,dy_units,angles,
+                     text_distance,text_size):
+        """
+        makes list of text definitions
+        """
+        for idx,u in enumerate(tick_list):
+            if dy_units[idx]<0:
+                text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angles[idx])]
+            else:
+                text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angles[idx])]
+            text_list.append((self._put_text_(u),f(u)+text_distance*dy_units[idx],
+                              g(u)-text_distance*dx_units[idx],text_attr))
+
+    def _make_tick_lines_(self,tick_list,tick_lines,f,g,dx_units,dy_units,
+                          tick_length):
+        """
+        appends to list tick_list lines to be tick markers
+        """
+        for idx,u in enumerate(tick_list):
+            tick_lines.append(path.moveto(f(u), g(u)))
+            tick_lines.append(path.lineto(f(u)+tick_length*dy_units[idx],
+                                          g(u)-tick_length*dx_units[idx]))
+
+    def _make_main_line_(self,start,stop,main_line,f,g):
+        """
+        draws the major skeleton of axis
+        """
+        if start>stop:
+            start,stop=stop,start
+        du=math.fabs(stop-start)*1e-12
+        # approximate line length is found
+        line_length_straigth=math.sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
+        random.seed(0.0) # so that mistakes always the same
+        for dummy in range(100):
+            first=random.uniform(start,stop)
+            second=random.uniform(start,stop)
+            temp=math.sqrt((f(first)-f(second))**2+(g(first)-g(second))**2)
+            if temp>line_length_straigth:
+                line_length_straigth=temp
+                #print "length: %f"%line_length_straigth
+        sections=350.0 # about number of sections
+        section_length=line_length_straigth/sections
+        u=start
+        laskuri=1
+        main_line.append(path.moveto(f(start), g(start)))
+        while True:
+            if u<stop:
+                main_line.append(path.lineto(f(u), g(u)))
+                dx=(f(u+du)-f(u))
+                dy=(g(u+du)-g(u))
+                dl=math.sqrt(dx**2+dy**2)
+                delta_u=du*section_length/dl
+                u+=delta_u
+
+            else:
+                main_line.append(path.lineto(f(stop), g(stop)))
+                break
+
     def _make_log_axis_(self,start,stop,f,g,turn=1):
         """ draw logarithmic axis
         """
@@ -471,7 +612,7 @@ def _find_linear_ticks_(start,stop):
     """
     if start>stop:
         start,stop=stop,start
-    scale_max=10.0**round(math.log10(math.fabs(start-stop)))
+    scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
     tick_0=scale_max/10.0
     tick_1=scale_max/20.0
     tick_2=scale_max/100.0
@@ -484,9 +625,14 @@ def _find_linear_ticks_(start,stop):
     tick_4_list=[]
     start_major=_find_closest_tick_number_(start,tick_0)
     stop_major=_find_closest_tick_number_(stop,tick_0)
+    start_ax=None
+    stop_ax=None
     for step in range(0,1001):
         number=start_major+step*tick_4
         if number>=start and number<=stop:
+            if start_ax==None:
+                start_ax=number
+            stop_ax=number
             if step%100==0:
                 tick_0_list.append(number)
             if step%50==0 and step%100!=0:
@@ -500,7 +646,39 @@ def _find_linear_ticks_(start,stop):
     print tick_0_list
     print tick_1_list
     print tick_2_list
-    return tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list
+    return tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,\
+            start_ax,stop_ax
+
+def _find_tick_directions_(list,f,g,side,start,stop):
+    """
+    finds tick directions and angles
+    """
+    angles=[]
+    # following two values make unit vector
+    dx_units=[]
+    dy_units=[]
+    turn=_determine_turn_(f=f,g=g,start=start,stop=stop,side=side)
+    for idx,u in enumerate(list):
+        if u!=list[-1]:
+            du=(list[idx+1]-list[idx])*1e-6
+        else:
+            if len(list)>1:
+                du=(list[-1]-list[-2])*1e-6
+            else: # only one element in list
+                du=(stop-start)*1e-6
+        #print u
+        dx=(f(u+du)-f(u))*turn
+        dy=(g(u+du)-g(u))*turn
+        dx_unit=dx/math.sqrt(dx**2+dy**2)
+        dy_unit=dy/math.sqrt(dx**2+dy**2)
+        if dy_unit!=0:
+            angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+        else:
+            angle=0
+        dx_units.append(dx_unit)
+        dy_units.append(dy_unit)
+        angles.append(angle)
+    return dx_units,dy_units,angles
 
 ## Testing
 if __name__=='__main__':

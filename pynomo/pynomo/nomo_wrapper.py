@@ -1262,10 +1262,10 @@ if __name__=='__main__':
     5. optimize transformation
     6. draw nomogram in nomowrapper
     """
-    do_test_1=False
-    do_test_2=False
-    do_test_3=False
-    do_test_4=False
+    do_test_1=True
+    do_test_2=True
+    do_test_3=True
+    do_test_4=True
     do_test_5=True
     if do_test_1:
         # build atoms

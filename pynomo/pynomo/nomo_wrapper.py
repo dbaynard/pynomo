@@ -1826,8 +1826,8 @@ if __name__=='__main__':
                 'title':'monthly payment',
                 'tag':'none',
                 'tick_side':'right',
-                'tick_levels':3,
-                'tick_text_levels':2,
+                'tick_levels':5,
+                'tick_text_levels':3,
                 'title_draw_center':True
                         }
 

@@ -28,7 +28,7 @@ class Nomo_Axis:
     """
     def __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
                  text_style='normal',title_x_shift=0,title_y_shift=0.25,
-                 tick_levels=3,tick_text_levels=2,
+                 tick_levels=4,tick_text_levels=3,
                  text_color=color.rgb.black, axis_color=color.rgb.black,
                  manual_axis_data={},axis_appear={},side='left'):
         self.func_f=func_f
@@ -60,6 +60,9 @@ class Nomo_Axis:
                              'text_size_2': text.size.tiny,
                              'text_size_3': text.size.tiny,
                              'text_size_4': text.size.tiny,
+                             'text_size_log_0': text.size.small,
+                             'text_size_log_1': text.size.tiny,
+                             'text_size_log_2': text.size.tiny,
                              'title_distance_center':0.5,
                              'title_opposite_tick':True,
                              'title_draw_center':False}
@@ -114,6 +117,7 @@ class Nomo_Axis:
 
     def _make_linear_axis_old_(self,start,stop,f,g,turn=1):
         """
+        OBSOLETE, use _make_linear_axis_
         Makes a linear scale according to functions f(u) and g(u)
         with values u in range [start, stop].
         """
@@ -274,6 +278,57 @@ class Nomo_Axis:
         self.thin_line=thin_line
         self.texts=texts
 
+    def _make_log_axis_(self,start,stop,f,g,turn=1):
+        """
+        Makes a log scale
+        """
+        # line lists
+        line = path.path(path.moveto(f(start), g(start)))
+        thin_line=path.path(path.moveto(f(start), g(start)))
+        # text list
+        texts=[]
+        # let's find tick positions
+        tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax=\
+        _find_log_ticks_(start,stop)
+        # let's find tick angles
+        dx_units_0,dy_units_0,angles_0=_find_tick_directions_(tick_0_list,f,g,self.side,start,stop)
+        dx_units_1,dy_units_1,angles_1=_find_tick_directions_(tick_1_list,f,g,self.side,start,stop)
+        dx_units_2,dy_units_2,angles_2=_find_tick_directions_(tick_2_list,f,g,self.side,start,stop)
+
+        # tick level 0
+        if self.tick_levels>0:
+            self._make_tick_lines_(tick_0_list,line,f,g,dx_units_0,dy_units_0,
+                              self.axis_appear['grid_length_0'])
+        # text level 0
+        if self.tick_text_levels>0:
+            self._make_texts_(tick_0_list,texts,f,g,dx_units_0,dy_units_0,angles_0,
+                     self.axis_appear['text_distance_0'],
+                     self.axis_appear['text_size_log_0'])
+        # tick level 1
+        if self.tick_levels>1:
+            self._make_tick_lines_(tick_1_list,line,f,g,dx_units_1,dy_units_1,
+                              self.axis_appear['grid_length_1'])
+        # text level 1
+        if self.tick_text_levels>1:
+            self._make_texts_(tick_1_list,texts,f,g,dx_units_1,dy_units_1,angles_1,
+                     self.axis_appear['text_distance_1'],
+                     self.axis_appear['text_size_log_1']) # smaller with log axis
+        # tick level 2
+        if self.tick_levels>2:
+            self._make_tick_lines_(tick_2_list,line,f,g,dx_units_2,dy_units_2,
+                              self.axis_appear['grid_length_2'])
+        # text level 2
+        if self.tick_text_levels>2:
+            self._make_texts_(tick_2_list,texts,f,g,dx_units_2,dy_units_2,angles_2,
+                     self.axis_appear['text_distance_2'],
+                     self.axis_appear['text_size_log_2'])
+
+        # make main line
+        self._make_main_line_(start,stop,line,f,g)
+
+        self.line=line
+        self.thin_line=thin_line
+        self.texts=texts
 
     def _make_texts_(self,tick_list,text_list,f,g,dx_units,dy_units,angles,
                      text_distance,text_size):
@@ -308,7 +363,7 @@ class Nomo_Axis:
         # approximate line length is found
         line_length_straigth=math.sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
         random.seed(0.0) # so that mistakes always the same
-        for dummy in range(100):
+        for dummy in range(100): # for case if start = stop
             first=random.uniform(start,stop)
             second=random.uniform(start,stop)
             temp=math.sqrt((f(first)-f(second))**2+(g(first)-g(second))**2)
@@ -333,8 +388,10 @@ class Nomo_Axis:
                 main_line.append(path.lineto(f(stop), g(stop)))
                 break
 
-    def _make_log_axis_(self,start,stop,f,g,turn=1):
-        """ draw logarithmic axis
+    def _make_log_axis_old(self,start,stop,f,g,turn=1):
+        """
+        OBSOLETE
+        draw logarithmic axis
         """
         # for numerical derivative to find angle
         du=math.fabs(start-stop)*1e-6
@@ -649,6 +706,41 @@ def _find_linear_ticks_(start,stop):
     return tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,\
             start_ax,stop_ax
 
+def _find_log_ticks_(start,stop):
+    """
+    finds tick values for linear axis
+    """
+    if (start<stop):
+        min,max=start,stop
+    else:
+        min,max=stop,start
+    #lists for ticks
+    tick_0_list=[]
+    tick_1_list=[]
+    tick_2_list=[]
+    max_decade=math.ceil(math.log10(max))
+    min_decade=math.floor(math.log10(min))
+    start_ax=None
+    stop_ax=None
+    for decade in scipy.arange(min_decade,max_decade+1,1):
+        #for number in scipy.concatenate((scipy.arange(1,2,0.2),scipy.arange(2,3,0.5),scipy.arange(3,10,1))):
+        for number in [1,1.2,1.4,1.6,1.8,2.0,2.5,3,4,5,6,7,8,9]:
+            u=number*10.0**decade
+            if u>=min and u<=max:
+                if start_ax==None:
+                    start_ax=number
+                stop_ax=number
+                if number==1:
+                    tick_0_list.append(u)
+                if number in [2,3,4,5,6,7,8,9]:
+                    tick_1_list.append(u)
+                if number in [1.2,1.4,1.6,1.8,2.5]:
+                    tick_2_list.append(u)
+    print tick_0_list
+    print tick_1_list
+    print tick_2_list
+    return tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax
+
 def _find_tick_directions_(list,f,g,side,start,stop):
     """
     finds tick directions and angles
@@ -682,8 +774,9 @@ def _find_tick_directions_(list,f,g,side,start,stop):
 
 ## Testing
 if __name__=='__main__':
-    _find_linear_ticks_(990.0,999.0)
-    _find_linear_ticks_(-33,52)
+    #_find_linear_ticks_(990.0,999.0)
+    #_find_linear_ticks_(-33,52)
+    _find_log_ticks_(0.12,10.0)
     def f1(L):
         return 2*(L*L-8*L-5)/(3*L*L+2*L+7)
     def g1(L):

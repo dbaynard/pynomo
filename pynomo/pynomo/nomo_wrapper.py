@@ -1116,7 +1116,7 @@ class Nomo_Block_Type_6(Nomo_Block):
     def draw(self,canvas):
         """
         overrides the parent draw function
-        draws also contours
+        draws also ladders
         """
         super(Nomo_Block_Type_6,self).draw(canvas=canvas)
 
@@ -1126,11 +1126,18 @@ class Nomo_Block_Type_6(Nomo_Block):
         1. find points (according to F1 or given)
         -linear
         -log
-        -given
+        -given (manual axis)
         2. find derivatives at points
         - delta_x and delta_y unit vector
         """
-        pass
+        if self.atom_F1.params['scale_type']=='linear':
+            pass
+        if self.atom_F1.params['scale_type']=='log':
+            pass
+        if self.atom_F1.params['scale_type']=='manual point':
+            pass
+        if self.atom_F1.params['scale_type']=='manual line':
+            pass
 
     def _draw_ladder_lines_(self):
         """

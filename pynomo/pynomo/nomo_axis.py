@@ -218,13 +218,13 @@ class Nomo_Axis:
         texts=[]
         # let's find tick positions
         tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
-        _find_linear_ticks_(start,stop)
+        find_linear_ticks(start,stop)
         # let's find tick angles
-        dx_units_0,dy_units_0,angles_0=_find_tick_directions_(tick_0_list,f,g,self.side,start,stop)
-        dx_units_1,dy_units_1,angles_1=_find_tick_directions_(tick_1_list,f,g,self.side,start,stop)
-        dx_units_2,dy_units_2,angles_2=_find_tick_directions_(tick_2_list,f,g,self.side,start,stop)
-        dx_units_3,dy_units_3,angles_3=_find_tick_directions_(tick_3_list,f,g,self.side,start,stop)
-        dx_units_4,dy_units_4,angles_4=_find_tick_directions_(tick_4_list,f,g,self.side,start,stop)
+        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop)
+        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop)
+        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop)
+        dx_units_3,dy_units_3,angles_3=find_tick_directions(tick_3_list,f,g,self.side,start,stop)
+        dx_units_4,dy_units_4,angles_4=find_tick_directions(tick_4_list,f,g,self.side,start,stop)
 
         # tick level 0
         if self.tick_levels>0:
@@ -289,11 +289,11 @@ class Nomo_Axis:
         texts=[]
         # let's find tick positions
         tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax=\
-        _find_log_ticks_(start,stop)
+        find_log_ticks(start,stop)
         # let's find tick angles
-        dx_units_0,dy_units_0,angles_0=_find_tick_directions_(tick_0_list,f,g,self.side,start,stop)
-        dx_units_1,dy_units_1,angles_1=_find_tick_directions_(tick_1_list,f,g,self.side,start,stop)
-        dx_units_2,dy_units_2,angles_2=_find_tick_directions_(tick_2_list,f,g,self.side,start,stop)
+        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop)
+        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop)
+        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop)
 
         # tick level 0
         if self.tick_levels>0:
@@ -663,7 +663,7 @@ def _find_closest_tick_number_(number,tick_divisor):
         error=math.fabs(tick_number-number)
     return tick_number
 
-def _find_linear_ticks_(start,stop):
+def find_linear_ticks(start,stop):
     """
     finds tick values for linear axis
     """
@@ -706,7 +706,7 @@ def _find_linear_ticks_(start,stop):
     return tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,\
             start_ax,stop_ax
 
-def _find_log_ticks_(start,stop):
+def find_log_ticks(start,stop):
     """
     finds tick values for linear axis
     """
@@ -741,7 +741,8 @@ def _find_log_ticks_(start,stop):
     print tick_2_list
     return tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax
 
-def _find_tick_directions_(list,f,g,side,start,stop):
+
+def find_tick_directions(list,f,g,side,start,stop):
     """
     finds tick directions and angles
     """
@@ -774,9 +775,9 @@ def _find_tick_directions_(list,f,g,side,start,stop):
 
 ## Testing
 if __name__=='__main__':
-    #_find_linear_ticks_(990.0,999.0)
-    #_find_linear_ticks_(-33,52)
-    _find_log_ticks_(0.12,10.0)
+    #find_log_ticks(990.0,999.0)
+    #find_log_ticks(-33,52)
+    find_log_ticks(0.12,10.0)
     def f1(L):
         return 2*(L*L-8*L-5)/(3*L*L+2*L+7)
     def g1(L):

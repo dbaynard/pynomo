@@ -1119,8 +1119,9 @@ class Nomo_Block_Type_6(Nomo_Block):
         draws also ladders
         """
         super(Nomo_Block_Type_6,self).draw(canvas=canvas)
+        self._do_ladder_lines_(canvas)
 
-    def _find_ladder_points_(self):
+    def _do_ladder_lines_(self,canvas):
         """
         finds points and derivatives for ladder
         1. find points (according to F1 or given)
@@ -1130,20 +1131,58 @@ class Nomo_Block_Type_6(Nomo_Block):
         2. find derivatives at points
         - delta_x and delta_y unit vector
         """
-        if self.atom_F1.params['scale_type']=='linear':
-            pass
-        if self.atom_F1.params['scale_type']=='log':
-            pass
-        if self.atom_F1.params['scale_type']=='manual point':
-            pass
-        if self.atom_F1.params['scale_type']=='manual line':
-            pass
+        f1=self.atom_F1.give_x
+        g1=self.atom_F1.give_y
+        f2=self.atom_F2.give_x
+        g2=self.atom_F2.give_y
+        start=self.atom_F1.params['u_min']
+        stop=self.atom_F1.params['u_max']
+        side1=self.atom_F1.params['tick_side']
+        side2=self.atom_F2.params['tick_side']
 
-    def _draw_ladder_lines_(self):
+        if self.atom_F1.params['scale_type']=='linear':
+            tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
+            find_linear_ticks(start,stop)
+            dx_units_0_1,dy_units_0_1,angles_0_1=\
+            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+            dx_units_0_2,dy_units_0_2,angles_0_2=\
+            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+            dx_units_1_1,dy_units_1_1,angles_1_1=\
+            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+            dx_units_1_2,dy_units_1_2,angles_1_2=\
+            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+            self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
+                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
+            self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
+                                     tick_1_list,f1,g1,f2,g2,canvas,style.linestyle.dashed)
+        if self.atom_F1.params['scale_type']=='log':
+            tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax=\
+            find_log_ticks(start,stop)
+        if self.atom_F1.params['scale_type']=='manual point':
+            tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
+        if self.atom_F1.params['scale_type']=='manual line':
+            tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
+
+    def _draw_ladder_lines_(self,dx_units_1,dy_units_1,dx_units_2,dy_units_2,
+                            tick_list,f1,g1,f2,g2,canvas,line_style):
         """
         draws the lines
         """
-        pass
+        line = path.path(path.moveto(f1(tick_list[0]), g1(tick_list[0])))
+        curves=[]
+        for idx,u in enumerate(tick_list):
+            #line.append(path.moveto(f1(u), g1(u)))
+            #line.append(path.lineto(f2(u), g2(u)))
+            path_length=sqrt((f1(u)-f2(u))**2+(g1(u)-g2(u))**2)
+            factor=0.2*path_length
+            x1,y1=f1(u), g1(u)
+            x2,y2=f1(u)-dy_units_1[idx]*factor, g1(u)+dx_units_1[idx]*factor
+            x3,y3=f2(u)-dy_units_2[idx]*factor, g2(u)+dx_units_2[idx]*factor
+            x4,y4=f2(u), g2(u)
+            curves.append(path.curve(x1,y1,x2,y2,x3,y3,x4,y4))
+        for curve in curves:
+            canvas.stroke(curve,[style.linewidth.normal, line_style])
+        canvas.stroke(line, [style.linewidth.normal, line_style])
 
 class Nomo_Atom:
     """
@@ -1269,10 +1308,10 @@ if __name__=='__main__':
     5. optimize transformation
     6. draw nomogram in nomowrapper
     """
-    do_test_1=True
-    do_test_2=True
-    do_test_3=True
-    do_test_4=True
+    do_test_1=False
+    do_test_2=False
+    do_test_3=False
+    do_test_4=False
     do_test_5=True
     if do_test_1:
         # build atoms

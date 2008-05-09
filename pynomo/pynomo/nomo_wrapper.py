@@ -1143,25 +1143,68 @@ class Nomo_Block_Type_6(Nomo_Block):
         if self.atom_F1.params['scale_type']=='linear':
             tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
             find_linear_ticks(start,stop)
+
             dx_units_0_1,dy_units_0_1,angles_0_1=\
             find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+
             dx_units_0_2,dy_units_0_2,angles_0_2=\
             find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+
             dx_units_1_1,dy_units_1_1,angles_1_1=\
-            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+            find_tick_directions(tick_1_list,f1,g1,side1,start,stop)
+
             dx_units_1_2,dy_units_1_2,angles_1_2=\
-            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+            find_tick_directions(tick_1_list,f2,g2,side2,start,stop)
+
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
                                      tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
                                      tick_1_list,f1,g1,f2,g2,canvas,style.linestyle.dashed)
+
         if self.atom_F1.params['scale_type']=='log':
             tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax=\
             find_log_ticks(start,stop)
+
+            dx_units_0_1,dy_units_0_1,angles_0_1=\
+            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+
+            dx_units_0_2,dy_units_0_2,angles_0_2=\
+            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+
+            dx_units_1_1,dy_units_1_1,angles_1_1=\
+            find_tick_directions(tick_1_list,f1,g1,side1,start,stop)
+
+            dx_units_1_2,dy_units_1_2,angles_1_2=\
+            find_tick_directions(tick_1_list,f2,g2,side2,start,stop)
+            self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
+                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
+            self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
+                                     tick_1_list,f1,g1,f2,g2,canvas,style.linestyle.dashed)
         if self.atom_F1.params['scale_type']=='manual point':
             tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
+            tick_0_list.sort()
+
+            dx_units_0_1,dy_units_0_1,angles_0_1=\
+            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+
+            dx_units_0_2,dy_units_0_2,angles_0_2=\
+            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+
+            self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
+                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
+
         if self.atom_F1.params['scale_type']=='manual line':
             tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
+            tick_0_list.sort()
+
+            dx_units_0_1,dy_units_0_1,angles_0_1=\
+            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+
+            dx_units_0_2,dy_units_0_2,angles_0_2=\
+            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+
+            self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
+                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
 
     def _draw_ladder_lines_(self,dx_units_1,dy_units_1,dx_units_2,dy_units_2,
                             tick_list,f1,g1,f2,g2,canvas,line_style):
@@ -1993,6 +2036,23 @@ if __name__=='__main__':
                 'tick_text_levels':2
                         }
 
+        block30_f1_para_a={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'F1',
+                'tag':'none',
+                'tick_side':'left',
+                'tick_levels':2,
+                'scale_type':'manual point',
+                'manual_axis_data':{
+                                    1:'1',
+                                    3.14:r'$\pi$',
+                                    5:'5',
+                                    10:'10'},
+                'tick_text_levels':2
+                        }
+
         block30_f2_para={
                 'u_min':1.0,
                 'u_max':10.0,
@@ -2004,7 +2064,7 @@ if __name__=='__main__':
                 'tick_text_levels':2
                         }
         block30=Nomo_Block_Type_6()
-        block30.define_parallel(params1=block30_f1_para,params2=block30_f2_para)
+        block30.define_parallel(params1=block30_f1_para_a,params2=block30_f2_para)
         block30.set_block(width=5.0,height=25.0)
         wrapper5=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type6.pdf')
         wrapper5.add_block(block30)

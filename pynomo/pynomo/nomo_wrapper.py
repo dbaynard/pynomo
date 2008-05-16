@@ -1059,30 +1059,34 @@ class Nomo_Block_Type_6(Nomo_Block):
     def __init__(self,mirror_x=False,mirror_y=False):
         super(Nomo_Block_Type_6,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
 
-    def define_parallel(self,params1,params2):
+    def define(self,params1,params2):
         """
-        defines straight scales to be parallel with each other
+        defines straight scales
         """
-        params1['F']=lambda u:0.0*self.x_mirror
-        params1['G']=lambda u:params1['function'](u)*self.y_mirror
+        params1['F']=lambda u:0.0
+        params1['G']=lambda u:params1['function'](u)
         self.atom_F1=Nomo_Atom(params1)
         self.add_atom(self.atom_F1)
         # for initial axis calculations
         self.F1_axis_ini=Axis_Wrapper(f=params1['F'],g=params1['G'],
                              start=params1['u_min'],stop=params1['u_max'])
 
-        params2['F']=lambda u:1.0*self.x_mirror
-        params2['G']=lambda u:params2['function'](u)*self.y_mirror
+        params2['F']=lambda u:1.0
+        params2['G']=lambda u:params2['function'](u)
         self.atom_F2=Nomo_Atom(params2)
         self.add_atom(self.atom_F2)
         # for inital axis calculations
         self.F2_axis_ini=Axis_Wrapper(f=params2['F'],g=params2['G'],
                              start=params2['u_min'],stop=params2['u_max'])
 
-    def set_block(self,width=10.0,height=10.0):
+    def set_block(self,width=10.0,height=10.0,type='parallel',x_empty=0.2, y_empty=0.2):
         """
         sets original width, height and x-distance proportion for the nomogram before
         transformations
+        type = 'parallel' or 'orthogonal'
+        x_empty is proportial distance from virtual axis crossing
+        y_empty is proportial distance from virtual axis crossing
+        in orthogonal F1 is for vertical (y) and F2 for horizontal (x)
         """
         self.width=width
         self.height=height
@@ -1097,11 +1101,25 @@ class Nomo_Block_Type_6(Nomo_Block):
         x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
         x_dummy,f2_min=self.F2_axis_ini.calc_lowest_point()
         f2_length=f2_max-f2_min
-        # redefine scaled functions to be width x height
-        self.atom_F1.f=lambda u:self.F1_axis_ini.f(u)
-        self.atom_F1.g=lambda u:(self.F1_axis_ini.g(u)-f1_min)/f1_length*height
-        self.atom_F2.f=lambda u:self.F2_axis_ini.f(u)*width
-        self.atom_F2.g=lambda u:(self.F2_axis_ini.g(u)-f2_min)/f2_length*height
+        if type=='parallel':
+            # redefine scaled functions to be width x height
+            self.atom_F1.f=lambda u:(self.F1_axis_ini.f(u))*self.x_mirror
+            self.atom_F1.g=lambda u:((self.F1_axis_ini.g(u)-f1_min)/f1_length*height)*self.y_mirror
+            self.atom_F2.f=lambda u:(self.F2_axis_ini.f(u)*width)*self.x_mirror
+            self.atom_F2.g=lambda u:((self.F2_axis_ini.g(u)-f2_min)/f2_length*height)*self.y_mirror
+
+        if type=='orthogonal':
+            # redefine scaled functions to be orthogonal width x height
+            ax1_length=height/(1+y_empty)
+            ax1_empty=height*y_empty
+            ax2_length=width/(1+x_empty)
+            ax2_empty=width*y_empty
+            self.atom_F1.f=lambda u:(self.F1_axis_ini.f(u))*self.x_mirror
+            self.atom_F1.g=lambda u:((self.F1_axis_ini.g(u)-f1_min)/f1_length*ax1_length+ax1_empty)\
+            *self.y_mirror
+            self.atom_F2.f=lambda u:((self.F2_axis_ini.g(u)-f2_min)/f2_length*ax2_length+ax2_empty)\
+            *self.x_mirror
+            self.atom_F2.g=lambda u:(0.0)*self.y_mirror
 
         self.F1_axis=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
                              start=self.atom_F1.params['u_min'],
@@ -1217,7 +1235,7 @@ class Nomo_Block_Type_6(Nomo_Block):
             #line.append(path.moveto(f1(u), g1(u)))
             #line.append(path.lineto(f2(u), g2(u)))
             path_length=sqrt((f1(u)-f2(u))**2+(g1(u)-g2(u))**2)
-            factor=0.2*path_length
+            factor=0.5*path_length
             x1,y1=f1(u), g1(u)
             x2,y2=f1(u)-dy_units_1[idx]*factor, g1(u)+dx_units_1[idx]*factor
             x3,y3=f2(u)-dy_units_2[idx]*factor, g2(u)+dx_units_2[idx]*factor
@@ -2063,15 +2081,15 @@ if __name__=='__main__':
                 'tick_levels':2,
                 'tick_text_levels':2
                         }
-        block30=Nomo_Block_Type_6()
-        block30.define_parallel(params1=block30_f1_para_a,params2=block30_f2_para)
-        block30.set_block(width=5.0,height=25.0)
+        block30=Nomo_Block_Type_6(mirror_x=False,mirror_y=False)
+        block30.define(params1=block30_f1_para,params2=block30_f2_para)
+        block30.set_block(width=5.0,height=25.0,type='orthogonal')
         wrapper5=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type6.pdf')
         wrapper5.add_block(block30)
         wrapper5.align_blocks()
         wrapper5.build_axes_wrapper() # build structure for optimization
         #wrapper1.do_transformation(method='scale paper')
-        #wrapper4.do_transformation(method='rotate',params=10.0)
+        wrapper5.do_transformation(method='rotate',params=0.01)
         #wrapper1.do_transformation(method='rotate',params=30.0)
         #wrapper1.do_transformation(method='rotate',params=20.0)
         #wrapper1.do_transformation(method='rotate',params=90.0)

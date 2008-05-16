@@ -1245,6 +1245,91 @@ class Nomo_Block_Type_6(Nomo_Block):
             canvas.stroke(curve,[style.linewidth.normal, line_style])
         canvas.stroke(line, [style.linewidth.normal, line_style])
 
+class Nomo_Block_Type_7(Nomo_Block):
+    """
+    type 1/f1+1/f2=1/f3 angle nomogram
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_7,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+
+    def define_F1(self,params):
+        """
+        defines function F1
+        """
+        params['F']=lambda u:0.0
+        params['G']=lambda u:params['function'](u)
+        self.F1=params['function']
+        self.params_F1=params
+        self.F1_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                                      start=params['u_min'],stop=params['u_max'])
+
+    def define_F2(self,params):
+        """
+        defines function F2
+        """
+        params['F']=lambda u:0.0
+        params['G']=lambda u:params['function'](u)
+        self.F2=params['function']
+        self.params_F2=params
+        self.F2_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                                      start=params['u_min'],stop=params['u_max'])
+
+    def define_F3(self,params):
+        """
+        defines function F3
+        """
+        params['F']=lambda u:0.0
+        params['G']=lambda u:params['function'](u)
+        self.F3=params['function']
+        self.params_F3=params
+        self.F3_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                                      start=params['u_min'],stop=params['u_max'])
+
+    def set_block(self,width_1=10.0,angle_u=60.0,angle_v=60.0):
+        """
+        sets the angle-nomogram of the block
+        """
+        angle_u_rad=angle_u*pi/180.0
+        angle_v_rad=angle_v*pi/180.0
+
+        x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
+        x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
+        axis_1_length=abs(f1_max-f1_min)
+        k1=width_1/axis_1_length
+        k2=k1*sin(angle_u_rad)/sin(angle_v_rad)
+        k3=k1*sin(angle_u_rad+angle_v_rad)/sin(angle_v_rad)
+
+        factor_3_x=cos(angle_u_rad)
+        factor_3_y=sin(angle_u_rad)
+        factor_2_x=cos(angle_u_rad+angle_v_rad)
+        factor_2_y=sin(angle_u_rad+angle_v_rad)
+
+        self.params_F1['F']=lambda u:(k1*self.F1(u))*self.x_mirror
+        self.params_F1['G']=lambda u:0.0
+        self.atom_F1=Nomo_Atom(self.params_F1)
+        self.add_atom(self.atom_F1)
+        self.params_F2['F']=lambda u:factor_2_x*(k2*self.F2(u))*self.x_mirror
+        self.params_F2['G']=lambda u:factor_2_y*(k2*self.F2(u))*self.y_mirror
+        self.atom_F2=Nomo_Atom(self.params_F2)
+        self.add_atom(self.atom_F2)
+        self.params_F3['F']=lambda u:factor_3_x*(k3*self.F3(u))*self.x_mirror
+        self.params_F3['G']=lambda u:factor_3_y*(k3*self.F3(u))*self.y_mirror
+        self.atom_F3=Nomo_Atom(self.params_F3)
+        self.add_atom(self.atom_F3)
+
+        self.F1_axis=Axis_Wrapper(f=self.params_F1['F'],g=self.params_F1['G'],
+                             start=self.params_F1['u_min'],stop=self.params_F1['u_max'])
+        self.axis_wrapper_stack.append(self.F1_axis)
+
+        self.F2_axis=Axis_Wrapper(f=self.params_F2['F'],g=self.params_F2['G'],
+                             start=self.params_F2['u_min'],stop=self.params_F2['u_max'])
+        self.axis_wrapper_stack.append(self.F2_axis)
+
+        self.F3_axis=Axis_Wrapper(f=self.params_F3['F'],g=self.params_F3['G'],
+                             start=self.params_F3['u_min'],stop=self.params_F3['u_max'])
+        self.axis_wrapper_stack.append(self.F3_axis)
+        self.set_reference_axes()
+
 class Nomo_Atom:
     """
     class for single axis or equivalent.
@@ -1373,7 +1458,8 @@ if __name__=='__main__':
     do_test_2=False
     do_test_3=False
     do_test_4=False
-    do_test_5=True
+    do_test_5=False
+    do_test_6=True
     if do_test_1:
         # build atoms
         block1_atom1_para={
@@ -2098,3 +2184,58 @@ if __name__=='__main__':
         wrapper5.do_transformation(method='scale paper')
         cc5=canvas.canvas()
         wrapper5.draw_nomogram(cc5)
+
+    if do_test_6:
+        block60_f1_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'F1',
+                'tag':'none',
+                'tick_side':'left',
+                'tick_levels':3,
+                'tick_text_levels':2,
+                'title_draw_center':True
+                }
+        block60_f2_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                'function':lambda u:u,
+                'title':'F2',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':3,
+                'tick_text_levels':2,
+                'title_draw_center':True
+                        }
+        block60_f3_para={
+                'u_min':1.0,
+                'u_max':10.0,
+                #'function':lambda u:u*12.0,
+                'function':lambda u:u,
+                'title':'F3',
+                'tag':'none',
+                'tick_side':'right',
+                'tick_levels':3,
+                'tick_text_levels':2,
+                'title_draw_center':True
+                        }
+        block60=Nomo_Block_Type_7(mirror_x=False)
+        block60.define_F1(block60_f1_para)
+        block60.define_F2(block60_f2_para)
+        block60.define_F3(block60_f3_para)
+        block60.set_block(width_1=10.0,angle_u=20.0,angle_v=60.0)
+        wrapper60=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type7.pdf')
+        wrapper60.add_block(block60)
+        wrapper60.align_blocks()
+        wrapper60.build_axes_wrapper() # build structure for optimization
+        #wrapper1.do_transformation(method='scale paper')
+        wrapper60.do_transformation(method='rotate',params=0.01)
+        #wrapper1.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=20.0)
+        #wrapper1.do_transformation(method='rotate',params=90.0)
+        #wrapper4.do_transformation(method='polygon')
+        #wrapper1.do_transformation(method='optimize')
+        wrapper60.do_transformation(method='scale paper')
+        cc60=canvas.canvas()
+        wrapper60.draw_nomogram(cc60)

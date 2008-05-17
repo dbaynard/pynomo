@@ -1337,6 +1337,8 @@ class Nomo_Atom:
     def __init__(self,params):
         # default parameters
         self.params_default={
+            'ID':'none', # to identify the axis
+            'tag':'none', # for aligning block wrt others
             'u_min':0.1,
             'u_max':1.0,
             'F':lambda u:u, # x-coordinate
@@ -1348,7 +1350,6 @@ class Nomo_Atom:
             'tick_levels':10,
             'tick_text_levels':10,
             'tick_side':'right',
-            'tag':'none', # for aligning block wrt others
             'reference':False,
             'reference padding': 0.20, # fraction of reference line over other lines
             'manual_axis_data':{},

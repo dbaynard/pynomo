@@ -30,7 +30,8 @@ class Nomographer:
         blocks=[]
         for block_para in params['block_params']:
             if block_para['block_type']=='type_1':
-                blocks.append(Nomo_Block_Type_1())
+                blocks.append(Nomo_Block_Type_1(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
                 blocks[-1].define_F1(block_para['f1_params'])
                 blocks[-1].define_F2(block_para['f2_params'])
                 blocks[-1].define_F3(block_para['f3_params'])
@@ -40,7 +41,8 @@ class Nomographer:
                 wrapper.add_block(blocks[-1])
 
             if block_para['block_type']=='type_7':
-                blocks.append(Nomo_Block_Type_7())
+                blocks.append(Nomo_Block_Type_7(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
                 blocks[-1].define_F1(block_para['f1_params'])
                 blocks[-1].define_F2(block_para['f2_params'])
                 blocks[-1].define_F3(block_para['f3_params'])
@@ -58,6 +60,24 @@ class Nomographer:
                 wrapper.do_transformation(method=trafo[0])
         c=canvas.canvas()
         wrapper.draw_nomogram(c)
+
+    def _check_params_(self,params):
+        """
+        checks if main params ok and adds default values
+        """
+        pass
+
+    def _check_block_type_1_params_(self,params):
+        """
+        checks if block type 1 params ok and adds default values
+        """
+        pass
+
+    def _check_axis_params_(self,params):
+        """
+        checks if axis params ok and adds default values
+        """
+        pass
 
 if __name__=='__main__':
     """
@@ -116,7 +136,7 @@ if __name__=='__main__':
                              'mirror_y':False,
                              'width':10.0,
                              'height':10.0,
-                             'proportion':0.2,
+                             'proportion':0.5,
                              'f1_params':test1_f1_para,
                              'f2_params':test1_f2_para,
                              'f3_params':test1_f3_para}

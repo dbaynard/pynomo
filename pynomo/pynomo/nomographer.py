@@ -52,7 +52,7 @@ class Nomographer:
                 wrapper.add_block(blocks[-1])
 
         wrapper.align_blocks()
-        wrapper.build_axes_wrapper() # build structure for optimization
+        wrapper.build_axes_wrapper() # build structure for transformations
         for trafo in params['transformations']:
             if len(trafo)>1:
                 wrapper.do_transformation(method=trafo[0],params=trafo[1])

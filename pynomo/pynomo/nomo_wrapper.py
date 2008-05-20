@@ -736,7 +736,7 @@ class Nomo_Block_Type_3(Nomo_Block):
             'u_min':0.0,
             'u_max':1.0,
             'function':lambda u:u,
-            'title':'RRR',
+            'title':'R',
             'reference':True
                     }
         for idx in range(1,N-2):

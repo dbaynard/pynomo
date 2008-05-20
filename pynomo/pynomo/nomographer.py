@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from nomo_wrapper import *
-from math import *
+
 
 class Nomographer:
     """
@@ -70,6 +70,45 @@ class Nomographer:
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'])
                 wrapper.add_block(blocks[-1])
+            # TYPE 4
+            if block_para['block_type']=='type_4':
+                self._check_block_type_4_params_(block_para)
+                blocks.append(Nomo_Block_Type_4(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
+                self._check_axis_params_(block_para['f1_params'])
+                self._check_axis_params_(block_para['f2_params'])
+                self._check_axis_params_(block_para['f3_params'])
+                self._check_axis_params_(block_para['f4_params'])
+                blocks[-1].define_F1(block_para['f1_params'])
+                blocks[-1].define_F2(block_para['f2_params'])
+                blocks[-1].define_F3(block_para['f3_params'])
+                blocks[-1].define_F4(block_para['f4_params'])
+                blocks[-1].set_block(width=block_para['width'],
+                                     height=block_para['height'],
+                                     float_axis=block_para['float_axis'],
+                                     padding=block_para['padding'])
+                wrapper.add_block(blocks[-1])
+            # TYPE 5
+            if block_para['block_type']=='type_5':
+                self._check_block_type_5_params_(block_para)
+                blocks.append(Nomo_Block_Type_5(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
+                blocks[-1].define_block(block_para)
+                blocks[-1].set_block()
+                wrapper.add_block(blocks[-1])
+            # TYPE 6
+            if block_para['block_type']=='type_6':
+                self._check_block_type_6_params_(block_para)
+                blocks.append(Nomo_Block_Type_6(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
+                blocks[-1].define(params1=block_para['f1_params'],
+                                  params2=block_para['f2_params'])
+                blocks[-1].set_block(width=block_para['width'],
+                                     height=block_para['height'],
+                                     type=block_para['type'],
+                                     x_empty=block_para['x_empty'],
+                                     y_empty=block_para['y_empty'])
+                wrapper.add_block(blocks[-1])
             # TYPE 7
             if block_para['block_type']=='type_7':
                 self._check_block_type_7_params_(block_para)
@@ -119,7 +158,8 @@ class Nomographer:
                          'mirror_x':False,
                          'mirror_y':False,
                          'width':10.0,
-                         'height':10.0}
+                         'height':10.0,
+                         'proportion':1.0}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -139,7 +179,7 @@ class Nomographer:
 
     def _check_block_type_3_params_(self,params):
         """
-        checks if block type 2 params ok and adds default values
+        checks if block type 3 params ok and adds default values
         """
         params_default={
                          'mirror_x':False,
@@ -150,9 +190,72 @@ class Nomographer:
             if not params.has_key(key):
                 params[key]=params_default[key]
 
+    def _check_block_type_4_params_(self,params):
+        """
+        checks if block type 4 params ok and adds default values
+        """
+        params_default={
+                         'mirror_x':False,
+                         'mirror_y':False,
+                         'width':10.0,
+                         'height':10.0,
+                         'float_axis':'F1 or F2',
+                         'padding':0.9}
+        for key in params_default:
+            if not params.has_key(key):
+                params[key]=params_default[key]
+
+    def _check_block_type_5_params_(self,params):
+        """
+        checks if block type 5 params ok and adds default values
+        """
+        params_default={
+             'mirror_x':False,
+             'mirror_y':False,
+           'width':10.0,
+           'height':10.0,
+           #'u_func':lambda u:u,
+           #'v_func':lambda x,v:x+v,
+           #'u_values':[10.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
+           #'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
+           'v_tick_side':'left',
+           'u_title':'',
+           'v_title':'',
+           'u_reference':False, # manual labels
+           'v_reference':False,
+           'w_reference':False,
+           'wd_reference':False,
+           'wd_tick_levels':0,
+           'wd_tick_text_levels':0,
+           'wd_tag':'none',
+           'w_tick_levels':0,
+           'w_tick_text_levels':0,
+           'horizontal_guides':False,
+           }
+        for key in params_default:
+            if not params.has_key(key):
+                params[key]=params_default[key]
+
+    def _check_block_type_6_params_(self,params):
+        """
+        checks if block type 6 params ok and adds default values
+        """
+        params_default={
+                         'mirror_x':False,
+                         'mirror_y':False,
+                         'width':10.0,
+                         'height':10.0,
+                         'type':'parallel',
+                         'x_empty':0.2,
+                         'y_empty':0.2
+                         }
+        for key in params_default:
+            if not params.has_key(key):
+                params[key]=params_default[key]
+
     def _check_block_type_7_params_(self,params):
         """
-        checks if block type 1 params ok and adds default values
+        checks if block type 7 params ok and adds default values
         """
         params_default={
                          'mirror_x':False,
@@ -208,12 +311,13 @@ if __name__=='__main__':
                 'tick_text_levels':2,
                 }
         test1_f2_para={
-                'u_min':0.0,
+                'u_min':0.1,
                 'u_max':10.0,
                 'function':lambda u:u,
                 'title':'F2',
                 'tick_levels':3,
                 'tick_text_levels':2,
+                'scale_type':'log',
                         }
         test1_f3_para={
                 'u_min':1.0,
@@ -294,4 +398,59 @@ if __name__=='__main__':
                       }
         Nomographer(test3_params)
 
+        test4_block4_params={
+                             'block_type':'type_4',
+                                'f1_params':test1_f1_para,
+                                'f2_params':test1_f2_para,
+                                'f3_params':test1_f3_para,
+                                'f4_params':test1_f1_para,
+                             }
 
+        test4_params={
+                      'filename':'test4.pdf',
+                      'paper_height':20.0,
+                      'paper_width':20.0,
+                      'block_params':[test4_block4_params],
+                      'transformations':[('rotate',0.01),('scale paper',)]
+                      }
+
+        Nomographer(test4_params)
+
+
+        def f1(x,u):
+            #return log(log(x/(x-u/100.0))/log(1+u/100.0))
+            return log(log(x/(x-u/(100.0*12.0)))/log(1+u/(100.0*12.0)))
+
+        test5_block5_params={
+                           'block_type':'type_5',
+                           'u_func':lambda u:log(u*12.0),
+                           'v_func':f1,
+                           'u_values':[10.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
+                           'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
+                             }
+
+
+        test5_params={
+                      'filename':'test5.pdf',
+                      'paper_height':20.0,
+                      'paper_width':20.0,
+                      'block_params':[test5_block5_params],
+                      'transformations':[('rotate',0.01),('scale paper',)]
+                      }
+
+        Nomographer(test5_params)
+
+
+        test6_block6_params={
+                             'block_type':'type_6',
+                                'f1_params':test1_f1_para,
+                                'f2_params':test1_f2_para,
+                             }
+        test6_params={
+                      'filename':'test6.pdf',
+                      'paper_height':20.0,
+                      'paper_width':20.0,
+                      'block_params':[test6_block6_params],
+                      'transformations':[('rotate',0.01),('scale paper',)]
+                      }
+        Nomographer(test6_params)

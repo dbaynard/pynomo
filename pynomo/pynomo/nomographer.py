@@ -124,6 +124,15 @@ class Nomographer:
                                      angle_u=block_para['angle_u'],
                                      angle_v=block_para['angle_v'])
                 wrapper.add_block(blocks[-1])
+            # TYPE 8
+            if block_para['block_type']=='type_8':
+                self._check_block_type_8_params_(block_para)
+                blocks.append(Nomo_Block_Type_8(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
+                self._check_axis_params_(block_para['f_params'])
+                blocks[-1].define_F(block_para['f_params'])
+                blocks[-1].set_block(length=block_para['length'])
+                wrapper.add_block(blocks[-1])
 
         wrapper.align_blocks()
         wrapper.build_axes_wrapper() # build structure for transformations
@@ -267,6 +276,18 @@ class Nomographer:
             if not params.has_key(key):
                 params[key]=params_default[key]
 
+    def _check_block_type_8_params_(self,params):
+        """
+        checks if block type 8 params ok and adds default values
+        """
+        params_default={
+                         'mirror_x':False,
+                         'mirror_y':False,
+                         'length':10.0}
+        for key in params_default:
+            if not params.has_key(key):
+                params[key]=params_default[key]
+
     def _check_axis_params_(self,params):
         """
         checks (TODO: if axis params ok) and adds default values
@@ -300,7 +321,7 @@ if __name__=='__main__':
     """
     tests
     """
-    test1=True
+    test1=False
     if test1:
         test1_f1_para={
                 'u_min':1.0,
@@ -454,3 +475,50 @@ if __name__=='__main__':
                       'transformations':[('rotate',0.01),('scale paper',)]
                       }
         Nomographer(test6_params)
+
+    F_start=-40.0
+    F_stop=30.0
+    C_start=-40.0
+    C_stop=30.0
+
+    def celcius(fahrenheit):
+        return (fahrenheit-32.0)/1.8
+
+    test8_f1_para={
+            'tag':'A',
+            'u_min':F_start,
+            'u_max':F_stop,
+            'function':lambda u:celcius(u),
+            'title':'fahrenheit',
+            'tick_levels':4,
+            'tick_text_levels':3,
+            'align_func':celcius
+            }
+    test8_f2_para={
+            'tag':'A',
+            'u_min':C_start,
+            'u_max':C_stop,
+            'function':lambda u:u,
+            'title':'celcius',
+            'tick_levels':4,
+            'tick_text_levels':3,
+            'scale_type':'linear',
+            'tick_side':'left'
+    }
+
+    test8_block8a_params={
+                         'block_type':'type_8',
+                            'f_params':test8_f1_para
+                         }
+    test8_block8b_params={
+                         'block_type':'type_8',
+                            'f_params':test8_f2_para
+                         }
+    test8_params={
+                  'filename':'test8.pdf',
+                  'paper_height':20.0,
+                  'paper_width':20.0,
+                  'block_params':[test8_block8b_params,test8_block8a_params],
+                  'transformations':[('rotate',0.01)]
+                  }
+    Nomographer(test8_params)

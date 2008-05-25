@@ -1501,10 +1501,10 @@ if __name__=='__main__':
     """
     do_test_1=False
     do_test_2=False
-    do_test_3=True
+    do_test_3=False
     do_test_4=False
     do_test_5=False
-    do_test_6=True
+    do_test_6=False
     do_test_7=True
     if do_test_1:
         # build atoms

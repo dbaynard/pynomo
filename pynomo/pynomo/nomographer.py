@@ -477,7 +477,7 @@ if __name__=='__main__':
         Nomographer(test6_params)
 
     F_start=-40.0
-    F_stop=30.0
+    F_stop=90.0
     C_start=-40.0
     C_stop=30.0
 
@@ -512,6 +512,7 @@ if __name__=='__main__':
                          }
     test8_block8b_params={
                          'block_type':'type_8',
+                         'length':5.0,
                             'f_params':test8_f2_para
                          }
     test8_params={
@@ -519,6 +520,6 @@ if __name__=='__main__':
                   'paper_height':20.0,
                   'paper_width':20.0,
                   'block_params':[test8_block8b_params,test8_block8a_params],
-                  'transformations':[('rotate',0.01)]
+                  'transformations':[('rotate',0.01),('scale paper',)]
                   }
     Nomographer(test8_params)

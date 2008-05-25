@@ -194,6 +194,13 @@ class Axis_Wrapper:
             if y_trafo>y_top:
                 y_top=y_trafo
         #print x_left,x_right,y_bottom,y_top
+        # in case there is no area inside box, let's make
+        # small in order to avoid singularities. These are
+        # specifically for dual-axis stationary scales
+        if x_left==x_right:
+            x_left=x_right-1e-4*abs(y_top-y_bottom)
+        if y_top==y_bottom:
+            y_top=y_bottom+1e-4*abs(x_left-x_right)
         self.x_left=x_left
         self.x_right=x_right
         self.y_top=y_top

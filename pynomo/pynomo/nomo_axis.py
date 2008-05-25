@@ -669,7 +669,7 @@ def find_linear_ticks(start,stop):
     """
     if start>stop:
         start,stop=stop,start
-    scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop)))
+    scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop))-0.5)
     tick_0=scale_max/10.0
     tick_1=scale_max/20.0
     tick_2=scale_max/100.0
@@ -682,9 +682,13 @@ def find_linear_ticks(start,stop):
     tick_4_list=[]
     start_major=_find_closest_tick_number_(start,tick_0)
     stop_major=_find_closest_tick_number_(stop,tick_0)
+    print "scale_max %f"%scale_max
+    print "start %f"%start
+    print "start_major %f"%start_major
+    print "stop_major %f"%stop_major
     start_ax=None
     stop_ax=None
-    for step in range(0,1001):
+    for step in range(0,9001):
         number=start_major+step*tick_4
         if number>=start and number<=stop:
             if start_ax==None:
@@ -842,6 +846,9 @@ if __name__=='__main__':
                   canvas=c,type='linear',side='left')
 
     gr10=Nomo_Axis(func_f=lambda u:20.0,func_g=lambda x:(x+12.5)/2.0,start=-17.1757381043,stop=19.5610135785,turn=-1,title='test neg.',
+                  canvas=c,type='linear',side='right')
+
+    gr11=Nomo_Axis(func_f=lambda u:25.0,func_g=lambda x:(x+12.5)/5.0,start=-40.0,stop=120.0,turn=-1,title='test neg.',
                   canvas=c,type='linear',side='right')
     #gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
     c.writePDFfile("test_nomo_axis")

@@ -204,14 +204,16 @@ class Nomo_Wrapper:
                         for atom2 in block2.atom_stack:
                             if atom1.params['tag']==atom2.params['tag']\
                             and not atom1.params['tag']=='none'\
-                            and atom2.params['aligned']==False: # align only once
+                            and not atom2.params['aligned']: # align only once
+                                print idx1
+                                print idx2
                                 print atom1.params['tag']
                                 alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
                                 self._find_trafo_2_atoms_(atom1,atom2)
                                 block2.add_transformation(alpha1,beta1,gamma1,
                                                            alpha2,beta2,gamma2,
                                                            alpha3,beta3,gamma3)
-                                atom2.params['aligned']==True # align only once
+                                atom2.params['aligned']=True # align only once
         # let's make identity matrix that will be changed when optimized
         for block in self.block_stack:
             block.add_transformation()
@@ -234,9 +236,9 @@ class Nomo_Wrapper:
         x1_atom_1=atom1.give_x(atom2.params['align_func'](u_start))\
         +atom2.params['align_x_offset']
         y1_atom_1=atom1.give_y(atom2.params['align_func'](u_start))\
-        +atom2.params['align_x_offset']
-        x2_atom_1=atom1.give_x(atom2.params['align_func'](u_stop))\
         +atom2.params['align_y_offset']
+        x2_atom_1=atom1.give_x(atom2.params['align_func'](u_stop))\
+        +atom2.params['align_x_offset']
         y2_atom_1=atom1.give_y(atom2.params['align_func'](u_stop))\
         +atom2.params['align_y_offset']
 
@@ -1471,6 +1473,7 @@ class Nomo_Atom:
                       turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
                       tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
                       side=p['tick_side'],manual_axis_data=p['manual_axis_data'],
+                      title_x_shift=p['title_x_shift'],title_y_shift=p['title_y_shift'],
                       axis_appear=p) # we take whole p dictionary in this case..
         else: # reference axis
             #print "u_min_ref"

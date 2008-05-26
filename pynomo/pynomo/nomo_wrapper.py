@@ -1372,6 +1372,92 @@ class Nomo_Block_Type_8(Nomo_Block):
         self.axis_wrapper_stack.append(self.F_axis)
         self.set_reference_axes()
 
+class Nomo_Block_Type_9(Nomo_Block):
+    """
+    type determinant and 3 line axes (no grid)
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_9,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+
+    def define_F1(self,params):
+        """
+        defines function F1
+        """
+        params['F']=lambda u:params['f'](u)*self.x_mirror
+        params['G']=lambda u:params['g'](u)*self.y_mirror
+        self.atom_F1=Nomo_Atom(params)
+        self.add_atom(self.atom_F1)
+        # for inital axis calculations
+        self.F1_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                             start=params['u_min'],stop=params['u_max'])
+
+    def define_F2(self,params):
+        """
+        defines function F2
+        """
+        params['F']=lambda u:params['f'](u)*self.x_mirror
+        params['G']=lambda u:params['g'](u)*self.y_mirror
+        self.atom_F2=Nomo_Atom(params)
+        self.add_atom(self.atom_F2)
+        # for inital axis calculations
+        self.F2_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                             start=params['u_min'],stop=params['u_max'])
+
+    def define_F3(self,params):
+        """
+        defines function F3
+        """
+        params['F']=lambda u:params['f'](u)*self.x_mirror
+        params['G']=lambda u:params['g'](u)*self.y_mirror
+        self.atom_F3=Nomo_Atom(params)
+        self.add_atom(self.atom_F3)
+        # for inital axis calculations
+        self.F3_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+                             start=params['u_min'],stop=params['u_max'])
+
+    def set_block(self,width=10.0,height=10.0):
+        """
+        sets original width, height
+        """
+        self.width=width
+        self.height=height
+        f1_max_x,f1_max_y=self.F1_axis_ini.calc_highest_point()
+        f1_min_x,f1_min_y=self.F1_axis_ini.calc_lowest_point()
+        f2_max_x,f2_max_y=self.F2_axis_ini.calc_highest_point()
+        f2_min_x,f2_min_y=self.F2_axis_ini.calc_lowest_point()
+        f3_max_x,f3_max_y=self.F3_axis_ini.calc_highest_point()
+        f3_min_x,f3_min_y=self.F3_axis_ini.calc_lowest_point()
+        max_x=max(f1_max_x,f2_max_x,f3_max_x)
+        min_x=min(f1_min_x,f2_min_x,f3_min_x)
+        max_y=max(f1_max_y,f2_max_y,f3_max_y)
+        min_y=min(f1_min_y,f2_min_y,f3_min_y)
+        width_orig=abs(max_x-min_x)
+        height_orig=abs(max_y-min_y)
+        x_factor=width/width_orig
+        y_factor=height/height_orig
+        # redefine scaled functions
+        self.atom_F1.f=lambda u:self.F1_axis_ini.f(u)*x_factor
+        self.atom_F1.g=lambda u:self.F1_axis_ini.g(u)*y_factor
+        self.atom_F2.f=lambda u:self.F2_axis_ini.f(u)*x_factor
+        self.atom_F2.g=lambda u:self.F2_axis_ini.g(u)*y_factor
+        self.atom_F3.f=lambda u:self.F3_axis_ini.f(u)*x_factor
+        self.atom_F3.g=lambda u:self.F3_axis_ini.g(u)*y_factor
+        # save axes
+        self.F1_axis=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
+                             start=self.atom_F1.params['u_min'],
+                             stop=self.atom_F1.params['u_max'])
+        self.axis_wrapper_stack.append(self.F1_axis)
+        self.F2_axis=Axis_Wrapper(f=self.atom_F2.f,g=self.atom_F2.g,
+                             start=self.atom_F2.params['u_min'],
+                             stop=self.atom_F2.params['u_max'])
+        self.axis_wrapper_stack.append(self.F2_axis)
+
+        self.F3_axis=Axis_Wrapper(f=self.atom_F3.f,g=self.atom_F3.g,
+                             start=self.atom_F3.params['u_min'],
+                             stop=self.atom_F3.params['u_max'])
+        self.axis_wrapper_stack.append(self.F3_axis)
+        self.set_reference_axes()
+
 class Nomo_Atom:
     """
     class for single axis or equivalent.
@@ -1508,7 +1594,8 @@ if __name__=='__main__':
     do_test_4=False
     do_test_5=False
     do_test_6=False
-    do_test_7=True
+    do_test_7=False
+    do_test_8=True
     if do_test_1:
         # build atoms
         block1_atom1_para={
@@ -2332,3 +2419,57 @@ if __name__=='__main__':
         #wrapper70.do_transformation(method='scale paper')
         cc70=canvas.canvas()
         wrapper70.draw_nomogram(cc70)
+
+    if do_test_8:
+        # determinant nomograph
+        block80_f1_para={
+                'u_min':0.5,
+                'u_max':0.9,
+                'f':lambda u:2*(u*u-1.0)/(-u*(u-1.0)),
+                'g':lambda u:3*u*(u+1.0)/(-u*(u-1.0)),
+                'title':'F1',
+                'tick_side':'left',
+                'tick_levels':3,
+                'tick_text_levels':2
+                }
+        block80_f2_para={
+                'u_min':0.75,
+                'u_max':1.0,
+                'f':lambda v:v/(-v*v),
+                'g':lambda v:1.0/(-v*v),
+                'title':'F2',
+                'tick_side':'left',
+                'tick_levels':3,
+                'tick_text_levels':2
+                }
+        block80_f3_para={
+                'u_min':0.5,
+                'u_max':1.0,
+                'f':lambda w:2.0*(2.0*w+1.0)/(-(w+1.0)*(2.0*w+1.0)),
+                'g':lambda w:3.0*(w+1.0)/(-(w+1.0)*(2.0*w+1.0)),
+                'title':'F3',
+                'tick_side':'left',
+                'tick_levels':3,
+                'tick_text_levels':2
+                }
+
+        block80=Nomo_Block_Type_9()
+        block80.define_F1(block80_f1_para)
+        block80.define_F2(block80_f2_para)
+        block80.define_F3(block80_f3_para)
+        block80.set_block(width=12.0, height=15.0)
+
+        wrapper80=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type9.pdf')
+        wrapper80.add_block(block80)
+        wrapper80.align_blocks()
+        wrapper80.build_axes_wrapper() # build structure for optimization
+        #wrapper1.do_transformation(method='scale paper')
+        wrapper80.do_transformation(method='rotate',params=0.01)
+        #wrapper1.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=20.0)
+        #wrapper1.do_transformation(method='rotate',params=90.0)
+        #wrapper4.do_transformation(method='polygon')
+        #wrapper1.do_transformation(method='optimize')
+        #wrapper70.do_transformation(method='scale paper')
+        cc80=canvas.canvas()
+        wrapper80.draw_nomogram(cc80)

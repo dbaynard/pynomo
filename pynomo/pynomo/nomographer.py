@@ -489,27 +489,45 @@ if __name__=='__main__':
             'u_min':F_start,
             'u_max':F_stop,
             'function':lambda u:celcius(u),
-            'title':'fahrenheit',
+            'title':r'$^\circ$ F',
             'tick_levels':4,
             'tick_text_levels':3,
-            'align_func':celcius
+            'align_func':celcius,
+            'title_x_shift':0.5
+            }
+    test8_f1c_para={
+            'tag':'A',
+            'u_min':F_start,
+            'u_max':F_stop,
+            'function':lambda u:celcius(u),
+            'title':r'$^\circ$ F',
+            'tick_levels':4,
+            'tick_text_levels':3,
+            'align_func':celcius,
+            'title_x_shift':0.5,
+            'align_x_offset':7.0
             }
     test8_f2_para={
             'tag':'A',
             'u_min':C_start,
             'u_max':C_stop,
             'function':lambda u:u,
-            'title':'celcius',
-            'tick_levels':4,
+            'title':r'$^\circ$ C',
+            'tick_levels':5,
             'tick_text_levels':3,
             'scale_type':'linear',
-            'tick_side':'left'
+            'tick_side':'left',
+            'title_x_shift':-0.5
     }
 
     test8_block8a_params={
                          'block_type':'type_8',
                             'f_params':test8_f1_para
                          }
+    test8_block8c_params={
+                         'block_type':'type_8',
+                            'f_params':test8_f1c_para
+                            }
     test8_block8b_params={
                          'block_type':'type_8',
                          'length':5.0,
@@ -518,8 +536,9 @@ if __name__=='__main__':
     test8_params={
                   'filename':'test8.pdf',
                   'paper_height':20.0,
-                  'paper_width':20.0,
-                  'block_params':[test8_block8b_params,test8_block8a_params],
-                  'transformations':[('rotate',0.01),('scale paper',)]
+                  'paper_width':2.0,
+                  'block_params':[test8_block8b_params,test8_block8a_params,
+                                  test8_block8c_params],
+                  'transformations':[('scale paper',)]
                   }
     Nomographer(test8_params)

@@ -89,7 +89,7 @@ class Nomo_Wrapper:
         updates blocks
         """
         #self.axes_wrapper.fit_to_paper()
-        self.axes_wrapper._print_result_pdf_("dummy1.pdf")
+        #self.axes_wrapper._print_result_pdf_("dummy1.pdf")
         self.alpha1,self.beta1,self.gamma1,\
         self.alpha2,self.beta2,self.gamma2,\
         self.alpha3,self.beta3,self.gamma3 = self.axes_wrapper.give_trafo()
@@ -150,28 +150,28 @@ class Nomo_Wrapper:
         Finds transformation to scale to canvas
         """
         self.axes_wrapper.fit_to_paper()
-        self.axes_wrapper._print_result_pdf_("dummy1_paper.pdf")
+        #self.axes_wrapper._print_result_pdf_("dummy1_paper.pdf")
 
     def _do_optimize_trafo_(self,params):
         """
         Finds "optimal" transformation
         """
         self.axes_wrapper.optimize_transformation()
-        self.axes_wrapper._print_result_pdf_("dummy1_optimize.pdf")
+        #self.axes_wrapper._print_result_pdf_("dummy1_optimize.pdf")
 
     def _do_polygon_trafo_(self,params):
         """
         Finds "polygon" transformation
         """
         self.axes_wrapper.make_polygon_trafo()
-        self.axes_wrapper._print_result_pdf_("dummy1_polygon.pdf")
+        #self.axes_wrapper._print_result_pdf_("dummy1_polygon.pdf")
 
     def _do_rotate_trafo_(self,params):
         """
         Finds transformation to scale to canvas
         """
         self.axes_wrapper.rotate_canvas(params)
-        self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
+        #self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
 
     def draw_nomogram(self,canvas):
         """

@@ -20,6 +20,7 @@
 from nomo_axis import *
 from nomo_axis_func import *
 from nomo_grid_box import *
+from nomograph3 import *
 from numpy import *
 import scipy
 from pyx import *
@@ -1379,41 +1380,108 @@ class Nomo_Block_Type_9(Nomo_Block):
     def __init__(self,mirror_x=False,mirror_y=False):
         super(Nomo_Block_Type_9,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
 
-    def define_F1(self,params):
+    def define_determinant(self,params1,params2,params3,transform_ini=False):
         """
-        defines function F1
+        defines scales as determinant form. If transform_ini=True, scales
+        are transformed initially such that scale 1 and 3 ends hit corners
+        of rectangle size 10x10 (to be scales later). This is due to the
+        fact that sometimes term h=0 in determinant that divides f and g
+        in actual coordinates. This divergency can be put away by transforming
+        matrix before starting to use only x, and y coordinates
+        u : 1
+        v : 2
+        w : 3
         """
-        params['F']=lambda u:params['f'](u)*self.x_mirror
-        params['G']=lambda u:params['g'](u)*self.y_mirror
-        self.atom_F1=Nomo_Atom(params)
+        p1=params1
+        p2=params2
+        p3=params3
+        f1,g1,h1=p1['f'],p1['g'],p1['h']
+        f2,g2,h2=p2['f'],p2['g'],p2['h']
+        f3,g3,h3=p3['f'],p3['g'],p3['h']
+        if transform_ini:
+            vk=[['u',p1['u_min'],'x',0.0],
+                ['u',p1['u_min'],'y',0.0],
+                ['u',p1['u_max'],'x',0.0],
+                ['u',p1['u_max'],'y',10.0],
+                ['w',p3['u_min'],'x',10.0],
+                ['w',p3['u_min'],'y',0.0],
+                ['w',p3['u_max'],'x',10.0],
+                ['w',p3['u_max'],'y',10.0]]
+            nomo = Nomograph3(f1,g1,h1,f2,g2,h2,f3,g3,h3,vk)
+            # F1
+            params1['F']=lambda u:nomo.give_x1(u)*self.x_mirror
+            params1['G']=lambda u:nomo.give_y1(u)*self.y_mirror
+            # F2
+            params2['F']=lambda u:nomo.give_x2(u)*self.x_mirror
+            params2['G']=lambda u:nomo.give_y2(u)*self.y_mirror
+            # F3
+            params3['F']=lambda u:nomo.give_x3(u)*self.x_mirror
+            params3['G']=lambda u:nomo.give_y3(u)*self.y_mirror
+        else:
+            # F1
+            params1['F']=lambda u:p1['f'](u)/p1['h'](u)*self.x_mirror
+            params1['G']=lambda u:p1['g'](u)/p1['h'](u)*self.y_mirror
+            # F2
+            params2['F']=lambda u:p2['f'](u)/p2['h'](u)*self.x_mirror
+            params2['G']=lambda u:p2['f'](u)/p2['h'](u)*self.y_mirror
+            # F3
+            params3['F']=lambda u:p3['f'](u)/p3['h'](u)*self.x_mirror
+            params3['G']=lambda u:p3['f'](u)/p3['h'](u)*self.y_mirror
+
+
+        self.atom_F1=Nomo_Atom(params1)
         self.add_atom(self.atom_F1)
         # for inital axis calculations
-        self.F1_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
-                             start=params['u_min'],stop=params['u_max'])
+        self.F1_axis_ini=Axis_Wrapper(f=params1['F'],g=params1['G'],
+                         start=params1['u_min'],stop=params1['u_max'])
 
-    def define_F2(self,params):
-        """
-        defines function F2
-        """
-        params['F']=lambda u:params['f'](u)*self.x_mirror
-        params['G']=lambda u:params['g'](u)*self.y_mirror
-        self.atom_F2=Nomo_Atom(params)
+        self.atom_F2=Nomo_Atom(params2)
         self.add_atom(self.atom_F2)
         # for inital axis calculations
-        self.F2_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
-                             start=params['u_min'],stop=params['u_max'])
+        self.F2_axis_ini=Axis_Wrapper(f=params2['F'],g=params2['G'],
+                         start=params2['u_min'],stop=params2['u_max'])
 
-    def define_F3(self,params):
-        """
-        defines function F3
-        """
-        params['F']=lambda u:params['f'](u)*self.x_mirror
-        params['G']=lambda u:params['g'](u)*self.y_mirror
-        self.atom_F3=Nomo_Atom(params)
+        self.atom_F3=Nomo_Atom(params3)
         self.add_atom(self.atom_F3)
         # for inital axis calculations
-        self.F3_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
-                             start=params['u_min'],stop=params['u_max'])
+        self.F3_axis_ini=Axis_Wrapper(f=params3['F'],g=params3['G'],
+                         start=params3['u_min'],stop=params3['u_max'])
+
+#    def define_F1(self,params):
+#        """
+#        defines function F1
+#        """
+#        params['F']=lambda u:params['f'](u)*self.x_mirror
+#        params['G']=lambda u:params['g'](u)*self.y_mirror
+#        self.atom_F1=Nomo_Atom(params)
+#        self.add_atom(self.atom_F1)
+#        # for inital axis calculations
+#        self.F1_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+#                             start=params['u_min'],stop=params['u_max'])
+#
+#    def define_F2(self,params):
+#        """
+#        defines function F2
+#        """
+#        params['F']=lambda u:params['f'](u)*self.x_mirror
+#        params['G']=lambda u:params['g'](u)*self.y_mirror
+#        self.atom_F2=Nomo_Atom(params)
+#        self.add_atom(self.atom_F2)
+#        # for inital axis calculations
+#        self.F2_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+#                             start=params['u_min'],stop=params['u_max'])
+#
+#    def define_F3(self,params):
+#        """
+#        defines function F3
+#        """
+#        params['F']=lambda u:params['f'](u)*self.x_mirror
+#        params['G']=lambda u:params['g'](u)*self.y_mirror
+#        self.atom_F3=Nomo_Atom(params)
+#        self.add_atom(self.atom_F3)
+#        # for inital axis calculations
+#        self.F3_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
+#                             start=params['u_min'],stop=params['u_max'])
 
     def set_block(self,width=10.0,height=10.0):
         """
@@ -2424,42 +2492,47 @@ if __name__=='__main__':
         # determinant nomograph
         block80_f1_para={
                 'u_min':0.5,
-                'u_max':0.9,
-                'f':lambda u:2*(u*u-1.0)/(-u*(u-1.0)),
-                'g':lambda u:3*u*(u+1.0)/(-u*(u-1.0)),
-                'title':'F1',
+                'u_max':1.0,
+                'f':lambda u:2*(u*u-1.0),
+                'g':lambda u:3*u*(u+1.0),
+                'h':lambda u:(-u*(u-1.0)),
+                'title':'p',
                 'tick_side':'left',
-                'tick_levels':3,
+                'tick_levels':4,
                 'tick_text_levels':2
                 }
         block80_f2_para={
-                'u_min':0.75,
-                'u_max':1.0,
-                'f':lambda v:v/(-v*v),
-                'g':lambda v:1.0/(-v*v),
-                'title':'F2',
-                'tick_side':'left',
+                'u_min':1.0,
+                'u_max':0.75,
+                'f':lambda v:v,
+                'g':lambda v:1.0,
+                'h':lambda v:(-v*v),
+                'title':'h',
+                'tick_side':'right',
                 'tick_levels':3,
                 'tick_text_levels':2
                 }
         block80_f3_para={
-                'u_min':0.5,
-                'u_max':1.0,
-                'f':lambda w:2.0*(2.0*w+1.0)/(-(w+1.0)*(2.0*w+1.0)),
-                'g':lambda w:3.0*(w+1.0)/(-(w+1.0)*(2.0*w+1.0)),
-                'title':'F3',
+                'u_min':1.0,
+                'u_max':0.5,
+                'f':lambda w:2.0*(2.0*w+1.0),
+                'g':lambda w:3.0*(w+1.0),
+                'h':lambda w:(-(w+1.0)*(2.0*w+1.0)),
+                'title':'L',
                 'tick_side':'left',
-                'tick_levels':3,
+                'tick_levels':4,
                 'tick_text_levels':2
                 }
 
         block80=Nomo_Block_Type_9()
-        block80.define_F1(block80_f1_para)
-        block80.define_F2(block80_f2_para)
-        block80.define_F3(block80_f3_para)
+        #block80.define_F1(block80_f1_para)
+        #block80.define_F2(block80_f2_para)
+        #block80.define_F3(block80_f3_para)
+        block80.define_determinant(block80_f1_para, block80_f2_para,
+                                   block80_f3_para, transform_ini=True)
         block80.set_block(width=12.0, height=15.0)
 
-        wrapper80=Nomo_Wrapper(paper_width=20.0,paper_height=20.0,filename='type9.pdf')
+        wrapper80=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='type9.pdf')
         wrapper80.add_block(block80)
         wrapper80.align_blocks()
         wrapper80.build_axes_wrapper() # build structure for optimization
@@ -2470,6 +2543,6 @@ if __name__=='__main__':
         #wrapper1.do_transformation(method='rotate',params=90.0)
         #wrapper4.do_transformation(method='polygon')
         #wrapper1.do_transformation(method='optimize')
-        #wrapper70.do_transformation(method='scale paper')
+        wrapper80.do_transformation(method='scale paper')
         cc80=canvas.canvas()
         wrapper80.draw_nomogram(cc80)

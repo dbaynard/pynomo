@@ -133,7 +133,22 @@ class Nomographer:
                 blocks[-1].define_F(block_para['f_params'])
                 blocks[-1].set_block(length=block_para['length'])
                 wrapper.add_block(blocks[-1])
+            # TYPE 9
+            if block_para['block_type']=='type_9':
+                self._check_block_type_9_params_(block_para)
+                blocks.append(Nomo_Block_Type_9(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
+                self._check_axis_params_(block_para['f1_params'])
+                self._check_axis_params_(block_para['f2_params'])
+                self._check_axis_params_(block_para['f3_params'])
+                blocks[-1].define_determinant(block_para['f1_params'],
+                                              block_para['f2_params'],
+                                              block_para['f3_params'],
+                                              transform_ini=block_para['transform_ini'])
 
+                blocks[-1].set_block(width=block_para['width'],
+                                     height=block_para['height'])
+                wrapper.add_block(blocks[-1])
         wrapper.align_blocks()
         wrapper.build_axes_wrapper() # build structure for transformations
         for trafo in params['transformations']:
@@ -284,6 +299,21 @@ class Nomographer:
                          'mirror_x':False,
                          'mirror_y':False,
                          'length':10.0}
+        for key in params_default:
+            if not params.has_key(key):
+                params[key]=params_default[key]
+
+    def _check_block_type_9_params_(self,params):
+        """
+        checks if block type 9 params ok and adds default values
+        """
+        params_default={
+                         'mirror_x':False,
+                         'mirror_y':False,
+                         'width':10.0,
+                         'height':10.0,
+                         'transform_ini':False
+                         }
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -542,3 +572,54 @@ if __name__=='__main__':
                   'transformations':[('scale paper',)]
                   }
     Nomographer(test8_params)
+
+
+    test9_f1_para={
+            'u_min':0.5,
+            'u_max':1.0,
+            'f':lambda u:2*(u*u-1.0),
+            'g':lambda u:3*u*(u+1.0),
+            'h':lambda u:(-u*(u-1.0)),
+            'title':'p',
+            'tick_side':'left',
+            'tick_levels':4,
+            'tick_text_levels':2
+            }
+    test9_f2_para={
+            'u_min':1.0,
+            'u_max':0.75,
+            'f':lambda v:v,
+            'g':lambda v:1.0,
+            'h':lambda v:(-v*v),
+            'title':'h',
+            'tick_side':'right',
+            'tick_levels':3,
+            'tick_text_levels':2
+            }
+    test9_f3_para={
+            'u_min':1.0,
+            'u_max':0.5,
+            'f':lambda w:2.0*(2.0*w+1.0),
+            'g':lambda w:3.0*(w+1.0),
+            'h':lambda w:(-(w+1.0)*(2.0*w+1.0)),
+            'title':'L',
+            'tick_side':'left',
+            'tick_levels':4,
+            'tick_text_levels':2
+            }
+    test9_block_params={
+                         'block_type':'type_9',
+                         'f1_params':test9_f1_para,
+                         'f2_params':test9_f2_para,
+                         'f3_params':test9_f3_para,
+                         'transform_ini':True,
+                         }
+
+    test9_params={
+                  'filename':'test9.pdf',
+                  'paper_height':10.0,
+                  'paper_width':10.0,
+                  'block_params':[test9_block_params],
+                  'transformations':[('scale paper',)]
+                  }
+    Nomographer(test9_params)

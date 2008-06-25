@@ -1640,6 +1640,74 @@ class Nomo_Atom:
             tick_levels=0,tick_text_levels=0,
             side=p['tick_side'])
 
+class Nomo_Atom_Grid(Nomo_Atom):
+    """
+    Grid type Atom
+    """
+    def __init__(self,params):
+        # default parameters
+        self.params_default={
+            'ID':'none', # to identify the axis
+            'tag':'none', # for aligning block wrt others
+            'title':'no title given',
+            'title_x_shift':0.0,
+            'title_y_shift':0.25,
+            'title_distance_center':0.5,
+            'title_opposite_tick':True
+            }
+        self.params=self.params_default
+        self.params.update(params)
+        self.set_trafo() # initialize
+
+    def give_x(self):
+        """
+        gives first line x. This x is used if grid is to be aligned
+        with an axis.
+        """
+        pass
+
+    def give_y(self):
+        """
+        gives first line y. This y is used if grid is to be aligned
+        with an axis.
+        """
+        pass
+
+    def give_x2(self):
+        """
+        gives 2nd line x
+        """
+        pass
+
+    def give_y2(self):
+        """
+        gives 2nd line y
+        """
+        pass
+
+    def give_x3(self):
+        """
+        gives third line x
+        """
+        pass
+
+    def give_y3(self):
+        """
+        gives third line y
+        """
+        pass
+    def give_x4(self):
+        """
+        gives fourth line x
+        """
+        pass
+
+    def give_y4(self):
+        """
+        gives fourth line y
+        """
+        pass
+
 if __name__=='__main__':
     """
     testing

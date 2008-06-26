@@ -1653,7 +1653,9 @@ class Nomo_Atom_Grid(Nomo_Atom):
             'title_x_shift':0.0,
             'title_y_shift':0.25,
             'title_distance_center':0.5,
-            'title_opposite_tick':True
+            'title_opposite_tick':True,
+            'u_min':None, # for alignment
+            'u_max':None  # for alignment
             }
         self.params=self.params_default
         self.params.update(params)
@@ -1673,38 +1675,15 @@ class Nomo_Atom_Grid(Nomo_Atom):
         """
         pass
 
-    def give_x2(self):
+    def give_x_grid(self,u,v):
         """
-        gives 2nd line x
-        """
-        pass
-
-    def give_y2(self):
-        """
-        gives 2nd line y
+        gives x of grid.
         """
         pass
 
-    def give_x3(self):
+    def give_y_grid(self,u,v):
         """
-        gives third line x
-        """
-        pass
-
-    def give_y3(self):
-        """
-        gives third line y
-        """
-        pass
-    def give_x4(self):
-        """
-        gives fourth line x
-        """
-        pass
-
-    def give_y4(self):
-        """
-        gives fourth line y
+        gives y of grid.
         """
         pass
 

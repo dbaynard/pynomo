@@ -20,6 +20,7 @@
 from nomo_axis import *
 from nomo_axis_func import *
 from nomo_grid_box import *
+from nomo_grid import *
 from nomograph3 import *
 from numpy import *
 import scipy
@@ -1547,6 +1548,7 @@ class Nomo_Atom:
             'tick_text_levels':10,
             'tick_side':'right',
             'reference':False,
+            'grid':False,
             'reference padding': 0.20, # fraction of reference line over other lines
             'manual_axis_data':{},
             'title_distance_center':0.5,
@@ -1655,37 +1657,69 @@ class Nomo_Atom_Grid(Nomo_Atom):
             'title_distance_center':0.5,
             'title_opposite_tick':True,
             'u_min':None, # for alignment
-            'u_max':None  # for alignment
+            'u_max':None,  # for alignment
+            'f_grid':None,
+            'g_grid':None,
+            'u_start':0.0,
+            'u_stop':80.0,
+            'v_start':0.0,
+            'v_stop':1.0,
+            'u_values':[0.0,0.25,0.5,0.75,1.0],
+            'v_values':[0.0,0.25,0.5,0.75,1.0],
+            'reference':False,
+            'grid':True
             }
         self.params=self.params_default
         self.params.update(params)
+        self.params['u_min']=self.params['u_start']
+        self.params['u_max']=self.params['u_stop']
         self.set_trafo() # initialize
+        self.f=self.params['f_grid']
+        self.g=self.params['g_grid']
 
-    def give_x(self):
+    def give_x(self,u):
         """
         gives first line x. This x is used if grid is to be aligned
         with an axis.
         """
-        pass
+        v0=self.params['v_start'] # value for reference line
+        value=(self.alpha1*self.f(u,v0)+self.beta1*self.g(u,v0)+self.gamma1)/\
+        (self.alpha3*self.f(u,v0)+self.beta3*self.g(u,v0)+self.gamma3)
+        return value
 
-    def give_y(self):
+    def give_y(self,u):
         """
         gives first line y. This y is used if grid is to be aligned
         with an axis.
         """
-        pass
+        v0=self.params['v_start'] # value for reference line
+        value=(self.alpha2*self.f(u,v0)+self.beta2*self.g(u,v0)+self.gamma2)/\
+        (self.alpha3*self.f(u,v0)+self.beta3*self.g(u,v0)+self.gamma3)
+        return value
 
     def give_x_grid(self,u,v):
         """
         gives x of grid.
         """
-        pass
+        value=(self.alpha1*self.f(u,v)+self.beta1*self.g(u,v)+self.gamma1)/\
+        (self.alpha3*self.f(u,v)+self.beta3*self.g(u,v)+self.gamma3)
+        return value
 
     def give_y_grid(self,u,v):
         """
         gives y of grid.
         """
-        pass
+        value=(self.alpha2*self.f(u,v)+self.beta2*self.g(u,v)+self.gamma2)/\
+        (self.alpha3*self.f(u,v)+self.beta3*self.g(u,v)+self.gamma3)
+        return value
+
+    def draw(self,canvas):
+        """
+        draws the grid
+        """
+        gridi=Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
+                        canvas=canvas,data=self.params)
+
 
 if __name__=='__main__':
     """
@@ -1710,7 +1744,8 @@ if __name__=='__main__':
     do_test_5=False
     do_test_6=False
     do_test_7=False
-    do_test_8=True
+    do_test_8=False
+    do_test_9=True
     if do_test_1:
         # build atoms
         block1_atom1_para={
@@ -2593,3 +2628,86 @@ if __name__=='__main__':
         wrapper80.do_transformation(method='scale paper')
         cc80=canvas.canvas()
         wrapper80.draw_nomogram(cc80)
+
+    if do_test_9:
+        """
+        0. build definitions of atoms
+        1. build block1
+        2. build block2
+        3. build nomowrapper
+        4. add block1 and block2
+        5. optimize transformation
+        6. draw nomogram in nomowrapper
+        """
+            # build atoms
+        block_atom1_para_9={
+                'u_min':3.0,
+                'u_max':10.0,
+                'F':lambda u:0,
+                'G':lambda u:u,
+                'title':'A',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':3,
+                'tick_text_levels':2,
+                'tick_side':'right',
+                'tag':'none'}
+        b_atom1_9=Nomo_Atom(params=block_atom1_para_9)
+
+        block_atom2_para_9={
+                'u_min':3.0,
+                'u_max':10.0,
+                'F':lambda u:4.0,
+                'G':lambda u:u,
+                'title':'B',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':3,
+                'tick_text_levels':2,
+                'tick_side':'right',
+                'tag':'none'}
+        b_atom2_9=Nomo_Atom(params=block_atom2_para_9)
+
+        block_atom3_para_9={
+            'ID':'none', # to identify the axis
+            'tag':'none', # for aligning block wrt others
+            'title':'Grid',
+            'title_x_shift':0.0,
+            'title_y_shift':0.25,
+            'title_distance_center':0.5,
+            'title_opposite_tick':True,
+            'u_min':0.0, # for alignment
+            'u_max':1.0,  # for alignment
+            'f_grid':lambda u,v:u+2.0,
+            'g_grid':lambda u,v:10*v,
+            'u_start':0.0,
+            'u_stop':1.0,
+            'v_start':0.0,
+            'v_stop':1.0,
+            'u_values':[0.0,0.25,0.5,0.75,1.0],
+            'v_values':[0.0,0.25,0.5,0.75,1.0]
+            }
+        b_atom3_9=Nomo_Atom_Grid(params=block_atom3_para_9)
+        block_1_9=Nomo_Block()
+        block_1_9.add_atom(b_atom1_9)
+        block_1_9.add_atom(b_atom2_9)
+        block_1_9.add_atom(b_atom3_9)
+
+        wrapper80=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='test9.pdf')
+        wrapper80.add_block(block_1_9)
+        wrapper80.align_blocks()
+        wrapper80.build_axes_wrapper() # build structure for optimization
+        #wrapper1.do_transformation(method='scale paper')
+        wrapper80.do_transformation(method='rotate',params=0.01)
+        wrapper80.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=20.0)
+        #wrapper1.do_transformation(method='rotate',params=90.0)
+        #wrapper4.do_transformation(method='polygon')
+        #wrapper1.do_transformation(method='optimize')
+        wrapper80.do_transformation(method='scale paper')
+        cc90=canvas.canvas()
+        wrapper80.draw_nomogram(cc90)
+    # end of test1

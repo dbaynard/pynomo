@@ -33,12 +33,20 @@ class Nomo_Grid:
         self.g=func_g
         self.canvas=canvas
         data_default_values={'u_start':0.0,
-                             'u_stop':80.0,
+                             'u_stop':1.0,
                              'v_start':0.0,
-                             'v_stop':1.0*pi/2,
-                             'u_values':[0.0,0.25*pi/2,0.5*pi/2,0.75*pi/2,1.0*pi/2],
-                             'v_values':[0.0,0.25*pi/2,0.5*pi/2,0.75*pi/2,1.0*pi/2],
-                             'text_distance':0.25}
+                             'v_stop':1.0,
+                             'u_values':[0.0,1.0],
+                             'v_values':[0.0,1.0],
+                             'v_texts_u_start':False,
+                             'v_texts_u_stop':True,
+                             'u_texts_v_start':False,
+                             'u_texts_v_stop':True,
+                             'u_line_color':color.rgb.black,
+                             'v_line_color':color.rgb.black,
+                             'text_distance':0.25,
+                             'circles':False # if marker circles
+                             }
         self.grid_data=data_default_values
         self.grid_data.update(data)
         #print self.grid_data
@@ -51,14 +59,20 @@ class Nomo_Grid:
         """
         start=self.grid_data['u_start']
         stop=self.grid_data['u_stop']
+        # if text labels to start and/or stop
+        start_texts=self.grid_data['u_texts_v_start']
+        stop_texts=self.grid_data['u_texts_v_stop']
+        line_color=self.grid_data['u_line_color']
         for idx,v in enumerate(self.grid_data['v_values']):
             f_here,g_here=self._make_u_funcs_(v)
-            if not self.grid_data.has_key('v_titles'):
-                self._draw_line_(f_here,g_here,start,stop,`v`,color.rgb.red)
+            if not self.grid_data.has_key('v_texts'):
+                self._draw_line_(f_here,g_here,start,stop,`v`,line_color,
+                                 start_texts,stop_texts)
             else:
                 self._draw_line_(f_here,g_here,start,stop,
-                                 self.grid_data['v_titles'][idx],color.rgb.red)
-            print "v=%f"%v
+                                 self.grid_data['v_texts'][idx],line_color,
+                                 start_texts,stop_texts)
+            #print "v=%f"%v
 
     def _draw_line_v_(self):
         """
@@ -66,14 +80,20 @@ class Nomo_Grid:
         """
         start=self.grid_data['v_start']
         stop=self.grid_data['v_stop']
+        # if text labels to start and/or stop
+        start_texts=self.grid_data['v_texts_u_start']
+        stop_texts=self.grid_data['v_texts_u_stop']
+        line_color=self.grid_data['v_line_color']
         for idx,u in enumerate(self.grid_data['u_values']):
             f_here,g_here=self._make_v_funcs_(u)
-            if not self.grid_data.has_key('u_titles'):
-                self._draw_line_(f_here,g_here,start,stop,`u`,color.rgb.black)
+            if not self.grid_data.has_key('u_texts'):
+                self._draw_line_(f_here,g_here,start,stop,`u`,line_color,
+                                 start_texts,stop_texts)
             else:
                 self._draw_line_(f_here,g_here,start,stop,
-                                 self.grid_data['u_titles'][idx],color.rgb.red)
-            print "u=%f"%u
+                                 self.grid_data['u_texts'][idx],line_color,
+                                 start_texts,stop_texts)
+            #print "u=%f"%u
 
     def _make_u_funcs_(self,v_value):
         """
@@ -93,7 +113,8 @@ class Nomo_Grid:
         def g(v): return self.g(u_value,v)
         return f,g
 
-    def _draw_line_(self,f,g,start,stop,title,axis_color=color.rgb.red):
+    def _draw_line_(self,f,g,start,stop,title,axis_color=color.rgb.red,
+                    start_texts=False,stop_texts=True):
         du=fabs(start-stop)*1e-8
         # approximate line length is found
         line_length_straigth=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
@@ -139,15 +160,18 @@ class Nomo_Grid:
                 line.append(path.lineto(f(u), g(u)))
             else:
                 line.append(path.lineto(f(stop), g(stop)))
-                print laskuri
+                #print laskuri
                 break
 
         self.canvas.stroke(line, [style.linewidth.normal, axis_color])
         # start number
-        self._set_text_to_grid_(f, g, start, du, title,axis_color)
-        self._set_text_to_grid_(f, g, stop, -du, title,axis_color)
-        self.canvas.fill(path.circle(f(start), g(start), 0.03),[axis_color])
-        self.canvas.fill(path.circle(f(stop), g(stop), 0.03),[axis_color])
+        if start_texts: # set texts to to start
+            self._set_text_to_grid_(f, g, start, du, title,axis_color)
+        if stop_texts: # set texts to stop
+            self._set_text_to_grid_(f, g, stop, -du, title,axis_color)
+        if self.grid_data['circles']:
+            self.canvas.fill(path.circle(f(start), g(start), 0.03),[axis_color])
+            self.canvas.fill(path.circle(f(stop), g(stop), 0.03),[axis_color])
         #print "line drawn"
 
     def _set_text_to_grid_(self,f,g,u,du,title,axis_color):
@@ -250,14 +274,14 @@ if __name__=='__main__':
     time_titles=['January','February','March','April','May','June',
                  'July','August','September','October','November','December']
     #times.append(365)
-    data={   'u_start':0.0, # latitude
+    data={   'u_start':40.0, # latitude
              'u_stop':80.0,
              'v_start':times1[0], # day
              'v_stop':times1[-1],
-             'u_values':[0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0],
+             'u_values':[40.0,50.0,60.0,70.0,80.0],
              #'v_values':[0.0,60.0,120.0,180.0,240.0,300.0,365.0]
              'v_values':times1,
-             'v_titles':time_titles}
+             'v_texts':time_titles}
 
     c = canvas.canvas()
     gridi=Nomo_Grid(f,g,c,data=data)
@@ -265,14 +289,14 @@ if __name__=='__main__':
               start=0.0,stop=90.0,
               title=r'Solar zenith angle $\phi$',canvas=c,type='linear',
               turn=-1,
-              tick_levels=3,tick_text_levels=1,
+              tick_levels=2,tick_text_levels=1,
               side='left')
 
     ax2=Nomo_Axis(func_f=f3,func_g=g3,
               start=0.0,stop=23.0,
               title=r'Hour (h)',canvas=c,type='linear',
               turn=-1,
-              tick_levels=4,tick_text_levels=3,
+              tick_levels=3,tick_text_levels=1,
               side='right')
 
 
@@ -285,4 +309,4 @@ if __name__=='__main__':
     test_dec=eq_declination(test_day)
     test_cos_phi=sin(test_lat*pi/180.0)*sin(test_dec)+\
     cos(test_lat*pi/180.0)*cos(test_dec)*cos(test_ha*pi/180.0)
-    print acos(test_cos_phi)*180/pi
+    #print acos(test_cos_phi)*180/pi

@@ -121,9 +121,31 @@ class Nomo_Wrapper:
         for block in self.block_stack:
             for atom in block.atom_stack:
                 if not atom.params['reference']==True:
-                    self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
-                                                            atom.params['u_min'],
-                                                            atom.params['u_max']))
+                    if atom.params['grid']==True:
+                        v0=atom.params['v_start']
+                        v1=atom.params['v_stop']
+                        u0=atom.params['u_start']
+                        u1=atom.params['u_stop']
+                        # first line of grid
+                        self.axes_wrapper.add_axis(Axis_Wrapper(lambda u:atom.give_x_grid(u,v0),
+                                                                lambda u:atom.give_y_grid(u,v0),
+                                                                u0,u1))
+                        # second line of grid
+                        self.axes_wrapper.add_axis(Axis_Wrapper(lambda u:atom.give_x_grid(u,v1),
+                                                                lambda u:atom.give_y_grid(u,v1),
+                                                                u0,u1))
+                        # third line of grid
+                        self.axes_wrapper.add_axis(Axis_Wrapper(lambda v:atom.give_x_grid(u0,v),
+                                                                lambda v:atom.give_y_grid(u0,v),
+                                                                v0,v1))
+                        # fourth line of grid
+                        self.axes_wrapper.add_axis(Axis_Wrapper(lambda v:atom.give_x_grid(u1,v),
+                                                                lambda v:atom.give_y_grid(u1,v),
+                                                                v0,v1))
+                    else:
+                        self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
+                                                                atom.params['u_min'],
+                                                                atom.params['u_max']))
                 else: # this atom is reference axis
                     self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x_ref,atom.give_y_ref,
                                                             atom.u_min_ref,
@@ -173,7 +195,7 @@ class Nomo_Wrapper:
         Finds transformation to scale to canvas
         """
         self.axes_wrapper.rotate_canvas(params)
-        #self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
+        self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
 
     def draw_nomogram(self,canvas):
         """
@@ -188,7 +210,7 @@ class Nomo_Wrapper:
         """
         draws title
         """
-        print self.params
+        #print self.params
         c.text(self.params['title_x'], self.params['title_y'],
         self.params['title_str'],
         [text.parbox(self.params['title_box_width']),
@@ -1511,7 +1533,7 @@ class Nomo_Block_Type_9(Nomo_Block):
         self.atom_F2.g=lambda u:self.F2_axis_ini.g(u)*y_factor
         self.atom_F3.f=lambda u:self.F3_axis_ini.f(u)*x_factor
         self.atom_F3.g=lambda u:self.F3_axis_ini.g(u)*y_factor
-        # save axes
+        # save axes for reference calculations
         self.F1_axis=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
                              start=self.atom_F1.params['u_min'],
                              stop=self.atom_F1.params['u_max'])
@@ -1667,7 +1689,13 @@ class Nomo_Atom_Grid(Nomo_Atom):
             'u_values':[0.0,0.25,0.5,0.75,1.0],
             'v_values':[0.0,0.25,0.5,0.75,1.0],
             'reference':False,
-            'grid':True
+            'grid':True,
+            'v_texts_u_start':False,
+            'v_texts_u_stop':True,
+            'u_texts_v_start':False,
+            'u_texts_v_stop':True,
+            'u_line_color':color.rgb.black,
+            'v_line_color':color.rgb.black,
             }
         self.params=self.params_default
         self.params.update(params)
@@ -1744,7 +1772,7 @@ if __name__=='__main__':
     do_test_5=False
     do_test_6=False
     do_test_7=False
-    do_test_8=False
+    do_test_8=True
     do_test_9=True
     if do_test_1:
         # build atoms
@@ -2623,7 +2651,7 @@ if __name__=='__main__':
         #wrapper1.do_transformation(method='rotate',params=30.0)
         #wrapper1.do_transformation(method='rotate',params=20.0)
         #wrapper1.do_transformation(method='rotate',params=90.0)
-        #wrapper4.do_transformation(method='polygon')
+        #wrapper80.do_transformation(method='polygon')
         #wrapper1.do_transformation(method='optimize')
         wrapper80.do_transformation(method='scale paper')
         cc80=canvas.canvas()
@@ -2681,13 +2709,14 @@ if __name__=='__main__':
             'u_min':0.0, # for alignment
             'u_max':1.0,  # for alignment
             'f_grid':lambda u,v:u+2.0,
-            'g_grid':lambda u,v:10*v,
+            'g_grid':lambda u,v:2*v,
             'u_start':0.0,
             'u_stop':1.0,
             'v_start':0.0,
             'v_stop':1.0,
             'u_values':[0.0,0.25,0.5,0.75,1.0],
-            'v_values':[0.0,0.25,0.5,0.75,1.0]
+            'v_values':[0.0,0.25,0.5,0.75,1.0],
+            'grid':True
             }
         b_atom3_9=Nomo_Atom_Grid(params=block_atom3_para_9)
         block_1_9=Nomo_Block()
@@ -2695,7 +2724,7 @@ if __name__=='__main__':
         block_1_9.add_atom(b_atom2_9)
         block_1_9.add_atom(b_atom3_9)
 
-        wrapper80=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='test9.pdf')
+        wrapper80=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='typegrid.pdf')
         wrapper80.add_block(block_1_9)
         wrapper80.align_blocks()
         wrapper80.build_axes_wrapper() # build structure for optimization

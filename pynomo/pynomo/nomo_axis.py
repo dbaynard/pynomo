@@ -685,10 +685,10 @@ def find_linear_ticks(start,stop):
     tick_4_list=[]
     start_major=_find_closest_tick_number_(start,tick_0)
     stop_major=_find_closest_tick_number_(stop,tick_0)
-    print "scale_max %f"%scale_max
-    print "start %f"%start
-    print "start_major %f"%start_major
-    print "stop_major %f"%stop_major
+    #print "scale_max %f"%scale_max
+    #print "start %f"%start
+    #print "start_major %f"%start_major
+    #print "stop_major %f"%stop_major
     start_ax=None
     stop_ax=None
     for step in range(0,9001):
@@ -707,9 +707,9 @@ def find_linear_ticks(start,stop):
                 tick_3_list.append(number)
             if step%1==0 and step%5!=0 and step%10!=0 and step%50!=0 and step%100!=0:
                 tick_4_list.append(number)
-    print tick_0_list
-    print tick_1_list
-    print tick_2_list
+    #print tick_0_list
+    #print tick_1_list
+    #print tick_2_list
     return tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,\
             start_ax,stop_ax
 
@@ -743,9 +743,9 @@ def find_log_ticks(start,stop):
                     tick_1_list.append(u)
                 if number in [1.2,1.4,1.6,1.8,2.5]:
                     tick_2_list.append(u)
-    print tick_0_list
-    print tick_1_list
-    print tick_2_list
+    #print tick_0_list
+    #print tick_1_list
+    #print tick_2_list
     return tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax
 
 

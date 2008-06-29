@@ -37,10 +37,11 @@ class Nomo_Grid:
                              'v_start':0.0,
                              'v_stop':1.0*pi/2,
                              'u_values':[0.0,0.25*pi/2,0.5*pi/2,0.75*pi/2,1.0*pi/2],
-                             'v_values':[0.0,0.25*pi/2,0.5*pi/2,0.75*pi/2,1.0*pi/2]}
+                             'v_values':[0.0,0.25*pi/2,0.5*pi/2,0.75*pi/2,1.0*pi/2],
+                             'text_distance':0.25}
         self.grid_data=data_default_values
         self.grid_data.update(data)
-        print self.grid_data
+        #print self.grid_data
         self._draw_line_u_()
         self._draw_line_v_()
 
@@ -93,7 +94,7 @@ class Nomo_Grid:
         return f,g
 
     def _draw_line_(self,f,g,start,stop,title,axis_color=color.rgb.red):
-        du=fabs(start-stop)*1e-12
+        du=fabs(start-stop)*1e-8
         # approximate line length is found
         line_length_straigth=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
         random.seed(0.0) # so that mistakes always the same
@@ -143,7 +144,7 @@ class Nomo_Grid:
 
         self.canvas.stroke(line, [style.linewidth.normal, axis_color])
         # start number
-        #self._set_text_to_grid(f, g, start, du, title,axis_color)
+        self._set_text_to_grid_(f, g, start, du, title,axis_color)
         self._set_text_to_grid_(f, g, stop, -du, title,axis_color)
         self.canvas.fill(path.circle(f(start), g(start), 0.03),[axis_color])
         self.canvas.fill(path.circle(f(stop), g(stop), 0.03),[axis_color])
@@ -163,19 +164,19 @@ class Nomo_Grid:
             angle=0
         text_distance=0.5
         #if dy<=0:
-        if dy>0:
-            if (angle-90)<-90:
+        if dy>=0.0:
+            if (angle-90.0)<=-90.0:
                 angle=angle+180.0
-            if dx_unit>=0.0:
+            if dx_unit>0.0:
                 text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle-90)]
-            if dx_unit<0.0:
+            if dx_unit<=0.0:
                 text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle-90)]
         else:
-            if (angle+90)>90:
+            if (angle+90.0)>=90.0:
                 angle=angle-180.0
-            if dx_unit>=0.0:
+            if dx_unit>0.0:
                 text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle+90)]
-            if dx_unit<0.0:
+            if dx_unit<=0.0:
                 text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle+90)]
         """
         copied from nomo_axis.py
@@ -186,6 +187,7 @@ class Nomo_Grid:
         text_list.append((self._put_text_(u),f(u)+text_distance*dy_units[idx],
                           g(u)-text_distance*dx_units[idx],text_attr))
         """
+        text_distance=self.grid_data['text_distance']
         self.canvas.text(f(u)-text_distance*dx_unit,
                          g(u)-text_distance*dy_unit,
                          title,text_attr)
@@ -227,7 +229,7 @@ if __name__=='__main__':
         return multiplier_y*(sin(lat*pi/180.0)*sin(dec))/(1.0+(cos(lat*pi/180.0)*cos(dec)))
 
     def f1(dummy):
-        return 0
+        return 0.0
     def g1(fii):
         return multiplier_y*cos(fii*pi/180.0)
 

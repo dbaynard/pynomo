@@ -381,7 +381,10 @@ class Nomo_Axis:
                 dx=(f(u+du)-f(u))
                 dy=(g(u+du)-g(u))
                 dl=math.sqrt(dx**2+dy**2)
-                delta_u=du*section_length/dl
+                if dl>0:
+                    delta_u=du*section_length/dl
+                else:
+                    delta_u=du
                 u+=delta_u
 
             else:

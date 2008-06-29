@@ -2700,8 +2700,8 @@ if __name__=='__main__':
         wrapper80.align_blocks()
         wrapper80.build_axes_wrapper() # build structure for optimization
         #wrapper1.do_transformation(method='scale paper')
-        wrapper80.do_transformation(method='rotate',params=0.01)
-        wrapper80.do_transformation(method='rotate',params=30.0)
+        wrapper80.do_transformation(method='rotate',params=0.001)
+        #wrapper80.do_transformation(method='rotate',params=-30.0)
         #wrapper1.do_transformation(method='rotate',params=30.0)
         #wrapper1.do_transformation(method='rotate',params=20.0)
         #wrapper1.do_transformation(method='rotate',params=90.0)

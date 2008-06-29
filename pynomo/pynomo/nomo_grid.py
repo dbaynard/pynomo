@@ -163,17 +163,28 @@ class Nomo_Grid:
             angle=0
         text_distance=0.5
         #if dy<=0:
-        if dy<=0:
-            text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle-90.0)]
+        if dy>0:
+            if (angle-90)<-90:
+                angle=angle+180.0
+            if dx_unit>=0.0:
+                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle-90)]
+            if dx_unit<0.0:
+                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle-90)]
         else:
-            text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle+90.0)]
+            if (angle+90)>90:
+                angle=angle-180.0
+            if dx_unit>=0.0:
+                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle+90)]
+            if dx_unit<0.0:
+                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle+90)]
         """
-        if True:
-            text_attr=[text.valign.middle,text.halign.center,text.size.small,
-                       trafo.rotate(angle+90.0),axis_color]
+        copied from nomo_axis.py
+        if dy_units[idx]<0:
+            text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angles[idx])]
         else:
-            text_attr=[text.valign.middle,text.halign.center,text.size.small,
-                       trafo.rotate(angle-90.0),axis_color]
+            text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angles[idx])]
+        text_list.append((self._put_text_(u),f(u)+text_distance*dy_units[idx],
+                          g(u)-text_distance*dx_units[idx],text_attr))
         """
         self.canvas.text(f(u)-text_distance*dx_unit,
                          g(u)-text_distance*dy_unit,

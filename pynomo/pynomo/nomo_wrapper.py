@@ -1549,6 +1549,261 @@ class Nomo_Block_Type_9(Nomo_Block):
         self.axis_wrapper_stack.append(self.F3_axis)
         self.set_reference_axes()
 
+class Nomo_Block_Type_9a(Nomo_Block):
+    """
+    type determinant and 3 line axes or grids
+    to override type 9
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_9a,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+
+    def define_determinant(self,params1,params2,params3,transform_ini=False):
+        """
+        defines scales as determinant form. If transform_ini=True, scales
+        are transformed initially such that scale 1 and 3 ends hit corners
+        of rectangle size 10x10 (to be scales later). This is due to the
+        fact that sometimes term h=0 in determinant that divides f and g
+        in actual coordinates. This divergency can be put away by transforming
+        matrix before starting to use only x, and y coordinates
+        u : 1
+        v : 2
+        w : 3
+        """
+        p1=params1
+        p2=params2
+        p3=params3
+        # F1
+        if p1['grid']:
+            v0=p1['v_start']
+            f1=lambda u:p1['f_grid'](u,v0)
+            g1=lambda u:p1['g_grid'](u,v0)
+            h1=lambda u:p1['h_grid'](u,v0)
+        else:
+            f1,g1,h1=p1['f'],p1['g'],p1['h']
+        # F2
+        if p2['grid']:
+            v0=p2['v_start']
+            f2=lambda u:p2['f_grid'](u,v0)
+            g2=lambda u:p2['g_grid'](u,v0)
+            h2=lambda u:p2['h_grid'](u,v0)
+        else:
+            f2,g2,h2=p2['f'],p2['g'],p2['h']
+        # F3
+        if p3['grid']:
+            v0=p3['v_start']
+            f3=lambda u:p3['f_grid'](u,v0)
+            g3=lambda u:p3['g_grid'](u,v0)
+            h3=lambda u:p3['h_grid'](u,v0)
+        else:
+            f3,g3,h3=p3['f'],p3['g'],p3['h']
+        if transform_ini: # do initial transformation
+            vk=[['u',p1['u_min'],'x',0.0],
+                ['u',p1['u_min'],'y',0.0],
+                ['u',p1['u_max'],'x',0.0],
+                ['u',p1['u_max'],'y',10.0],
+                ['w',p3['u_min'],'x',10.0],
+                ['w',p3['u_min'],'y',0.0],
+                ['w',p3['u_max'],'x',10.0],
+                ['w',p3['u_max'],'y',10.0]]
+            nomo = Nomograph3(f1,g1,h1,f2,g2,h2,f3,g3,h3,vk)
+            # F1
+            params1['F']=lambda u:nomo.give_x1(u)*self.x_mirror
+            params1['G']=lambda u:nomo.give_y1(u)*self.y_mirror
+            # F2
+            params2['F']=lambda u:nomo.give_x2(u)*self.x_mirror
+            params2['G']=lambda u:nomo.give_y2(u)*self.y_mirror
+            # F3
+            params3['F']=lambda u:nomo.give_x3(u)*self.x_mirror
+            params3['G']=lambda u:nomo.give_y3(u)*self.y_mirror
+        else: # no initial transformation
+            # F1
+            if p1['grid']:
+                params1['F_grid']=lambda u,v:p1['f_grid'](u,v)/p1['h_grid'](u,v)*self.x_mirror
+                params1['G_grid']=lambda u,v:p1['g_grid'](u,v)/p1['h_grid'](u,v)*self.y_mirror
+            else:
+                params1['F']=lambda u:p1['f'](u)/p1['h'](u)*self.x_mirror
+                params1['G']=lambda u:p1['g'](u)/p1['h'](u)*self.y_mirror
+            # F2
+            if p2['grid']:
+                params2['F_grid']=lambda u,v:p2['f_grid'](u,v)/p2['h_grid'](u,v)*self.x_mirror
+                params2['G_grid']=lambda u,v:p2['g_grid'](u,v)/p2['h_grid'](u,v)*self.y_mirror
+            else:
+                params2['F']=lambda u:p2['f'](u)/p2['h'](u)*self.x_mirror
+                params2['G']=lambda u:p2['f'](u)/p2['h'](u)*self.y_mirror
+            # F3
+            if p3['grid']:
+                params3['F_grid']=lambda u,v:p3['f_grid'](u,v)/p3['h_grid'](u,v)*self.x_mirror
+                params3['G_grid']=lambda u,v:p3['g_grid'](u,v)/p3['h_grid'](u,v)*self.y_mirror
+            else:
+                params3['F']=lambda u:p3['f'](u)/p3['h'](u)*self.x_mirror
+                params3['G']=lambda u:p3['f'](u)/p3['h'](u)*self.y_mirror
+        # build atoms
+        # F1
+        if p1['grid']:
+            self.atom_F1=Nomo_Atom_Grid(params1)
+            self.add_atom(self.atom_F1)
+        else:
+            self.atom_F1=Nomo_Atom(params1)
+            self.add_atom(self.atom_F1)
+        # F2
+        if p2['grid']:
+            self.atom_F2=Nomo_Atom_Grid(params2)
+            self.add_atom(self.atom_F2)
+        else:
+            self.atom_F2=Nomo_Atom(params2)
+            self.add_atom(self.atom_F2)
+        # F3
+        if p3['grid']:
+            self.atom_F3=Nomo_Atom_Grid(params3)
+            self.add_atom(self.atom_F3)
+        else:
+            self.atom_F3=Nomo_Atom(params3)
+            self.add_atom(self.atom_F3)
+
+        # for inital axis calculations
+        # F1
+        self.axis_ini_stack=[]
+        if p1['grid']:
+            v0=p1['v_start']
+            v1=p1['v_stop']
+            u0=p1['u_start']
+            u1=p1['u_stop']
+            # first line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda u:params1['F_grid'](u,v0),
+                                                    lambda u:params1['G_grid'](u,v0),
+                                                    u0,u1))
+            # second line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda u:params1['F_grid'](u,v1),
+                                                    lambda u:params1['G_grid'](u,v1),
+                                                    u0,u1))
+            # third line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda v:params1['F_grid'](u0,v),
+                                                    lambda v:params1['G_grid'](u0,v),
+                                                    v0,v1))
+            # fourth line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda v:params1['F_grid'](u1,v),
+                                                    lambda v:params1['G_grid'](u1,v),
+                                                    v0,v1))
+        else:
+            self.axis_ini_stack.append(Axis_Wrapper(f=params1['F'],g=params1['G'],
+                                    start=params1['u_min'],stop=params1['u_max']))
+        # F2
+        if p2['grid']:
+            v0=p2['v_start']
+            v1=p2['v_stop']
+            u0=p2['u_start']
+            u1=p2['u_stop']
+            # first line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda u:params2['F_grid'](u,v0),
+                                                    lambda u:params2['G_grid'](u,v0),
+                                                    u0,u1))
+            # second line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda u:params2['F_grid'](u,v1),
+                                                    lambda u:params2['G_grid'](u,v1),
+                                                    u0,u1))
+            # third line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda v:params2['F_grid'](u0,v),
+                                                    lambda v:params2['G_grid'](u0,v),
+                                                    v0,v1))
+            # fourth line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda v:params2['F_grid'](u1,v),
+                                                    lambda v:params2['G_grid'](u1,v),
+                                                    v0,v1))
+        else:
+            self.axis_ini_stack.append(Axis_Wrapper(f=params2['F'],g=params2['G'],
+                                        start=params2['u_min'],stop=params2['u_max']))
+        # F3
+        if p3['grid']:
+            v0=p3['v_start']
+            v1=p3['v_stop']
+            u0=p3['u_start']
+            u1=p3['u_stop']
+            # first line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda u:params3['F_grid'](u,v0),
+                                                    lambda u:params3['G_grid'](u,v0),
+                                                    u0,u1))
+            # second line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda u:params3['F_grid'](u,v1),
+                                                    lambda u:params3['G_grid'](u,v1),
+                                                    u0,u1))
+            # third line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda v:params3['F_grid'](u0,v),
+                                                    lambda v:params3['G_grid'](u0,v),
+                                                    v0,v1))
+            # fourth line of grid
+            self.axis_ini_stack.append(Axis_Wrapper(lambda v:params3['F_grid'](u1,v),
+                                                    lambda v:params3['G_grid'](u1,v),
+                                                    v0,v1))
+        else:
+            self.axis_ini_stack.append(Axis_Wrapper(f=params3['F'],g=params3['G'],
+                                        start=params3['u_min'],stop=params3['u_max']))
+        # save for later
+        self.params1=params1
+        self.params2=params2
+        self.params3=params3
+
+    def set_block(self,width=10.0,height=10.0):
+        """
+        sets original width, height
+        """
+        self.width=width
+        self.height=height
+        min_x,max_x,min_y,max_y=self.axis_ini_stack[0].calc_bound_box()
+        for axis in self.axis_ini_stack:
+            x_left,x_right,y_bottom,y_top=axis.calc_bound_box()
+            if x_left<min_x:
+                min_x=x_left
+            if x_right>max_x:
+                max_x=x_right
+            if y_bottom<min_y:
+                min_y=y_bottom
+            if y_top>max_y:
+                max_y=y_top
+        width_orig=abs(max_x-min_x)
+        height_orig=abs(max_y-min_y)
+        x_factor=width/width_orig
+        y_factor=height/height_orig
+        # redefine scaled functions
+        # F1
+        if self.params1['grid']:
+            self.atom_F1.f=lambda u,v:self.params1['F_grid'](u,v)*x_factor
+            self.atom_F1.g=lambda u,v:self.params1['G_grid'](u,v)*y_factor
+        else:
+            self.atom_F1.f=lambda u:self.params1['F'](u)*x_factor
+            self.atom_F1.g=lambda u:self.params1['G'](u)*y_factor
+        # F2
+        if self.params2['grid']:
+            self.atom_F2.f=lambda u,v:self.params2['F_grid'](u,v)*x_factor
+            self.atom_F2.g=lambda u,v:self.params2['G_grid'](u,v)*y_factor
+        else:
+            self.atom_F2.f=lambda u:self.params2['F'](u)*x_factor
+            self.atom_F2.g=lambda u:self.params2['G'](u)*y_factor
+        # F3
+        if self.params3['grid']:
+            self.atom_F3.f=lambda u,v:self.params3['F_grid'](u,v)*x_factor
+            self.atom_F3.g=lambda u,v:self.params3['G_grid'](u,v)*y_factor
+        else:
+            self.atom_F3.f=lambda u:self.params3['F'](u)*x_factor
+            self.atom_F3.g=lambda u:self.params3['G'](u)*y_factor
+        # save axes for reference calculations
+        # only axes (not grid are used as reference)
+        if self.params1['grid']==False:
+            self.F1_axis=Axis_Wrapper(f=self.atom_F1.f,g=self.atom_F1.g,
+                                 start=self.atom_F1.params['u_min'],
+                                 stop=self.atom_F1.params['u_max'])
+            self.axis_wrapper_stack.append(self.F1_axis)
+        if self.params2['grid']==False:
+            self.F2_axis=Axis_Wrapper(f=self.atom_F2.f,g=self.atom_F2.g,
+                                 start=self.atom_F2.params['u_min'],
+                                 stop=self.atom_F2.params['u_max'])
+            self.axis_wrapper_stack.append(self.F2_axis)
+        if self.params3['grid']==False:
+            self.F3_axis=Axis_Wrapper(f=self.atom_F3.f,g=self.atom_F3.g,
+                                 start=self.atom_F3.params['u_min'],
+                                 stop=self.atom_F3.params['u_max'])
+            self.axis_wrapper_stack.append(self.F3_axis)
+        self.set_reference_axes()
+
 class Nomo_Atom:
     """
     class for single axis or equivalent.
@@ -1680,10 +1935,10 @@ class Nomo_Atom_Grid(Nomo_Atom):
             'title_opposite_tick':True,
             'u_min':None, # for alignment
             'u_max':None,  # for alignment
-            'f_grid':None,
-            'g_grid':None,
+            'F_grid':None,
+            'G_grid':None,
             'u_start':0.0,
-            'u_stop':80.0,
+            'u_stop':1.0,
             'v_start':0.0,
             'v_stop':1.0,
             'u_values':[0.0,0.25,0.5,0.75,1.0],
@@ -1702,8 +1957,8 @@ class Nomo_Atom_Grid(Nomo_Atom):
         self.params['u_min']=self.params['u_start']
         self.params['u_max']=self.params['u_stop']
         self.set_trafo() # initialize
-        self.f=self.params['f_grid']
-        self.g=self.params['g_grid']
+        self.f=self.params['F_grid']
+        self.g=self.params['G_grid']
 
     def give_x(self,u):
         """
@@ -2609,7 +2864,8 @@ if __name__=='__main__':
                 'title':'p',
                 'tick_side':'left',
                 'tick_levels':4,
-                'tick_text_levels':2
+                'tick_text_levels':2,
+                'grid':False
                 }
         block80_f2_para={
                 'u_min':1.0,
@@ -2620,7 +2876,8 @@ if __name__=='__main__':
                 'title':'h',
                 'tick_side':'right',
                 'tick_levels':3,
-                'tick_text_levels':2
+                'tick_text_levels':2,
+                'grid':False
                 }
         block80_f3_para={
                 'u_min':1.0,
@@ -2631,10 +2888,11 @@ if __name__=='__main__':
                 'title':'L',
                 'tick_side':'left',
                 'tick_levels':4,
-                'tick_text_levels':2
+                'tick_text_levels':2,
+                'grid':False
                 }
 
-        block80=Nomo_Block_Type_9()
+        block80=Nomo_Block_Type_9a()
         #block80.define_F1(block80_f1_para)
         #block80.define_F2(block80_f2_para)
         #block80.define_F3(block80_f3_para)
@@ -2708,8 +2966,8 @@ if __name__=='__main__':
             'title_opposite_tick':True,
             'u_min':0.0, # for alignment
             'u_max':1.0,  # for alignment
-            'f_grid':lambda u,v:u+2.0,
-            'g_grid':lambda u,v:2*v,
+            'F_grid':lambda u,v:u+2.0,
+            'G_grid':lambda u,v:2*v,
             'u_start':0.0,
             'u_stop':1.0,
             'v_start':0.0,

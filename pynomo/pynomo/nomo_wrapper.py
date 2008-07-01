@@ -462,7 +462,7 @@ class Nomo_Block(object):
 
 class Nomo_Block_Type_1(Nomo_Block):
     """
-    type F1+F2=F3
+    type F1+F2+F3=0
     """
     def __init__(self,mirror_x=False,mirror_y=False):
         super(Nomo_Block_Type_1,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
@@ -499,7 +499,7 @@ class Nomo_Block_Type_1(Nomo_Block):
         defines function F3
         """
         params['F']=lambda u:1.0*self.x_mirror
-        params['G']=lambda u:-1.0*params['function'](u)*self.y_mirror
+        params['G']=lambda u:1.0*params['function'](u)*self.y_mirror
         self.atom_F3=Nomo_Atom(params)
         self.add_atom(self.atom_F3)
         # for axis calculations original parameters
@@ -519,6 +519,26 @@ class Nomo_Block_Type_1(Nomo_Block):
         delta_3=width/(proportion+1)
         #print delta_1
         #print delta_3
+        if True:
+            x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
+            x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
+            f1_mean=(f1_max+f1_min)/2.0
+            x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
+            x_dummy,f2_min=self.F2_axis_ini.calc_lowest_point()
+            f2_mean=(f2_max+f2_min)/2.0
+            x_dummy,f3_max=self.F3_axis_ini.calc_highest_point()
+            x_dummy,f3_min=self.F3_axis_ini.calc_lowest_point()
+            f3_mean=(f3_max+f3_min)/2.0
+            # this tries to align lines w.r.t each other
+            diff_1=f1_mean-f2_mean
+            diff_3=f3_mean-f2_mean
+            corr=diff_1+diff_3
+            self.F1_axis_ini.g=lambda u:self.atom_F1.params['G'](u)-diff_1+corr/2.0
+            self.F3_axis_ini.g=lambda u:self.atom_F3.params['G'](u)-diff_3+corr/2.0
+            #print "diff_1: %g"%diff_1
+            #print "diff_3: %g"%diff_3
+            #print "corr: %g"%corr
+        # again
         x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
         x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
         x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()

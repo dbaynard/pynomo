@@ -312,7 +312,8 @@ class Nomographer:
                          'mirror_y':False,
                          'width':10.0,
                          'height':10.0,
-                         'transform_ini':False
+                         'transform_ini':False,
+                         'grid':False
                          }
         for key in params_default:
             if not params.has_key(key):
@@ -341,7 +342,8 @@ class Nomographer:
             'manual_axis_data':{},
             'title_distance_center':0.5,
             'title_opposite_tick':True,
-            'title_draw_center':False
+            'title_draw_center':False,
+            'grid':False
             }
         for key in params_default:
             if not params.has_key(key):
@@ -573,7 +575,7 @@ if __name__=='__main__':
                   }
     Nomographer(test8_params)
 
-
+    # test 9
     test9_f1_para={
             'u_min':0.5,
             'u_max':1.0,
@@ -623,3 +625,74 @@ if __name__=='__main__':
                   'transformations':[('scale paper',)]
                   }
     Nomographer(test9_params)
+
+    # test 9 b
+    test9b_f1={
+            'u_min':3.0,
+            'u_max':10.0,
+            'f':lambda u:0,
+            'g':lambda u:u,
+            'h':lambda u:1.0,
+            'title':'A',
+            'title_x_shift':0.0,
+            'title_y_shift':0.25,
+            'scale_type':'linear',
+            'tick_levels':3,
+            'tick_text_levels':2,
+            'tick_side':'right',
+            'tag':'none',
+            'grid':False}
+
+    test9b_f2={
+            'u_min':3.0,
+            'u_max':10.0,
+            'f':lambda u:4.0,
+            'g':lambda u:u,
+            'h':lambda u:1.0,
+            'title':'B',
+            'title_x_shift':0.0,
+            'title_y_shift':0.25,
+            'scale_type':'linear',
+            'tick_levels':3,
+            'tick_text_levels':2,
+            'tick_side':'right',
+            'tag':'none',
+            'grid':False}
+
+    test9b_f3={
+        'ID':'none', # to identify the axis
+        'tag':'none', # for aligning block wrt others
+        'title':'Grid',
+        'title_x_shift':0.0,
+        'title_y_shift':0.25,
+        'title_distance_center':0.5,
+        'title_opposite_tick':True,
+        'u_min':0.0, # for alignment
+        'u_max':1.0,  # for alignment
+        'f_grid':lambda u,v:u+2.0,
+        'g_grid':lambda u,v:2*v,
+        'h_grid':lambda u,v:1.0,
+        'u_start':0.0,
+        'u_stop':1.0,
+        'v_start':0.0,
+        'v_stop':1.0,
+        'u_values':[0.0,0.25,0.5,0.75,1.0],
+        'v_values':[0.0,0.25,0.5,0.75,1.0],
+        'grid':True
+        }
+    test9b_block_params={
+                         'block_type':'type_9',
+                         'f1_params':test9b_f1,
+                         'f2_params':test9b_f2,
+                         'f3_params':test9b_f3,
+                         'transform_ini':False,
+                         }
+
+    test9b_params={
+                  'filename':'test9b.pdf',
+                  'paper_height':10.0,
+                  'paper_width':10.0,
+                  'block_params':[test9b_block_params],
+                  'transformations':[('rotate',0.01),('scale paper',)]
+                  }
+    Nomographer(test9b_params)

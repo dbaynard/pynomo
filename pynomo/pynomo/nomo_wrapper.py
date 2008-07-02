@@ -391,6 +391,7 @@ class Nomo_Block(object):
         draws the Atoms of block
         """
         for atom in self.atom_stack:
+            #print "atom"
             atom.draw(canvas)
 
     def _calc_y_limits_original_(self):
@@ -1416,12 +1417,12 @@ class Nomo_Block_Type_8(Nomo_Block):
         self.axis_wrapper_stack.append(self.F_axis)
         self.set_reference_axes()
 
-class Nomo_Block_Type_9(Nomo_Block):
+class Nomo_Block_Type_9_old(Nomo_Block):
     """
     type determinant and 3 line axes (no grid)
     """
     def __init__(self,mirror_x=False,mirror_y=False):
-        super(Nomo_Block_Type_9,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+        super(Nomo_Block_Type_9_old,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
 
     def define_determinant(self,params1,params2,params3,transform_ini=False):
         """
@@ -1569,13 +1570,13 @@ class Nomo_Block_Type_9(Nomo_Block):
         self.axis_wrapper_stack.append(self.F3_axis)
         self.set_reference_axes()
 
-class Nomo_Block_Type_9a(Nomo_Block):
+class Nomo_Block_Type_9(Nomo_Block):
     """
     type determinant and 3 line axes or grids
     to override type 9
     """
     def __init__(self,mirror_x=False,mirror_y=False):
-        super(Nomo_Block_Type_9a,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+        super(Nomo_Block_Type_9,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
 
     def define_determinant(self,params1,params2,params3,transform_ini=False):
         """
@@ -1627,14 +1628,26 @@ class Nomo_Block_Type_9a(Nomo_Block):
                 ['w',p3['u_max'],'y',10.0]]
             nomo = Nomograph3(f1,g1,h1,f2,g2,h2,f3,g3,h3,vk)
             # F1
-            params1['F']=lambda u:nomo.give_x1(u)*self.x_mirror
-            params1['G']=lambda u:nomo.give_y1(u)*self.y_mirror
+            if p1['grid']:
+                params1['F_grid']=lambda u,v:nomo.give_general_x_grid_fn(p1['f_grid'],p1['g_grid'],p1['h_grid'])(u,v)*self.x_mirror
+                params1['G_grid']=lambda u,v:nomo.give_general_y_grid_fn(p1['f_grid'],p1['g_grid'],p1['h_grid'])(u,v)*self.y_mirror
+            else:
+                params1['F']=lambda u:nomo.give_x1(u)*self.x_mirror
+                params1['G']=lambda u:nomo.give_y1(u)*self.y_mirror
             # F2
-            params2['F']=lambda u:nomo.give_x2(u)*self.x_mirror
-            params2['G']=lambda u:nomo.give_y2(u)*self.y_mirror
+            if p2['grid']:
+                params2['F_grid']=lambda u,v:nomo.give_general_x_grid_fn(p2['f_grid'],p2['g_grid'],p2['h_grid'])(u,v)*self.x_mirror
+                params2['G_grid']=lambda u,v:nomo.give_general_y_grid_fn(p2['f_grid'],p2['g_grid'],p2['h_grid'])(u,v)*self.y_mirror
+            else:
+                params2['F']=lambda u:nomo.give_x2(u)*self.x_mirror
+                params2['G']=lambda u:nomo.give_y2(u)*self.y_mirror
             # F3
-            params3['F']=lambda u:nomo.give_x3(u)*self.x_mirror
-            params3['G']=lambda u:nomo.give_y3(u)*self.y_mirror
+            if p3['grid']:
+                params3['F_grid']=lambda u,v:nomo.give_general_x_grid_fn(p3['f_grid'],p3['g_grid'],p3['h_grid'])(u,v)*self.x_mirror
+                params3['G_grid']=lambda u,v:nomo.give_general_y_grid_fn(p3['f_grid'],p3['g_grid'],p3['h_grid'])(u,v)*self.y_mirror
+            else:
+                params3['F']=lambda u:nomo.give_x3(u)*self.x_mirror
+                params3['G']=lambda u:nomo.give_y3(u)*self.y_mirror
         else: # no initial transformation
             # F1
             if p1['grid']:
@@ -1649,14 +1662,14 @@ class Nomo_Block_Type_9a(Nomo_Block):
                 params2['G_grid']=lambda u,v:p2['g_grid'](u,v)/p2['h_grid'](u,v)*self.y_mirror
             else:
                 params2['F']=lambda u:p2['f'](u)/p2['h'](u)*self.x_mirror
-                params2['G']=lambda u:p2['f'](u)/p2['h'](u)*self.y_mirror
+                params2['G']=lambda u:p2['g'](u)/p2['h'](u)*self.y_mirror
             # F3
             if p3['grid']:
                 params3['F_grid']=lambda u,v:p3['f_grid'](u,v)/p3['h_grid'](u,v)*self.x_mirror
                 params3['G_grid']=lambda u,v:p3['g_grid'](u,v)/p3['h_grid'](u,v)*self.y_mirror
             else:
                 params3['F']=lambda u:p3['f'](u)/p3['h'](u)*self.x_mirror
-                params3['G']=lambda u:p3['f'](u)/p3['h'](u)*self.y_mirror
+                params3['G']=lambda u:p3['g'](u)/p3['h'](u)*self.y_mirror
         # build atoms
         # F1
         if p1['grid']:
@@ -2047,7 +2060,7 @@ if __name__=='__main__':
     do_test_5=False
     do_test_6=False
     do_test_7=False
-    do_test_8=True
+    do_test_8=False
     do_test_9=True
     if do_test_1:
         # build atoms
@@ -2912,7 +2925,7 @@ if __name__=='__main__':
                 'grid':False
                 }
 
-        block80=Nomo_Block_Type_9a()
+        block80=Nomo_Block_Type_9()
         #block80.define_F1(block80_f1_para)
         #block80.define_F2(block80_f2_para)
         #block80.define_F3(block80_f3_para)
@@ -2958,7 +2971,8 @@ if __name__=='__main__':
                 'tick_levels':3,
                 'tick_text_levels':2,
                 'tick_side':'right',
-                'tag':'none'}
+                'tag':'none',
+                'grid':False}
         b_atom1_9=Nomo_Atom(params=block_atom1_para_9)
 
         block_atom2_para_9={
@@ -2973,7 +2987,8 @@ if __name__=='__main__':
                 'tick_levels':3,
                 'tick_text_levels':2,
                 'tick_side':'right',
-                'tag':'none'}
+                'tag':'none',
+                'grid':False}
         b_atom2_9=Nomo_Atom(params=block_atom2_para_9)
 
         block_atom3_para_9={
@@ -2996,25 +3011,99 @@ if __name__=='__main__':
             'v_values':[0.0,0.25,0.5,0.75,1.0],
             'grid':True
             }
-        b_atom3_9=Nomo_Atom_Grid(params=block_atom3_para_9)
-        block_1_9=Nomo_Block()
-        block_1_9.add_atom(b_atom1_9)
-        block_1_9.add_atom(b_atom2_9)
-        block_1_9.add_atom(b_atom3_9)
+#        b_atom3_9=Nomo_Atom_Grid(params=block_atom3_para_9)
+#        block_1_9=Nomo_Block()
+#        block_1_9.add_atom(b_atom1_9)
+#        block_1_9.add_atom(b_atom2_9)
+#        block_1_9.add_atom(b_atom3_9)
+#
+#        wrapper80=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='typegrid.pdf')
+#        wrapper80.add_block(block_1_9)
+#        wrapper80.align_blocks()
+#        wrapper80.build_axes_wrapper() # build structure for optimization
+#        #wrapper1.do_transformation(method='scale paper')
+#        wrapper80.do_transformation(method='rotate',params=0.001)
+#        #wrapper80.do_transformation(method='rotate',params=-30.0)
+#        #wrapper1.do_transformation(method='rotate',params=30.0)
+#        #wrapper1.do_transformation(method='rotate',params=20.0)
+#        #wrapper1.do_transformation(method='rotate',params=90.0)
+#        #wrapper4.do_transformation(method='polygon')
+#        #wrapper1.do_transformation(method='optimize')
+#        wrapper80.do_transformation(method='scale paper')
+#        cc90=canvas.canvas()
+#        wrapper80.draw_nomogram(cc90)
+        block_atom1_para_9a={
+                'u_min':3.0,
+                'u_max':10.0,
+                'f':lambda u:0,
+                'g':lambda u:u,
+                'h':lambda u:1.0,
+                'title':'A',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':3,
+                'tick_text_levels':2,
+                'tick_side':'right',
+                'tag':'none',
+                'grid':False}
 
-        wrapper80=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='typegrid.pdf')
-        wrapper80.add_block(block_1_9)
-        wrapper80.align_blocks()
-        wrapper80.build_axes_wrapper() # build structure for optimization
+        block_atom2_para_9a={
+                'u_min':3.0,
+                'u_max':10.0,
+                'f':lambda u:4.0,
+                'g':lambda u:u,
+                'h':lambda u:1.0,
+                'title':'B',
+                'title_x_shift':0.0,
+                'title_y_shift':0.25,
+                'scale_type':'linear',
+                'tick_levels':3,
+                'tick_text_levels':2,
+                'tick_side':'right',
+                'tag':'none',
+                'grid':False}
+
+        block_atom3_para_9a={
+            'ID':'none', # to identify the axis
+            'tag':'none', # for aligning block wrt others
+            'title':'Grid',
+            'title_x_shift':0.0,
+            'title_y_shift':0.25,
+            'title_distance_center':0.5,
+            'title_opposite_tick':True,
+            'u_min':0.0, # for alignment
+            'u_max':1.0,  # for alignment
+            'f_grid':lambda u,v:u+2.0,
+            'g_grid':lambda u,v:2*v,
+            'h_grid':lambda u,v:1.0,
+            'u_start':0.0,
+            'u_stop':1.0,
+            'v_start':0.0,
+            'v_stop':1.0,
+            'u_values':[0.0,0.25,0.5,0.75,1.0],
+            'v_values':[0.0,0.25,0.5,0.75,1.0],
+            'grid':True
+            }
+        # more abstract way
+        block_1_9a=Nomo_Block_Type_9()
+        block_1_9a.define_determinant(block_atom1_para_9a,block_atom2_para_9a,block_atom3_para_9a)
+        block_1_9a.set_block()
+
+        wrapper80a=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='typegrid_a.pdf')
+        wrapper80a.add_block(block_1_9a)
+        wrapper80a.align_blocks()
+        wrapper80a.build_axes_wrapper() # build structure for optimization
         #wrapper1.do_transformation(method='scale paper')
-        wrapper80.do_transformation(method='rotate',params=0.001)
+        wrapper80a.do_transformation(method='rotate',params=0.001)
         #wrapper80.do_transformation(method='rotate',params=-30.0)
         #wrapper1.do_transformation(method='rotate',params=30.0)
         #wrapper1.do_transformation(method='rotate',params=20.0)
         #wrapper1.do_transformation(method='rotate',params=90.0)
         #wrapper4.do_transformation(method='polygon')
         #wrapper1.do_transformation(method='optimize')
-        wrapper80.do_transformation(method='scale paper')
-        cc90=canvas.canvas()
-        wrapper80.draw_nomogram(cc90)
+        wrapper80a.do_transformation(method='scale paper')
+        cc90a=canvas.canvas()
+        wrapper80a.draw_nomogram(cc90a)
+
     # end of test1

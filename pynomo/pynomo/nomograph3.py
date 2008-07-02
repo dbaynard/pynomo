@@ -28,7 +28,7 @@ class Nomograph3:
                      ['w',0.5,'y',15]]):
         """ arguments (f1,...,h3) are the functions in determinant
         vk is the structure to transform nomograph
-        etc, generally the values set 4 points of axes      
+        etc, generally the values set 4 points of axes
         """
         self.f1=f1
         self.f2=f2
@@ -41,7 +41,7 @@ class Nomograph3:
         self.h3=h3
         self.vk=vk
         self._make_transformation_matrix_()
-        
+
     def _make_row_(self,variable='u',variable_value=0,coordinate='x',coord_value=10):
         """ makes a single row into matrix that transforms final nomographs such that
         value of variable (u,v or w) corresponds to the coordinate (x or y). See eq.37,a
@@ -125,9 +125,24 @@ class Nomograph3:
     def give_y3(self,w):
         value=(self.alpha2*self.f3(w)+self.beta2*self.g3(w)+self.gamma2*self.h3(w))/(self.alpha3*self.f3(w)+self.beta3*self.g3(w)+self.gamma3*self.h3(w))
         return value[0]
+    def give_general_x_grid_fn(self,f,g,h):
+        """
+        gives transformed 2-dimensional (grid) x function
+        f(u,v), g(u,v), h(u,v)
+        """
+        return lambda u,v:(self.alpha1*f(u,v)+self.beta1[0]*g(u,v)+self.gamma1[0]*h(u,v))/\
+        (self.alpha3[0]*f(u,v)+self.beta3[0]*g(u,v)+self.gamma3[0]*h(u,v))
+
+    def give_general_y_grid_fn(self,f,g,h):
+        """
+        gives transformed 2-dimensional (grid) y function
+        f(u,v), g(u,v), h(u,v)
+        """
+        return lambda u,v:(self.alpha2[0]*f(u,v)+self.beta2[0]*g(u,v)+self.gamma2[0]*h(u,v))/\
+        (self.alpha3[0]*f(u,v)+self.beta3[0]*g(u,v)+self.gamma3[0]*h(u,v))
 
 ## Testing
-if __name__=='__main__':    
+if __name__=='__main__':
     def main():
         def f1(u):
             return 2*(u*u-1)

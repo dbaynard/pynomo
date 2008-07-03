@@ -45,7 +45,9 @@ class Nomo_Grid:
                              'u_line_color':color.rgb.black,
                              'v_line_color':color.rgb.black,
                              'text_distance':0.25,
-                             'circles':False # if marker circles
+                             'circles':False, # if marker circles
+                             'text_prefix_u':'', # for example r'$\alpha$='
+                             'text_prefix_v':'', # for example r'$\beta$='
                              }
         self.grid_data=data_default_values
         self.grid_data.update(data)
@@ -66,7 +68,9 @@ class Nomo_Grid:
         for idx,v in enumerate(self.grid_data['v_values']):
             f_here,g_here=self._make_u_funcs_(v)
             if not self.grid_data.has_key('v_texts'):
-                self._draw_line_(f_here,g_here,start,stop,`v`,line_color,
+                #print self.grid_data['text_prefix_v']
+                self._draw_line_(f_here,g_here,start,stop,
+                                 r"%s%2.2f"%(self.grid_data['text_prefix_v'],v),line_color,
                                  start_texts,stop_texts)
             else:
                 self._draw_line_(f_here,g_here,start,stop,
@@ -87,7 +91,8 @@ class Nomo_Grid:
         for idx,u in enumerate(self.grid_data['u_values']):
             f_here,g_here=self._make_v_funcs_(u)
             if not self.grid_data.has_key('u_texts'):
-                self._draw_line_(f_here,g_here,start,stop,`u`,line_color,
+                self._draw_line_(f_here,g_here,start,stop,
+                                  r"%s%2.2f"%(self.grid_data['text_prefix_u'],u),line_color,
                                  start_texts,stop_texts)
             else:
                 self._draw_line_(f_here,g_here,start,stop,
@@ -140,7 +145,7 @@ class Nomo_Grid:
                 delta_u=du*section_length/dl
                 # let's calculate actual length
                 # and iterate until length is in factor 2 from target
-                while True:
+                while False:
                     delta_x=f(u+delta_u)-f(u)
                     delta_y=g(u+delta_u)-g(u)
                     delta_l=sqrt(delta_x**2+delta_y**2)
@@ -180,9 +185,20 @@ class Nomo_Grid:
         """
         dx=(f(u+du)-f(u))
         dy=(g(u+du)-g(u))
-        dx_unit=dx/sqrt(dx**2+dy**2)
-        dy_unit=dy/sqrt(dx**2+dy**2)
+        if sqrt(dx**2+dy**2)==0:
+            dx_unit=0
+            dy_unit=0
+        else:
+            dx_unit=dx/sqrt(dx**2+dy**2)
+            dy_unit=dy/sqrt(dx**2+dy**2)
         if dy_unit!=0:
+            """
+            print "du %g"%du
+            print "dx %g"%dx
+            print "dy %g"%dy
+            print "dx_unit %g"%dx_unit
+            print "dy_unit %g"%dy_unit
+            """
             angle=-atan(dx_unit/dy_unit)*180/pi
         else:
             angle=0

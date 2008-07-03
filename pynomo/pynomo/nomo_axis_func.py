@@ -454,6 +454,7 @@ class Axes_Wrapper:
         """
         x0=[1.0,0,0,0,1.0,0,0,0,1.0]
         self._add_params_trafo_stack_(x0)
+        print "starts optimizing..."
         optimize.fmin(self._calc_min_func_,x0,full_output=1,maxiter=2000)
         #self.alpha1=self.multiplier_x*self.alpha1
         #self.beta1=self.multiplier_x*self.beta1
@@ -634,8 +635,8 @@ class Axes_Wrapper:
         c.fill(path.circle(x4, y4, 0.05))
         c.text(x4+1, y4,'4')
         c.writePDFfile('poly_debug.pdf')
-        print "polygon coords:"
-        print x1,y1,x2,y2,x3,y3,x4,y4
+        #print "polygon coords:"
+        #print x1,y1,x2,y2,x3,y3,x4,y4
         # calculate transformation
         alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
         self._calc_transformation_matrix_(x1,y1,x2,y2,x3,y3,x4,y4,

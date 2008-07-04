@@ -120,7 +120,10 @@ class Nomo_Grid:
 
     def _draw_line_(self,f,g,start,stop,title,axis_color=color.rgb.red,
                     start_texts=False,stop_texts=True):
-        du=fabs(start-stop)*1e-8
+        if start>0 and stop>0:
+            du=max(start,stop)/min(start,stop)*1e-10
+        else:
+            du=fabs(start-stop)*1e-5
         # approximate line length is found
         line_length_straigth=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
         random.seed(0.0) # so that mistakes always the same
@@ -145,18 +148,18 @@ class Nomo_Grid:
                 delta_u=du*section_length/dl
                 # let's calculate actual length
                 # and iterate until length is in factor 2 from target
-                while False:
+                while True:
                     delta_x=f(u+delta_u)-f(u)
                     delta_y=g(u+delta_u)-g(u)
                     delta_l=sqrt(delta_x**2+delta_y**2)
-                    if delta_l>2.0*section_length:
+                    if delta_l>5.0*section_length:
                         delta_u=delta_u*0.999
                         #print "delta_u pienenee:%f"%delta_u
                     else:
-                        if delta_l<section_length/2.0:
+                        if delta_l<section_length/5.0:
                             delta_u=delta_u*1.001
                             #print "delta_u kasvaa:%f"%delta_u
-                    if delta_l<=2*section_length and delta_l>=0.5*section_length:
+                    if delta_l<=5*section_length and delta_l>=0.2*section_length:
                         break
 
                 u+=delta_u
@@ -165,7 +168,7 @@ class Nomo_Grid:
                 line.append(path.lineto(f(u), g(u)))
             else:
                 line.append(path.lineto(f(stop), g(stop)))
-                #print laskuri
+                print laskuri
                 break
 
         self.canvas.stroke(line, [style.linewidth.normal, axis_color])
@@ -290,11 +293,11 @@ if __name__=='__main__':
     time_titles=['January','February','March','April','May','June',
                  'July','August','September','October','November','December']
     #times.append(365)
-    data={   'u_start':40.0, # latitude
+    data={   'u_start':20.0, # latitude
              'u_stop':80.0,
              'v_start':times1[0], # day
              'v_stop':times1[-1],
-             'u_values':[40.0,50.0,60.0,70.0,80.0],
+             'u_values':[20.0,30.0,40.0,50.0,60.0,70.0,80.0],
              #'v_values':[0.0,60.0,120.0,180.0,240.0,300.0,365.0]
              'v_values':times1,
              'v_texts':time_titles}

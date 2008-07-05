@@ -149,6 +149,20 @@ class Nomographer:
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'])
                 wrapper.add_block(blocks[-1])
+            # TYPE 10
+            if block_para['block_type']=='type_10':
+                self._check_block_type_10_params_(block_para)
+                blocks.append(Nomo_Block_Type_10(mirror_x=block_para['mirror_x'],
+                                                mirror_y=block_para['mirror_y']))
+                self._check_axis_params_(block_para['f1_params'])
+                self._check_axis_params_(block_para['f2_params'])
+                self._check_axis_params_(block_para['f3_params'])
+                blocks[-1].define_F1(block_para['f1_params'])
+                blocks[-1].define_F2(block_para['f2_params'])
+                blocks[-1].define_F3(block_para['f3_params'])
+                blocks[-1].set_block(width=block_para['width'],
+                                     height=block_para['height'])
+                wrapper.add_block(blocks[-1])
         wrapper.align_blocks()
         wrapper.build_axes_wrapper() # build structure for transformations
         for trafo in params['transformations']:
@@ -319,6 +333,19 @@ class Nomographer:
                          'u_texts_v_start':False,
                          'u_texts_v_stop':True,
                          }
+        for key in params_default:
+            if not params.has_key(key):
+                params[key]=params_default[key]
+
+    def _check_block_type_10_params_(self,params):
+        """
+        checks if block type 10 params ok and adds default values
+        """
+        params_default={
+                         'mirror_x':False,
+                         'mirror_y':False,
+                         'width':10.0,
+                         'height':10.0}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -850,3 +877,51 @@ if __name__=='__main__':
                   'transformations':[('rotate',0.01),('polygon',),('scale paper',)]
                   }
     Nomographer(test9d_params)
+
+    # test type 10
+    test_10_f1={
+    'u_min':-25.0,
+    'u_max':0.0,
+    'function':lambda u:u,
+    'title':'F1',
+    'tag':'none',
+    'tick_side':'right',
+    'tick_levels':2,
+    'tick_text_levels':1
+            }
+    test_10_f2={
+    'u_min':-5.0,
+    'u_max':0.0,
+    'function':lambda u:u,
+    'title':'F2',
+    'tag':'none',
+    'tick_side':'right',
+    'tick_levels':2,
+    'tick_text_levels':1
+            }
+    test_10_f3={
+    'u_min':0.5,
+    'u_max':5.0,
+    'function_3':lambda u:u,
+    'function_4':lambda u:u**2,
+    'title':'F3',
+    'tag':'none',
+    'tick_side':'right',
+    'tick_levels':2,
+    'tick_text_levels':1
+            }
+    test10_block_params={
+                         'block_type':'type_10',
+                         'f1_params':test_10_f1,
+                         'f2_params':test_10_f2,
+                         'f3_params':test_10_f3,
+                         }
+
+    test10_params={
+                  'filename':'test10.pdf',
+                  'paper_height':10.0,
+                  'paper_width':10.0,
+                  'block_params':[test10_block_params],
+                  'transformations':[('rotate',0.01),('scale paper',)]
+                  }
+    Nomographer(test10_params)

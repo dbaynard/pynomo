@@ -1837,6 +1837,90 @@ class Nomo_Block_Type_9(Nomo_Block):
             self.axis_wrapper_stack.append(self.F3_axis)
         self.set_reference_axes()
 
+class Nomo_Block_Type_10(Nomo_Block):
+    """
+    type F1(u)+F2(v)*F3(w)+F4(w)=0
+    Levens: Chapter 10
+    """
+    def __init__(self,mirror_x=False,mirror_y=False):
+        super(Nomo_Block_Type_10,self).__init__(mirror_x=mirror_x,mirror_y=mirror_y)
+
+    def define_F1(self,params):
+        """
+        defines function F1
+        """
+        self.F1=params['function']
+        self.params_F1=params
+
+    def define_F2(self,params):
+        """
+        defines function F2
+        """
+        self.F2=params['function']
+        self.params_F2=params
+
+    def define_F3(self,params):
+        """
+        defines function F3
+        """
+        self.F3_3=params['function_3']
+        self.F3_4=params['function_4']
+        self.params_F3=params
+
+    def set_block(self,height=10.0,width=10.0):
+        """
+        sets the N-nomogram of the block using geometrical approach from Levens
+        f1 and f3 scales are set to equal length by using multipliers c1 and c2
+        """
+        self.width=width
+        self.height=height
+        length_f1_ini=max(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))-\
+                      min(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
+        length_f2_ini=max(self.F2(self.params_F2['u_min']),self.F2(self.params_F2['u_max']))-\
+                      min(self.F2(self.params_F2['u_min']),self.F2(self.params_F2['u_max']))
+        #c1=length_f2_ini/length_f1_ini
+        #c2=c1
+        #length_f1=max(c1*self.F1(self.params_F1['u_min']),c1*self.F1(self.params_F1['u_max']))
+        #length_f3=max(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))
+        #    length_f1=length_f3
+        m1=height/length_f1_ini
+        m2=height/length_f2_ini
+        K=width
+        # 1
+        y_offset_1=m1*min(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
+        y_offset_2=m2*min(self.F2(self.params_F2['u_min']),self.F2(self.params_F2['u_max']))
+        offset_2_1=y_offset_2-y_offset_1
+        self.params_F1['F']=lambda u:0.0
+        self.params_F1['G']=lambda u:(self.F1(u)*m1)*self.y_mirror
+        self.atom_F1=Nomo_Atom(self.params_F1)
+        self.add_atom(self.atom_F1)
+        # 2
+        self.params_F2['F']=lambda u:(width)*self.x_mirror
+        self.params_F2['G']=lambda u:(self.F2(u)*m2-offset_2_1)*self.y_mirror
+        self.atom_F2=Nomo_Atom(self.params_F2)
+        self.add_atom(self.atom_F2)
+        # 3
+        x_func=lambda u:(K*m1*self.F3_3(u)/(m1*self.F3_3(u)+m2))
+        self.params_F3['F']=lambda u:(K*m1*self.F3_3(u)/(m1*self.F3_3(u)+m2))*self.x_mirror
+        self.params_F3['G']=lambda u:(-m1*m2*self.F3_4(u)/(m1*self.F3_3(u)+m2)-x_func(u)/width*offset_2_1)*self.y_mirror
+        self.atom_F3=Nomo_Atom(self.params_F3)
+        self.add_atom(self.atom_F3)
+
+        self.F1_axis=Axis_Wrapper(f=self.params_F1['F'],g=self.params_F1['G'],
+                             start=self.params_F1['u_min'],stop=self.params_F1['u_max'])
+        self.axis_wrapper_stack.append(self.F1_axis)
+
+        self.F2_axis=Axis_Wrapper(f=self.params_F2['F'],g=self.params_F2['G'],
+                             start=self.params_F2['u_min'],stop=self.params_F2['u_max'])
+        self.axis_wrapper_stack.append(self.F2_axis)
+
+        self.F3_axis=Axis_Wrapper(f=self.params_F3['F'],g=self.params_F3['G'],
+                             start=self.params_F3['u_min'],stop=self.params_F3['u_max'])
+        self.axis_wrapper_stack.append(self.F3_axis)
+        self.set_reference_axes()
+
+
+
 class Nomo_Atom:
     """
     class for single axis or equivalent.
@@ -2061,7 +2145,8 @@ if __name__=='__main__':
     do_test_6=False
     do_test_7=False
     do_test_8=False
-    do_test_9=True
+    do_test_9=False
+    do_test_10=True
     if do_test_1:
         # build atoms
         block1_atom1_para={
@@ -3106,4 +3191,56 @@ if __name__=='__main__':
         cc90a=canvas.canvas()
         wrapper80a.draw_nomogram(cc90a)
 
-    # end of test1
+    if do_test_10:
+        block_atom_10_1={
+        'u_min':-25.0,
+        'u_max':0.0,
+        'function':lambda u:u,
+        'title':'F1',
+        'tag':'none',
+        'tick_side':'right',
+        'tick_levels':2,
+        'tick_text_levels':1
+                }
+        block_atom_10_2={
+        'u_min':-5.0,
+        'u_max':0.0,
+        'function':lambda u:u,
+        'title':'F2',
+        'tag':'none',
+        'tick_side':'right',
+        'tick_levels':2,
+        'tick_text_levels':1
+                }
+        block_atom_10_3={
+        'u_min':0.5,
+        'u_max':5.0,
+        'function_3':lambda u:u,
+        'function_4':lambda u:u**2,
+        'title':'F3',
+        'tag':'none',
+        'tick_side':'right',
+        'tick_levels':2,
+        'tick_text_levels':1
+                }
+        block_1_10=Nomo_Block_Type_10()
+        block_1_10.define_F1(block_atom_10_1)
+        block_1_10.define_F2(block_atom_10_2)
+        block_1_10.define_F3(block_atom_10_3)
+        block_1_10.set_block()
+
+        wrapper10=Nomo_Wrapper(paper_width=10.0,paper_height=10.0,filename='type_10.pdf')
+        wrapper10.add_block(block_1_10)
+        wrapper10.align_blocks()
+        wrapper10.build_axes_wrapper() # build structure for optimization
+        #wrapper1.do_transformation(method='scale paper')
+        wrapper10.do_transformation(method='rotate',params=0.001)
+        #wrapper80.do_transformation(method='rotate',params=-30.0)
+        #wrapper1.do_transformation(method='rotate',params=30.0)
+        #wrapper1.do_transformation(method='rotate',params=20.0)
+        #wrapper1.do_transformation(method='rotate',params=90.0)
+        #wrapper4.do_transformation(method='polygon')
+        #wrapper1.do_transformation(method='optimize')
+        wrapper10.do_transformation(method='scale paper')
+        cc10=canvas.canvas()
+        wrapper10.draw_nomogram(cc10)

@@ -612,6 +612,53 @@ class Nomo_Block_Type_2(Nomo_Block):
         """
         self.width=width
         self.height=height
+        length_f1_ini=max(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))-\
+                    min(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
+        length_f3_ini=max(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))-\
+                     min(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))
+        K1=width
+        #    length_f1=length_f3
+        m1=height/length_f1_ini
+        m3=height/length_f3_ini
+        f1_min=m1*min(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
+        f3_max=m3*max(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))
+        y_offset_1_3=f1_min-(height-f3_max)
+
+        K=sqrt(height**2+width**2)
+        self.params_F1['F']=lambda u:0.0
+        self.params_F1['G']=lambda u:((self.F1(u))*m1)*self.y_mirror
+        self.atom_F1=Nomo_Atom(self.params_F1)
+        self.add_atom(self.atom_F1)
+        x_func=lambda u:(width-K*m3/(m1*self.F2(u)+m3)*width/K)
+        self.params_F2['F']=lambda u:(width-K*m3/(m1*self.F2(u)+m3)*width/K)*self.x_mirror
+        self.params_F2['G']=lambda u:(height-K*m3/(m1*self.F2(u)+m3)*height/K+x_func(u)/width*y_offset_1_3)*self.y_mirror
+        self.atom_F2=Nomo_Atom(self.params_F2)
+        self.add_atom(self.atom_F2)
+        self.params_F3['F']=lambda u:(width)*self.x_mirror
+        self.params_F3['G']=lambda u:((height-(self.F3(u))*m3)+y_offset_1_3)*self.y_mirror
+        self.atom_F3=Nomo_Atom(self.params_F3)
+        self.add_atom(self.atom_F3)
+
+        self.F1_axis=Axis_Wrapper(f=self.params_F1['F'],g=self.params_F1['G'],
+                             start=self.params_F1['u_min'],stop=self.params_F1['u_max'])
+        self.axis_wrapper_stack.append(self.F1_axis)
+
+        self.F2_axis=Axis_Wrapper(f=self.params_F2['F'],g=self.params_F2['G'],
+                             start=self.params_F2['u_min'],stop=self.params_F2['u_max'])
+        self.axis_wrapper_stack.append(self.F2_axis)
+
+        self.F3_axis=Axis_Wrapper(f=self.params_F3['F'],g=self.params_F3['G'],
+                             start=self.params_F3['u_min'],stop=self.params_F3['u_max'])
+        self.axis_wrapper_stack.append(self.F3_axis)
+        self.set_reference_axes()
+
+    def set_block_old(self,height=10.0,width=10.0):
+        """
+        sets the N-nomogram of the block using geometrical approach from Levens
+        f1 and f3 scales are set to equal length by using multipliers c1 and c2
+        """
+        self.width=width
+        self.height=height
         length_f1_ini=max(self.F1(self.params_F1['u_min']),self.F1(self.params_F1['u_max']))
         length_f3_ini=max(self.F3(self.params_F3['u_min']),self.F3(self.params_F3['u_max']))
         c1=length_f3_ini/length_f1_ini
@@ -2138,14 +2185,24 @@ if __name__=='__main__':
     6. draw nomogram in nomowrapper
     """
     do_test_1=False
+    #do_test_1=True
     do_test_2=False
-    do_test_3=False
+    #do_test_2=True
+    #do_test_3=False
+    do_test_3=True
     do_test_4=False
+    #do_test_4=True
     do_test_5=False
+    #do_test_5=True
     do_test_6=False
+    #do_test_6=True
     do_test_7=False
+    #do_test_7=True
     do_test_8=False
+    #do_test_8=True
     do_test_9=False
+    do_test_9=True
+    #do_test_10=False
     do_test_10=True
     if do_test_1:
         # build atoms
@@ -2706,8 +2763,8 @@ if __name__=='__main__':
                 'title':'monthly payment',
                 'tag':'none',
                 'tick_side':'right',
-                'tick_levels':5,
-                'tick_text_levels':3,
+                'tick_levels':3,
+                'tick_text_levels':2,
                 'title_draw_center':True
                         }
 

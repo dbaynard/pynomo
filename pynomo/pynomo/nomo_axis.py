@@ -693,7 +693,7 @@ def find_linear_ticks(start,stop):
     stop_ax=None
     for step in range(0,9001):
         number=start_major+step*tick_4
-        if number>=start and number<=stop:
+        if number>=start and number<=(stop*(1+1e-12)): # stupid numerical correction
             if start_ax==None:
                 start_ax=number
             stop_ax=number

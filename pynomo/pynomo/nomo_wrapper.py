@@ -422,7 +422,7 @@ class Nomo_Block(object):
         y_range=max_y-min_y
         for atom in self.atom_stack:
             if atom.params['reference']==True:
-                y_addition=y_range*atom.params['reference padding']
+                y_addition=y_range*atom.params['reference_padding']
                 #print "y_addition"
                 #print y_addition
                 atom.f_ref=atom.f
@@ -976,18 +976,18 @@ class Nomo_Block_Type_4(Nomo_Block):
         self.atom_F4=Nomo_Atom(self.params_F4)
         self.add_atom(self.atom_F4)
         # set side of text in axes
-        if self.x_mirror<0:
-            self.atom_F1.params['tick_side']='right'
-            self.atom_F2.params['tick_side']='left'
-        else:
-            self.atom_F1.params['tick_side']='left'
-            self.atom_F2.params['tick_side']='right'
-        if self.y_mirror<0:
-            self.atom_F3.params['tick_side']='right'
-            self.atom_F4.params['tick_side']='right'
-        else:
-            self.atom_F3.params['tick_side']='left'
-            self.atom_F4.params['tick_side']='left'
+#        if self.x_mirror<0:
+#                self.atom_F1.params['tick_side']='right'
+#                self.atom_F2.params['tick_side']='left'
+#        else:
+#                self.atom_F1.params['tick_side']='left'
+#                self.atom_F2.params['tick_side']='right'
+#        if self.y_mirror<0:
+#                self.atom_F3.params['tick_side']='right'
+#                self.atom_F4.params['tick_side']='left'
+#        else:
+#                self.atom_F3.params['tick_side']='left'
+#                self.atom_F4.params['tick_side']='right'
 
         # let's make centerline
         center_line_para={
@@ -1990,7 +1990,7 @@ class Nomo_Atom:
             'tick_side':'right',
             'reference':False,
             'grid':False,
-            'reference padding': 0.20, # fraction of reference line over other lines
+            'reference_padding': 0.20, # fraction of reference line over other lines
             'manual_axis_data':{},
             'title_distance_center':0.5,
             'title_opposite_tick':True,

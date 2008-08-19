@@ -30,7 +30,8 @@ class Nomo_Axis:
                  text_style='normal',title_x_shift=0,title_y_shift=0.25,
                  tick_levels=4,tick_text_levels=3,
                  text_color=color.rgb.black, axis_color=color.rgb.black,
-                 manual_axis_data={},axis_appear={},side='left'):
+                 manual_axis_data={},axis_appear={},side='left',
+                 base_start=None, base_stop=None):
         self.func_f=func_f
         self.func_g=func_g
         self.start=start
@@ -72,7 +73,8 @@ class Nomo_Axis:
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
         if type=='linear':
-            self._make_linear_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
+            self._make_linear_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn,
+                                    base_start=base_start,base_stop=base_stop)
         if type=='manual point':
             self._make_manual_axis_circle_(manual_axis_data)
         if type=='manual line':
@@ -206,7 +208,7 @@ class Nomo_Axis:
         self.thin_line=thin_line
         self.texts=texts
 
-    def _make_linear_axis_(self,start,stop,f,g,turn=1):
+    def _make_linear_axis_(self,start,stop,f,g,turn=1,base_start=None,base_stop=None):
         """
         Makes a linear scale according to functions f(u) and g(u)
         with values u in range [start, stop].
@@ -218,7 +220,7 @@ class Nomo_Axis:
         texts=[]
         # let's find tick positions
         tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
-        find_linear_ticks(start,stop)
+        find_linear_ticks(start,stop,base_start,base_stop)
         # let's find tick angles
         dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop)
         dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop)
@@ -666,13 +668,16 @@ def _find_closest_tick_number_(number,tick_divisor):
         error=math.fabs(tick_number-number)
     return tick_number
 
-def find_linear_ticks(start,stop):
+def find_linear_ticks(start,stop,base_start=None,base_stop=None):
     """
     finds tick values for linear axis
     """
     if start>stop:
         start,stop=stop,start
-    scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop))-0.5)
+    if (base_start != None) and (base_stop != None):
+        scale_max=10.0**math.ceil(math.log10(math.fabs(base_start-base_stop))-0.5)
+    else:
+        scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop))-0.5)
     tick_0=scale_max/10.0
     tick_1=scale_max/20.0
     tick_2=scale_max/100.0

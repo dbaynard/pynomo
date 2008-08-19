@@ -188,7 +188,7 @@ class Nomo_Wrapper:
         Finds "polygon" transformation
         """
         self.axes_wrapper.make_polygon_trafo()
-        #self.axes_wrapper._print_result_pdf_("dummy1_polygon.pdf")
+        self.axes_wrapper._print_result_pdf_("dummy1_polygon.pdf")
 
     def _do_rotate_trafo_(self,params):
         """
@@ -1997,10 +1997,16 @@ class Nomo_Atom:
             'align_func':lambda u:u, # function to align different scalings
             'align_x_offset':0.0,
             'align_y_offset':0.0,
-            'aligned':False
+            'aligned':False,
+            'extra_params':[], # additional axis params
             }
         self.params=self.params_default
         self.params.update(params)
+        # let's make default values for extra params
+        for idx,iter_params in enumerate(self.params['extra_params']):
+            for key in self.params_default:
+                if not iter_params.has_key(key):
+                    self.params['extra_params'][idx][key]=self.params_default[key]
         self.set_trafo() # initialize
         self.f = self.params['F'] # x-coord func
         self.g = self.params['G'] # y-coord func
@@ -2071,7 +2077,15 @@ class Nomo_Atom:
                       tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
                       side=p['tick_side'],manual_axis_data=p['manual_axis_data'],
                       title_x_shift=p['title_x_shift'],title_y_shift=p['title_y_shift'],
-                      axis_appear=p) # we take whole p dictionary in this case..
+                      axis_appear=p)
+            for pp in p['extra_params']:
+                    Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
+                      start=pp['u_min'],stop=pp['u_max'],
+                      turn=-1,title='',canvas=canvas,type=pp['scale_type'],
+                      tick_levels=pp['tick_levels'],tick_text_levels=pp['tick_text_levels'],
+                      side=pp['tick_side'],manual_axis_data=pp['manual_axis_data'],
+                      title_x_shift=pp['title_x_shift'],title_y_shift=pp['title_y_shift'],
+                      axis_appear=pp,base_start=p['u_min'],base_stop=p['u_max'])
         else: # reference axis
             #print "u_min_ref"
             #print self.u_min_ref
@@ -2115,11 +2129,16 @@ class Nomo_Atom_Grid(Nomo_Atom):
             'u_texts_v_stop':True,
             'u_line_color':color.rgb.black,
             'v_line_color':color.rgb.black,
+            'extra_params':[],
             }
         self.params=self.params_default
         self.params.update(params)
         self.params['u_min']=self.params['u_start']
         self.params['u_max']=self.params['u_stop']
+        for idx,iter_params in enumerate(self.params['extra_params']):
+            for key in self.params_default:
+                if not iter_params.has_key(key):
+                    self.params['extra_params'][idx][key]=self.params_default[key]
         self.set_trafo() # initialize
         self.f=self.params['F_grid']
         self.g=self.params['G_grid']
@@ -2164,9 +2183,12 @@ class Nomo_Atom_Grid(Nomo_Atom):
         """
         draws the grid
         """
+        for pp in self.params['extra_params']:
+            Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
+                        canvas=canvas,data=pp)
+        # main nomogram
         gridi=Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
                         canvas=canvas,data=self.params)
-
 
 if __name__=='__main__':
     """

@@ -25,7 +25,8 @@ class Nomographer:
         params hold all information to build the nomograph
         """
         self._check_params_(params) # sets default values for missing keys
-        wrapper=Nomo_Wrapper(paper_width=params['paper_width'],
+        wrapper=Nomo_Wrapper(params=params,
+                             paper_width=params['paper_width'],
                              paper_height=params['paper_height'],
                              filename=params['filename'])
         blocks=[]
@@ -172,6 +173,7 @@ class Nomographer:
                 wrapper.do_transformation(method=trafo[0])
         c=canvas.canvas()
         wrapper.draw_nomogram(c)
+        self.blocks=blocks  # save for debugging
 
     def _check_params_(self,params):
         """
@@ -369,7 +371,7 @@ class Nomographer:
             'tick_text_levels':3,
             'tick_side':'right',
             'reference':False,
-            'reference padding': 0.20, # fraction of reference line over other lines
+            'reference_padding': 0.20, # fraction of reference line over other lines
             'manual_axis_data':{},
             'title_distance_center':0.5,
             'title_opposite_tick':True,

@@ -1146,7 +1146,7 @@ class Nomo_Block_Type_5(Nomo_Block):
 
     def _build_wd_axis_(self):
         """
-        builds w_axis
+        builds wd_axis
         """
         para_wd=self.grid_box.params_wd
         self.atom_wd=Nomo_Atom(para_wd)

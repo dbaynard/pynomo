@@ -1445,7 +1445,11 @@ class Nomo_Block_Type_8(Nomo_Block):
         """
         defines function F1
         """
-        params['F']=lambda u:1.0*self.x_mirror
+        if params.has_key('function_y'):
+            params['function']=params['function_y']
+        if not params.has_key('function_x'):
+            params['function_x']=lambda u:1.0
+        params['F']=lambda u:params['function_x'](u)*self.x_mirror
         params['G']=lambda u:params['function'](u)*self.y_mirror
         self.atom_F=Nomo_Atom(params)
         self.add_atom(self.atom_F)

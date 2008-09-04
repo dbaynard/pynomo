@@ -393,6 +393,68 @@ class Nomo_Axis:
                 main_line.append(path.lineto(f(stop), g(stop)))
                 break
 
+    def _find_center_value_(self,start,stop,f,g):
+        """
+        finds value of approximate centerpoint of line
+        """
+        if start>stop:
+            start,stop=stop,start
+        du=math.fabs(stop-start)*1e-12
+        # approximate line length is found
+        line_length_straigth=math.sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
+        random.seed(0.0) # so that mistakes always the same
+        for dummy in range(100): # for case if start = stop
+            first=random.uniform(start,stop)
+            second=random.uniform(start,stop)
+            temp=math.sqrt((f(first)-f(second))**2+(g(first)-g(second))**2)
+            if temp>line_length_straigth:
+                line_length_straigth=temp
+                #print "length: %f"%line_length_straigth
+        sections=350.0 # about number of sections
+        section_length=line_length_straigth/sections
+        # let's start length
+        u=start
+        length=0.0
+        counter=0
+        while True:
+            if u<stop:
+                dx=(f(u+du)-f(u))
+                dy=(g(u+du)-g(u))
+                dl=math.sqrt(dx**2+dy**2)
+                if dl>0:
+                    delta_u=du*section_length/dl
+                else:
+                    delta_u=du
+                length+=section_length
+                u+=delta_u
+            else:
+                break
+            #counter+=1
+            #print counter
+        #print "length %g" % length
+        # let's find middlepoint
+        u=start
+        length_0=0.0
+        counter=0
+        while True:
+            if length_0<(length/2.0):
+                dx=(f(u+du)-f(u))
+                dy=(g(u+du)-g(u))
+                dl=math.sqrt(dx**2+dy**2)
+                if dl>0:
+                    delta_u=du*section_length/dl
+                else:
+                    delta_u=du
+                length_0+=section_length
+                u+=delta_u
+            else:
+                break
+            counter+=1
+            #print counter
+            #print length_0
+        return u
+
+
     def _make_log_axis_old(self,start,stop,f,g,turn=1):
         """
         OBSOLETE
@@ -581,13 +643,16 @@ class Nomo_Axis:
         """
         f=self.func_f
         g=self.func_g
-        u_mid=(self.start+self.stop)/2.0
-        x_start=f(self.start)
-        x_stop=f(self.stop)
-        y_start=g(self.start)
-        y_stop=g(self.stop)
-        center_x=(x_start+x_stop)/2.0
-        center_y=(y_start+y_stop)/2.0
+        u_mid=self._find_center_value_(self.start,self.stop,f,g)
+        #u_mid=(self.start+self.stop)/2.0
+        #x_start=f(self.start)
+        #x_stop=f(self.stop)
+        #y_start=g(self.start)
+        #y_stop=g(self.stop)
+        #center_x=(x_start+x_stop)/2.0
+        #center_y=(y_start+y_stop)/2.0
+        center_x=f(u_mid)
+        center_y=g(u_mid)
 
         du=math.fabs(self.start-self.stop)*1e-6
         turn=self.turn

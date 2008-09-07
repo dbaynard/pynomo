@@ -66,7 +66,8 @@ class Nomo_Axis:
                              'text_size_log_2': text.size.tiny,
                              'title_distance_center':0.5,
                              'title_opposite_tick':True,
-                             'title_draw_center':False}
+                             'title_draw_center':False,
+                             'text_format':"$%3.2f$"}
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
 
@@ -678,7 +679,8 @@ class Nomo_Axis:
         if self.text_style=='oldstyle':
             return r"$\oldstylenums{%3.2f}$ " %u
         else:
-            return r"$%3.2f$ " %u
+            #return r"$%3.2f$ " %u
+            return self.axis_appear['text_format'] % u
 
 #    def _determine_turn_(self):
 #        """

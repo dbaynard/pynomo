@@ -1038,7 +1038,7 @@ class Nomo_Block_Type_5(Nomo_Block):
         sets block up
         """
         self._build_u_axis_()
-        self._build_v_axis_()
+        #self._build_v_axis_()
         self._build_w_axis_()
         self._build_wd_axis_()
         self.set_reference_axes()
@@ -1063,7 +1063,7 @@ class Nomo_Block_Type_5(Nomo_Block):
                 xt=self._give_trafo_x_(x, y)
                 yt=self._give_trafo_y_(x, y)
                 line.append(path.lineto(xt, yt))
-        for v_line in self.grid_box.v_lines:
+        for index,v_line in enumerate(self.grid_box.v_lines):
             x0,y0=v_line[0]
             x0t=self._give_trafo_x_(x0, y0)
             y0t=self._give_trafo_y_(x0, y0)
@@ -1072,9 +1072,65 @@ class Nomo_Block_Type_5(Nomo_Block):
                 xt=self._give_trafo_x_(x, y)
                 yt=self._give_trafo_y_(x, y)
                 line.append(path.lineto(xt, yt))
+            # make texts
+            x_start,y_start=v_line[0]
+            x_stop,y_stop=v_line[-1]
+            xt_start=self._give_trafo_x_(x_start, y_start)
+            xt_stop=self._give_trafo_x_(x_stop, y_stop)
+            yt_start=self._give_trafo_y_(x_start, y_start)
+            yt_stop=self._give_trafo_y_(x_stop, y_stop)
+            title=self.params['v_values'][index]
+            if yt_start>yt_stop:
+                x_1,y_1=v_line[2] # two first points are identical
+                xt_1=self._give_trafo_x_(x_1, y_1)
+                yt_1=self._give_trafo_y_(x_1, y_1)
+                xt,yt=xt_start,yt_start
+            else:
+                x_1,y_1=v_line[-2]
+                xt_1=self._give_trafo_x_(x_1, y_1)
+                yt_1=self._give_trafo_y_(x_1, y_1)
+                xt,yt=xt_stop,yt_stop
+            dx=xt_1-xt
+            dy=yt_1-yt
+            self._draw_v_text_(xt,yt,dx,dy,canvas,title)
         canvas.stroke(line, [style.linewidth.normal])
         self._draw_horizontal_guides_(canvas)
         self._draw_vertical_guides_(canvas)
+
+    def _draw_v_text_(self,x,y,dx,dy,canvas,title):
+        """"
+        draws titles to v-contours
+        """
+        if sqrt(dx**2+dy**2)==0:
+            dx_unit=0
+            dy_unit=0
+        else:
+            dx_unit=dx/sqrt(dx**2+dy**2)
+            dy_unit=dy/sqrt(dx**2+dy**2)
+        if dy_unit!=0:
+            angle=-atan(dx_unit/dy_unit)*180/pi
+        else:
+            angle=0
+        text_distance=0.5
+        if dy>=0.0:
+            if (angle-90.0)<=-90.0:
+                angle=angle+180.0
+            if dx_unit>0.0:
+                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle-90)]
+            if dx_unit<=0.0:
+                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle-90)]
+        else:
+            if (angle+90.0)>=90.0:
+                angle=angle-180.0
+            if dx_unit>0.0:
+                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle+90)]
+            if dx_unit<=0.0:
+                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle+90)]
+        text_distance=0.25
+        canvas.text(x-text_distance*dx_unit,
+                    y-text_distance*dy_unit,
+                    title,text_attr)
+
 
     def _draw_horizontal_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """

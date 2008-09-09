@@ -329,7 +329,7 @@ class Nomo_Grid_Box(object):
         """
         line starting from x scale
         code copied originally form nomo_axis_func.py: _calculate_points_
-        v_func is the functio(x,p)
+        v_func is the function(x,p)
         p is the parametric value of the top scale
         """
         # find top and bottom lines
@@ -354,7 +354,19 @@ class Nomo_Grid_Box(object):
         #print "x_bottom %f" % x_bottom
         #print "g(x_top) %f"%g(x_top)
         #print "g(x_bottom) %f" %g(x_bottom)
-
+        if self.params['manual_x_scale']==True:
+            x_min_limit=self.params['x_min']
+            x_max_limit=self.params['x_max']
+            if x_min_limit>x_max_limit:
+                x_min_limit,x_max_limit=x_max_limit,x_min_limit
+            if x_top>x_max_limit:
+                x_top=x_max_limit
+            if x_top<x_min_limit:
+                x_top=x_min_limit
+            if x_bottom>x_max_limit:
+                x_bottom=x_max_limit
+            if x_bottom<x_min_limit:
+                x_bottom=x_min_limit
         start=min(x_top,x_bottom)
         stop=max(x_top,x_bottom)
         du=fabs(stop-start)*1e-12

@@ -70,7 +70,7 @@ class Nomo_Grid_Box(object):
                                'v_title':'',
                                'w_title':'',
                                'wd_title':'',
-                               'u_tick_side':'left',
+                               'u_tick_side':None, # can be overriden
                                'u_tick_levels':0,
                                'u_tick_text_levels':0,
                                'v_tick_side':'right',
@@ -98,6 +98,8 @@ class Nomo_Grid_Box(object):
                                'v_title_draw_center':True,
                                'wd_title_draw_center':True,
                                'w_title_draw_center':True,
+                               'u_text_format':r"$%3.2f$ ",
+                               'v_text_format':r"$%3.2f$ "
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -126,7 +128,7 @@ class Nomo_Grid_Box(object):
         u_func = self.u_func # defined in scaling
         u_manual_axis_data = {}
         for u_value in self.params['u_values']:
-            u_manual_axis_data[u_value]='%3.2f'%u_value
+            u_manual_axis_data[u_value]=self.params['u_text_format']%u_value
         self.params_u={
             'u_min':min(self.params['u_values']),
             'u_max':max(self.params['u_values']),
@@ -142,7 +144,8 @@ class Nomo_Grid_Box(object):
             'tick_text_levels':self.params['u_tick_text_levels'], # not really used, yet
             'title_opposite_tick':self.params['u_title_opposite_tick'],
             'title_distance_center':self.params['u_title_distance_center'],
-            'title_draw_center':self.params['u_title_draw_center']
+            'title_draw_center':self.params['u_title_draw_center'],
+            #'text_format':self.params['u_text_format'],
             }
         return self.params_u
 
@@ -178,7 +181,8 @@ class Nomo_Grid_Box(object):
             'tick_text_levels':self.params['v_tick_text_levels'], # not really used, yet
             'title_opposite_tick':self.params['v_title_opposite_tick'],
             'title_distance_center':self.params['v_title_distance_center'],
-            'title_draw_center':self.params['v_title_draw_center']
+            'title_draw_center':self.params['v_title_draw_center'],
+            'text_format':self.params['v_text_format'],
             }
         return self.params_v
 

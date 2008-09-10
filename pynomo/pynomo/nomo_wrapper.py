@@ -1048,6 +1048,8 @@ class Nomo_Block_Type_5(Nomo_Block):
         overrides the parent draw function
         draws also contours
         """
+        # sets u-axis to correct side
+        self._set_u_axis_side_()
         super(Nomo_Block_Type_5,self).draw(canvas=canvas)
         # draws the inner contour lines
         x00,y00=self.grid_box.u_lines[0][0]
@@ -1079,7 +1081,8 @@ class Nomo_Block_Type_5(Nomo_Block):
             xt_stop=self._give_trafo_x_(x_stop, y_stop)
             yt_start=self._give_trafo_y_(x_start, y_start)
             yt_stop=self._give_trafo_y_(x_stop, y_stop)
-            title=self.params['v_values'][index]
+            title_raw=self.params['v_values'][index]
+            title=self.grid_box.params_v['text_format']%title_raw
             if yt_start>yt_stop:
                 x_1,y_1=v_line[2] # two first points are identical
                 xt_1=self._give_trafo_x_(x_1, y_1)
@@ -1177,6 +1180,30 @@ class Nomo_Block_Type_5(Nomo_Block):
         self.u_axis=Axis_Wrapper(f=para_u['F'],g=para_u['G'],
                              start=para_u['u_min'],stop=para_u['u_max'])
         self.axis_wrapper_stack.append(self.u_axis)
+
+    def _set_u_axis_side_(self):
+        """
+        sets side of u-axis to correct
+        """
+        if self.atom_u.params['tick_side']==None:
+            # let's find out tick side from first u_line
+            x1,y1=self.grid_box.u_lines[0][0]
+            x2,y2=self.grid_box.u_lines[0][2]
+            x3,y3=self.grid_box.u_lines[1][0]
+            x1t=self._give_trafo_x_(x1, y1)
+            x2t=self._give_trafo_x_(x2, y2)
+            x3t=self._give_trafo_x_(x3, y3)
+            y1t=self._give_trafo_y_(x1, y1)
+            y2t=self._give_trafo_y_(x2, y2)
+            y3t=self._give_trafo_y_(x3, y3)
+            vx_A=x2t-x1t
+            vy_A=y2t-y1t
+            vx_B=x3t-x1t
+            vy_B=y3t-y1t
+            if vx_A*vy_B+vy_A*(-vx_B)>0:
+                self.atom_u.params['tick_side']='left'
+            else:
+                self.atom_u.params['tick_side']='right'
 
     def _build_v_axis_(self):
         """

@@ -714,7 +714,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         self.N=self.N+1
         self.shift_stack.append(0)  # initial correction 0
 
-    def set_block(self,height=10.0,width=10.0):
+    def set_block(self,height=10.0,width=10.0,reference_padding=0.2):
         """
         sets up equations in block after definitions are given
         """
@@ -722,6 +722,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         # self.xR_func and self.yR_func
         self.width=width
         self.height=height
+        self.reference_padding=reference_padding
         self._make_definitions_()
         self._calculate_shifts_()
         for idx in range(1,self.N+1,1):
@@ -846,6 +847,7 @@ class Nomo_Block_Type_3(Nomo_Block):
             ref_para=copy.copy(ref_para_ini)
             ref_para['F']=self._makeDoX_(r_table[idx])
             ref_para['G']=lambda y:y
+            ref_para['reference_padding']=self.reference_padding
             self.ref_params.append(ref_para)
 
     def _makeDoX_(self,value):
@@ -1083,7 +1085,8 @@ class Nomo_Block_Type_5(Nomo_Block):
             yt_stop=self._give_trafo_y_(x_stop, y_stop)
             title_raw=self.params['v_values'][index]
             title=self.grid_box.params_v['text_format']%title_raw
-            if yt_start>yt_stop:
+            if (y_start>y_stop and self.params['mirror_y']==False) or \
+            (y_start<y_stop and self.params['mirror_y']==True):
                 x_1,y_1=v_line[2] # two first points are identical
                 xt_1=self._give_trafo_x_(x_1, y_1)
                 yt_1=self._give_trafo_y_(x_1, y_1)
@@ -1154,7 +1157,7 @@ class Nomo_Block_Type_5(Nomo_Block):
 
     def _draw_vertical_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """
-        draws horizontal guides
+        draws vertical guides
         """
         p=self.grid_box.params
         if p['vertical_guides']:
@@ -1200,7 +1203,10 @@ class Nomo_Block_Type_5(Nomo_Block):
             vy_A=y2t-y1t
             vx_B=x3t-x1t
             vy_B=y3t-y1t
-            if vx_A*vy_B+vy_A*(-vx_B)>0:
+            test1=(vx_A*vy_B+vy_A*(-vx_B))
+            test2=(vy_B*vx_A*(vx_A*vy_B+vy_A*(-vx_B)))
+            #if (vy_B*vx_A*(vx_A*vy_B+vy_A*(-vx_B)))>0:
+            if vx_A>0:
                 self.atom_u.params['tick_side']='left'
             else:
                 self.atom_u.params['tick_side']='right'

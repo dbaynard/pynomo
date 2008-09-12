@@ -35,6 +35,8 @@ class Nomo_Grid_Box(object):
         """
         params_default_values={'width':10.0,
                                'height':10.0,
+                               'mirror_x':False,
+                               'mirror_y':False,
                                'u_func':lambda u:u,
                                'v_func':lambda x,para:x+para,
                                'line_func':lambda x:x, # function for centerline assuming square
@@ -205,12 +207,16 @@ class Nomo_Grid_Box(object):
         w_min=f2_inv(f3(self.x_left_ini))
         w_max=f2_inv(f3(self.x_right_ini))
         w_diff=w_max-w_min
+        if self.params['mirror_y']==True:
+            y_factor=-1.0
+        else:
+            y_factor=1.0
         self.params_w={
             'u_min':w_min,  #this is w_min
             'u_max':w_max, # this is w_max
             'F':lambda w:self.x_right, # x-coordinate
             'G':lambda w:self.y_bottom+(f2(w)-f2(w_min))/(f2(w_max)-f2(w_min))\
-                        *self.params['height'], # y-coordinate
+                        *self.params['height']*y_factor, # y-coordinate
             'title':self.params['w_title'],
             'scale_type':self.params['scale_type_w'],
             'manual_axis_data':w_manual_axis_data,
@@ -267,9 +273,17 @@ class Nomo_Grid_Box(object):
         """
         scales everything to width and height
         """
+        if self.params['mirror_x']==True:
+            mirror_x=-1.0
+        else:
+            mirror_x=1.0
+        if self.params['mirror_y']==True:
+            mirror_y=-1.0
+        else:
+            mirror_y=1.0
         # scales lines
-        y_factor=self.params['height']/self.BB_height_ini
-        x_factor=self.params['width']/self.BB_width_ini
+        y_factor=mirror_y*self.params['height']/self.BB_height_ini
+        x_factor=mirror_x*self.params['width']/self.BB_width_ini
         for idx1,u_line in enumerate(self.u_lines):
             for idx2,(x,y) in enumerate(u_line):
                 x_new=x*x_factor
@@ -426,7 +440,7 @@ class Nomo_Grid_Box(object):
 
     def _calc_bound_box_ini_(self):
         """
-        calculates bounding inital bounding box
+        calculates bounding initial bounding box
         """
         (x_0,y_0)=self.v_lines[0][0]
         x_left=x_0

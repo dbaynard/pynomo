@@ -109,7 +109,8 @@ class Nomographer:
                                      height=block_para['height'],
                                      type=block_para['type'],
                                      x_empty=block_para['x_empty'],
-                                     y_empty=block_para['y_empty'])
+                                     y_empty=block_para['y_empty'],
+                                     curve_const=block_para['curve_const'])
                 wrapper.add_block(blocks[-1])
             # TYPE 7
             if block_para['block_type']=='type_7':
@@ -289,7 +290,8 @@ class Nomographer:
                          'height':10.0,
                          'type':'parallel',
                          'x_empty':0.2,
-                         'y_empty':0.2
+                         'y_empty':0.2,
+                         'curve_const':0.5,
                          }
         for key in params_default:
             if not params.has_key(key):

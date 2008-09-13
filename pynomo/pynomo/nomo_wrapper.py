@@ -1067,6 +1067,10 @@ class Nomo_Block_Type_5(Nomo_Block):
                 xt=self._give_trafo_x_(x, y)
                 yt=self._give_trafo_y_(x, y)
                 line.append(path.lineto(xt, yt))
+        # for v-title positioning
+        median_v=len(self.grid_box.v_lines)/2
+        if median_v==0:
+            median_v=1
         for index,v_line in enumerate(self.grid_box.v_lines):
             x0,y0=v_line[0]
             x0t=self._give_trafo_x_(x0, y0)
@@ -1084,6 +1088,12 @@ class Nomo_Block_Type_5(Nomo_Block):
             yt_start=self._give_trafo_y_(x_start, y_start)
             yt_stop=self._give_trafo_y_(x_stop, y_stop)
             title_raw=self.params['v_values'][index]
+            if index==median_v:
+                #title=self.grid_box.params_v['title']+'='+self.grid_box.params_v['text_format']%title_raw
+                title_title=self.grid_box.params_v['title']
+            else:
+                #title=self.grid_box.params_v['text_format']%title_raw
+                title_title=''
             title=self.grid_box.params_v['text_format']%title_raw
             if (y_start>y_stop and self.params['mirror_y']==False) or \
             (y_start<y_stop and self.params['mirror_y']==True):
@@ -1098,12 +1108,12 @@ class Nomo_Block_Type_5(Nomo_Block):
                 xt,yt=xt_stop,yt_stop
             dx=xt_1-xt
             dy=yt_1-yt
-            self._draw_v_text_(xt,yt,dx,dy,canvas,title)
+            self._draw_v_text_(xt,yt,dx,dy,canvas,title,title_title)
         canvas.stroke(line, [style.linewidth.normal])
         self._draw_horizontal_guides_(canvas)
         self._draw_vertical_guides_(canvas)
 
-    def _draw_v_text_(self,x,y,dx,dy,canvas,title):
+    def _draw_v_text_(self,x,y,dx,dy,canvas,title,title_title=''):
         """"
         draws titles to v-contours
         """
@@ -1123,19 +1133,23 @@ class Nomo_Block_Type_5(Nomo_Block):
                 angle=angle+180.0
             if dx_unit>0.0:
                 text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle-90)]
+                title_text=title_title+' '+title
             if dx_unit<=0.0:
                 text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle-90)]
+                title_text=title+' '+title_title
         else:
             if (angle+90.0)>=90.0:
                 angle=angle-180.0
             if dx_unit>0.0:
                 text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle+90)]
+                title_text=title_title+' '+title
             if dx_unit<=0.0:
                 text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle+90)]
+                title_text=title+' '+title_title
         text_distance=0.25
         canvas.text(x-text_distance*dx_unit,
                     y-text_distance*dy_unit,
-                    title,text_attr)
+                    title_text,text_attr)
 
 
     def _draw_horizontal_guides_(self,canvas,axis_color=color.cmyk.Gray):
@@ -1271,7 +1285,8 @@ class Nomo_Block_Type_6(Nomo_Block):
         self.F2_axis_ini=Axis_Wrapper(f=params2['F'],g=params2['G'],
                              start=params2['u_min'],stop=params2['u_max'])
 
-    def set_block(self,width=10.0,height=10.0,type='parallel',x_empty=0.2, y_empty=0.2):
+    def set_block(self,width=10.0,height=10.0,type='parallel',x_empty=0.2, y_empty=0.2,
+                  curve_const=0.5):
         """
         sets original width, height and x-distance proportion for the nomogram before
         transformations
@@ -1282,6 +1297,7 @@ class Nomo_Block_Type_6(Nomo_Block):
         """
         self.width=width
         self.height=height
+        self.curve_const=curve_const
         #p=proportion
         #delta_1=proportion*width/(1+proportion)
         #delta_3=width/(proportion+1)
@@ -1427,7 +1443,7 @@ class Nomo_Block_Type_6(Nomo_Block):
             #line.append(path.moveto(f1(u), g1(u)))
             #line.append(path.lineto(f2(u), g2(u)))
             path_length=sqrt((f1(u)-f2(u))**2+(g1(u)-g2(u))**2)
-            factor=0.5*path_length
+            factor=self.curve_const*path_length
             x1,y1=f1(u), g1(u)
             x2,y2=f1(u)-dy_units_1[idx]*factor, g1(u)+dx_units_1[idx]*factor
             x3,y3=f2(u)-dy_units_2[idx]*factor, g2(u)+dx_units_2[idx]*factor

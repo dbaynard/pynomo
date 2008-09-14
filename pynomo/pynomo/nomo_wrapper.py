@@ -1774,14 +1774,14 @@ class Nomo_Block_Type_9(Nomo_Block):
         else:
             f3,g3,h3=p3['f'],p3['g'],p3['h']
         if transform_ini: # do initial transformation
-            vk=[['u',p1['u_min'],'x',0.0],
-                ['u',p1['u_min'],'y',0.0],
-                ['u',p1['u_max'],'x',0.0],
-                ['u',p1['u_max'],'y',10.0],
-                ['w',p3['u_min'],'x',10.0],
-                ['w',p3['u_min'],'y',0.0],
-                ['w',p3['u_max'],'x',10.0],
-                ['w',p3['u_max'],'y',10.0]]
+            vk=[['u',p1['u_min_trafo'],'x',0.0],
+                ['u',p1['u_min_trafo'],'y',0.0],
+                ['u',p1['u_max_trafo'],'x',0.0],
+                ['u',p1['u_max_trafo'],'y',10.0],
+                ['w',p3['u_min_trafo'],'x',10.0],
+                ['w',p3['u_min_trafo'],'y',0.0],
+                ['w',p3['u_max_trafo'],'x',10.0],
+                ['w',p3['u_max_trafo'],'y',10.0]]
             nomo = Nomograph3(f1,g1,h1,f2,g2,h2,f3,g3,h3,vk)
             # F1
             if p1['grid']:

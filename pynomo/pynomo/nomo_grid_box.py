@@ -101,7 +101,10 @@ class Nomo_Grid_Box(object):
                                'wd_title_draw_center':True,
                                'w_title_draw_center':True,
                                'u_text_format':r"$%3.2f$ ",
-                               'v_text_format':r"$%3.2f$ "
+                               'v_text_format':r"$%3.2f$ ",
+                               'u_align_func':lambda u:u,
+                               'wd_align_func':lambda u:u,
+                               'w_align_func':lambda u:u,
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -147,6 +150,7 @@ class Nomo_Grid_Box(object):
             'title_opposite_tick':self.params['u_title_opposite_tick'],
             'title_distance_center':self.params['u_title_distance_center'],
             'title_draw_center':self.params['u_title_draw_center'],
+            'align_func':self.params['u_align_func'],
             #'text_format':self.params['u_text_format'],
             }
         return self.params_u
@@ -227,7 +231,8 @@ class Nomo_Grid_Box(object):
             'tick_text_levels':self.params['w_tick_text_levels'],
             'title_opposite_tick':self.params['w_title_opposite_tick'],
             'title_distance_center':self.params['w_title_distance_center'],
-            'title_draw_center':self.params['w_title_draw_center']
+            'title_draw_center':self.params['w_title_draw_center'],
+            'align_func':self.params['w_align_func'],
             }
         return self.params_w
 
@@ -258,7 +263,8 @@ class Nomo_Grid_Box(object):
             'tick_text_levels':self.params['wd_tick_text_levels'],
             'title_opposite_tick':self.params['wd_title_opposite_tick'],
             'title_distance_center':self.params['wd_title_distance_center'],
-            'title_draw_center':self.params['wd_title_draw_center']
+            'title_draw_center':self.params['wd_title_draw_center'],
+            'align_func':self.params['wd_align_func'],
             }
         return self.params_wd
 

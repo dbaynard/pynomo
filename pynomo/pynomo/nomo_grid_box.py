@@ -117,7 +117,7 @@ class Nomo_Grid_Box(object):
         #debug by looking pdf
         self._draw_debug_ini_()
         # build scaled versions
-        self._scale_()
+        self._scale_and_mirror_()
         self._draw_debug_ini_('after.pdf')
 
         self.give_u_data()
@@ -275,7 +275,7 @@ class Nomo_Grid_Box(object):
         pass
 
 
-    def _scale_(self):
+    def _scale_and_mirror_(self):
         """
         scales everything to width and height
         """
@@ -450,9 +450,9 @@ class Nomo_Grid_Box(object):
         """
         (x_0,y_0)=self.v_lines[0][0]
         x_left=x_0
-        y_top=y_0
+        y_top=max(self.u_func(self.params['u_values']))
         x_right=x_0
-        y_bottom=y_0
+        y_bottom=min(self.u_func(self.params['u_values']))
         for line in self.v_lines:
             for x,y in line:
                 if x<x_left:

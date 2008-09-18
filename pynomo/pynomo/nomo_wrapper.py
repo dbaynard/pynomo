@@ -229,8 +229,8 @@ class Nomo_Wrapper:
                             if atom1.params['tag']==atom2.params['tag']\
                             and not atom1.params['tag']=='none'\
                             and not atom2.params['aligned']: # align only once
-                                print idx1
-                                print idx2
+                                #print idx1
+                                #print idx2
                                 print atom1.params['tag']
                                 alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
                                 self._find_trafo_2_atoms_(atom1,atom2)
@@ -250,8 +250,11 @@ class Nomo_Wrapper:
         to form a triangle for both atoms to be aligned
         """
         # taking points from atom1
-        u_start=atom1.params['u_min']
-        u_stop=atom1.params['u_max']
+        u_start=min(atom1.params['u_min'],atom1.params['u_max'])
+        u_stop=max(atom1.params['u_min'],atom1.params['u_max'])
+        diff=u_stop-u_start
+        u_start=u_start+0.3*diff
+        u_stop=u_stop-0.3*diff
         x1_atom_2=atom2.give_x(u_start)
         y1_atom_2=atom2.give_y(u_start)
         x2_atom_2=atom2.give_x(u_stop)

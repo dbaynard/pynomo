@@ -105,6 +105,9 @@ class Nomo_Grid_Box(object):
                                'u_align_func':lambda u:u,
                                'wd_align_func':lambda u:u,
                                'w_align_func':lambda u:u,
+                               'u_scale_opposite':False,
+                               'v_manual_axis_data':None,
+                               'v_text_distance':0.25,
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -134,10 +137,14 @@ class Nomo_Grid_Box(object):
         u_manual_axis_data = {}
         for u_value in self.params['u_values']:
             u_manual_axis_data[u_value]=self.params['u_text_format']%u_value
+        if self.params['u_scale_opposite']:
+            x_coordinate=self.x_right
+        else:
+            x_coordinate=self.x_left
         self.params_u={
             'u_min':min(self.params['u_values']),
             'u_max':max(self.params['u_values']),
-            'F':lambda u:self.x_left, # x-coordinate
+            'F':lambda u:x_coordinate, # x-coordinate
             'G':u_func, # y-coordinate
             'title':self.params['u_title'],
             'scale_type':self.params['scale_type_u'], #'linear' 'log' 'manual point' 'manual line'

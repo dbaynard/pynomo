@@ -1090,14 +1090,20 @@ class Nomo_Block_Type_5(Nomo_Block):
             xt_stop=self._give_trafo_x_(x_stop, y_stop)
             yt_start=self._give_trafo_y_(x_start, y_start)
             yt_stop=self._give_trafo_y_(x_stop, y_stop)
-            title_raw=self.params['v_values'][index]
+            if self.grid_box.params['v_manual_axis_data']!=None:
+                title_raw=self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]]
+            else:
+                title_raw=self.params['v_values'][index]
             if index==median_v:
                 #title=self.grid_box.params_v['title']+'='+self.grid_box.params_v['text_format']%title_raw
                 title_title=self.grid_box.params_v['title']
             else:
                 #title=self.grid_box.params_v['text_format']%title_raw
                 title_title=''
-            title=self.grid_box.params_v['text_format']%title_raw
+            if self.grid_box.params['v_manual_axis_data']!=None:
+                title=title_raw
+            else:
+                title=self.grid_box.params_v['text_format']%title_raw
             if (y_start>y_stop and self.params['mirror_y']==False) or \
             (y_start<y_stop and self.params['mirror_y']==True):
                 x_1,y_1=v_line[2] # two first points are identical
@@ -1149,7 +1155,7 @@ class Nomo_Block_Type_5(Nomo_Block):
             if dx_unit<=0.0:
                 text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle+90)]
                 title_text=title+' '+title_title
-        text_distance=0.25
+        text_distance=self.grid_box.params['v_text_distance']
         canvas.text(x-text_distance*dx_unit,
                     y-text_distance*dy_unit,
                     title_text,text_attr)
@@ -1227,6 +1233,10 @@ class Nomo_Block_Type_5(Nomo_Block):
                 self.atom_u.params['tick_side']='left'
             else:
                 self.atom_u.params['tick_side']='right'
+            if self.grid_box.params['u_scale_opposite'] and vx_A>0:
+                self.atom_u.params['tick_side']='right'
+            else:
+                self.atom_u.params['tick_side']='left'
 
     def _build_v_axis_(self):
         """

@@ -1090,8 +1090,25 @@ class Nomo_Block_Type_5(Nomo_Block):
             xt_stop=self._give_trafo_x_(x_stop, y_stop)
             yt_start=self._give_trafo_y_(x_start, y_start)
             yt_stop=self._give_trafo_y_(x_stop, y_stop)
+            # extra params for v-lines
+            x_corr=0.0
+            y_corr=0.0
+            draw_line=False
+            # if manual axis data given
             if self.grid_box.params['v_manual_axis_data']!=None:
-                title_raw=self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]]
+                if isinstance(self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]],str):
+                    title_raw=self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]]
+                else:
+                    dummy=len(self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]])
+                    if isinstance(self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]],list):
+                        title_raw=self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]][0]
+                        ex_params=self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]][1]
+                        if ex_params.has_key('x_corr'):
+                            x_corr=ex_params['x_corr']
+                        if ex_params.has_key('y_corr'):
+                            y_corr=ex_params['y_corr']
+                        if ex_params.has_key('draw_line'):
+                            draw_line=ex_params['draw_line']
             else:
                 title_raw=self.params['v_values'][index]
             if index==median_v:
@@ -1117,12 +1134,13 @@ class Nomo_Block_Type_5(Nomo_Block):
                 xt,yt=xt_stop,yt_stop
             dx=xt_1-xt
             dy=yt_1-yt
-            self._draw_v_text_(xt,yt,dx,dy,canvas,title,title_title)
+            self._draw_v_text_(xt,yt,dx,dy,canvas,title,title_title,x_corr,y_corr,draw_line)
         canvas.stroke(line, [style.linewidth.normal])
         self._draw_horizontal_guides_(canvas)
         self._draw_vertical_guides_(canvas)
 
-    def _draw_v_text_(self,x,y,dx,dy,canvas,title,title_title=''):
+    def _draw_v_text_(self,x,y,dx,dy,canvas,title,title_title='',x_corr=0.0,y_corr=0.0,
+                      draw_line=False):
         """"
         draws titles to v-contours
         """
@@ -1156,9 +1174,13 @@ class Nomo_Block_Type_5(Nomo_Block):
                 text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle+90)]
                 title_text=title+' '+title_title
         text_distance=self.grid_box.params['v_text_distance']
-        canvas.text(x-text_distance*dx_unit,
-                    y-text_distance*dy_unit,
+        canvas.text(x-text_distance*dx_unit+x_corr,
+                    y-text_distance*dy_unit+y_corr,
                     title_text,text_attr)
+        # draw line if needed
+        if draw_line:
+            canvas.stroke(path.line(x, y, x-text_distance*dx_unit+x_corr, y-text_distance*dy_unit+y_corr),
+                           [style.linewidth.normal])
 
 
     def _draw_horizontal_guides_(self,canvas,axis_color=color.cmyk.Gray):

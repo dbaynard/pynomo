@@ -108,6 +108,10 @@ class Nomo_Grid_Box(object):
                                'u_scale_opposite':False,
                                'v_manual_axis_data':None,
                                'v_text_distance':0.25,
+                               'u_align_x_offset':0.0,
+                               'wd_align_x_offset':0.0,
+                               'u_align_y_offset':0.0,
+                               'wd_align_y_offset':0.0,
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -135,8 +139,11 @@ class Nomo_Grid_Box(object):
         # calc func
         u_func = self.u_func # defined in scaling
         u_manual_axis_data = {}
-        for u_value in self.params['u_values']:
-            u_manual_axis_data[u_value]=self.params['u_text_format']%u_value
+        if self.params['u_manual_axis_data']==None:
+            for u_value in self.params['u_values']:
+                u_manual_axis_data[u_value]=self.params['u_text_format']%u_value
+        else:
+                u_manual_axis_data=self.params['u_manual_axis_data']
         if self.params['u_scale_opposite']:
             x_coordinate=self.x_right
         else:
@@ -158,6 +165,8 @@ class Nomo_Grid_Box(object):
             'title_distance_center':self.params['u_title_distance_center'],
             'title_draw_center':self.params['u_title_draw_center'],
             'align_func':self.params['u_align_func'],
+            'align_x_offset':self.params['u_align_x_offset'],
+            'align_y_offset':self.params['u_align_y_offset'],
             #'text_format':self.params['u_text_format'],
             }
         return self.params_u
@@ -272,6 +281,8 @@ class Nomo_Grid_Box(object):
             'title_distance_center':self.params['wd_title_distance_center'],
             'title_draw_center':self.params['wd_title_draw_center'],
             'align_func':self.params['wd_align_func'],
+            'align_x_offset':self.params['wd_align_x_offset'],
+            'align_y_offset':self.params['wd_align_y_offset'],
             }
         return self.params_wd
 

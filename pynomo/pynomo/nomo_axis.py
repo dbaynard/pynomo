@@ -628,15 +628,30 @@ class Nomo_Axis:
         """
          make title to top
         """
-        # find out if start or stop has higher y-value
-        if self.func_g(self.stop)>self.func_g(self.start):
-            c.text(self.func_f(self.stop)+self.title_x_shift,
-                    self.func_g(self.stop)+self.title_y_shift,
-                    self.title,[text.halign.center])
-        else:
-            c.text(self.func_f(self.start)+self.title_x_shift,
-                    self.func_g(self.start)+self.title_y_shift, self.title,
-                    [text.halign.center])
+        best_u=self.start
+        y_max=self.func_g(best_u)
+        if self.func_g(self.stop)>y_max:
+            y_max=self.func_g(self.stop)
+            best_u=self.stop
+        for dummy in range(500):
+            number=random.uniform(min(self.start,self.stop),max(self.start,self.stop))
+            y_value=self.func_g(number)
+            if y_value>y_max:
+                y_max=y_value
+                best_u=number
+        c.text(self.func_f(best_u)+self.title_x_shift,
+                self.func_g(best_u)+self.title_y_shift,
+                self.title,[text.halign.center])
+
+#        # find out if start or stop has higher y-value
+#        if self.func_g(self.stop)>self.func_g(self.start):
+#            c.text(self.func_f(self.stop)+self.title_x_shift,
+#                    self.func_g(self.stop)+self.title_y_shift,
+#                    self.title,[text.halign.center])
+#        else:
+#            c.text(self.func_f(self.start)+self.title_x_shift,
+#                    self.func_g(self.start)+self.title_y_shift, self.title,
+#                    [text.halign.center])
 
     def _draw_title_center_(self,c):
         """

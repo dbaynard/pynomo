@@ -1138,6 +1138,7 @@ class Nomo_Block_Type_5(Nomo_Block):
         canvas.stroke(line, [style.linewidth.normal])
         self._draw_horizontal_guides_(canvas)
         self._draw_vertical_guides_(canvas)
+        self._draw_box_around_(canvas)
 
     def _draw_v_text_(self,x,y,dx,dy,canvas,title,title_title='',x_corr=0.0,y_corr=0.0,
                       draw_line=False):
@@ -1182,6 +1183,25 @@ class Nomo_Block_Type_5(Nomo_Block):
             canvas.stroke(path.line(x, y, x-text_distance*dx_unit+x_corr, y-text_distance*dy_unit+y_corr),
                            [style.linewidth.normal])
 
+    def _draw_box_around_(self,canvas):
+        """
+        draws box around
+        """
+        xt1=self._give_trafo_x_(self.grid_box.x_left, self.grid_box.y_top)
+        yt1=self._give_trafo_y_(self.grid_box.x_left, self.grid_box.y_top)
+        xt2=self._give_trafo_x_(self.grid_box.x_right, self.grid_box.y_top)
+        yt2=self._give_trafo_y_(self.grid_box.x_right, self.grid_box.y_top)
+        xt3=self._give_trafo_x_(self.grid_box.x_left, self.grid_box.y_bottom)
+        yt3=self._give_trafo_y_(self.grid_box.x_left, self.grid_box.y_bottom)
+        xt4=self._give_trafo_x_(self.grid_box.x_right, self.grid_box.y_bottom)
+        yt4=self._give_trafo_y_(self.grid_box.x_right, self.grid_box.y_bottom)
+        line = path.path()
+        line.append(path.moveto(xt1, yt1))
+        line.append(path.lineto(xt2, yt2))
+        line.append(path.lineto(xt4, yt4))
+        line.append(path.lineto(xt3, yt3))
+        line.append(path.lineto(xt1, yt1))
+        canvas.stroke(line, [style.linewidth.thick])
 
     def _draw_horizontal_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """

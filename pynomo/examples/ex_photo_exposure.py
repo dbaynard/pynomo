@@ -18,7 +18,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from nomographer import *
+import sys
+sys.path.insert(0, "..")
+from pynomo.nomographer import *
 """
 functions for solartime taken from solareqns.pdf from
 http://www.srrb.noaa.gov/highlights/sunrise/solareqns.PDF

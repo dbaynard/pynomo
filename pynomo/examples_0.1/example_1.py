@@ -13,6 +13,8 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import sys
+sys.path.insert(0, "..")
 from pynomo import *
 """
     Retaining wall example nomograph from Allcock's book. Also found in O'Cagne:

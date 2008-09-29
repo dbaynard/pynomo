@@ -388,6 +388,9 @@ class Nomo_Axis:
                     delta_u=du*section_length/dl
                 else:
                     delta_u=du
+                # in order to avoid too slow derivatives
+                if math.fabs(stop-start)<(delta_u*100.0):
+                    delta_u=math.fabs(stop-start)/500.0
                 u+=delta_u
 
             else:

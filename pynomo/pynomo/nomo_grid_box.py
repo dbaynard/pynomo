@@ -107,6 +107,7 @@ class Nomo_Grid_Box(object):
                                'w_align_func':lambda u:u,
                                'u_scale_opposite':False,
                                'v_manual_axis_data':None,
+                               'u_manual_axis_data':None,
                                'v_text_distance':0.25,
                                'u_align_x_offset':0.0,
                                'wd_align_x_offset':0.0,

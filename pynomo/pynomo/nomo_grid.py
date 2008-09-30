@@ -23,6 +23,7 @@ from scipy import *
 from numpy import *
 from nomo_axis import *
 import random
+import sys
 
 class Nomo_Grid:
     """
@@ -168,7 +169,8 @@ class Nomo_Grid:
                 line.append(path.lineto(f(u), g(u)))
             else:
                 line.append(path.lineto(f(stop), g(stop)))
-                print laskuri
+                #print laskuri
+                sys.stdout.write('.')
                 break
 
         self.canvas.stroke(line, [style.linewidth.normal, axis_color])

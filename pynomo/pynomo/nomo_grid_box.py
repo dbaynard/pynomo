@@ -469,9 +469,9 @@ class Nomo_Grid_Box(object):
         """
         (x_0,y_0)=self.v_lines[0][0]
         x_left=x_0
-        y_top=max(self.u_func(self.params['u_values']))
+        y_top=max(self.u_func(array(self.params['u_values'])))
         x_right=x_0
-        y_bottom=min(self.u_func(self.params['u_values']))
+        y_bottom=min(self.u_func(array(self.params['u_values'])))
         for line in self.v_lines:
             for x,y in line:
                 if x<x_left:

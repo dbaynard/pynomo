@@ -188,14 +188,14 @@ class Nomo_Wrapper:
         Finds "polygon" transformation
         """
         self.axes_wrapper.make_polygon_trafo()
-        self.axes_wrapper._print_result_pdf_("dummy1_polygon.pdf")
+        #self.axes_wrapper._print_result_pdf_("dummy1_polygon.pdf")
 
     def _do_rotate_trafo_(self,params):
         """
         Finds transformation to scale to canvas
         """
         self.axes_wrapper.rotate_canvas(params)
-        self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
+        #self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
 
     def draw_nomogram(self,canvas):
         """
@@ -231,7 +231,7 @@ class Nomo_Wrapper:
                             and not atom2.params['aligned']: # align only once
                                 #print idx1
                                 #print idx2
-                                print atom1.params['tag']
+                                print "Aligning with tag %s"%atom1.params['tag']
                                 alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
                                 self._find_trafo_2_atoms_(atom1,atom2)
                                 block2.add_transformation(alpha1,beta1,gamma1,

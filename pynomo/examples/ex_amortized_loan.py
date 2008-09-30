@@ -32,11 +32,13 @@ block_1_params={
            'block_type':'type_5',
            'u_func':lambda u:log(u*12.0),
            'v_func':f1,
-           'u_values':[10.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
+           'u_values':[10.0,11.0,12.0,13.0,14.0,15.0,20.0,25.0,30.0,40.0,50.0,60.0],
            'v_values':[1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0],
            'wd_tag':'A',
            'u_title':'years',
-           'v_title':r'interest rate \%',
+           'v_title':r'interest rate = ',
+           'u_text_format':r"$%3.0f$ ",
+           'v_text_format':r"$%3.0f$ \%% ",
              }
 
 # this is non-obvious trick to find bottom edge coordinates of the grid in order
@@ -69,7 +71,8 @@ N_params_2={
         'tick_side':'left',
         'tick_levels':3,
         'tick_text_levels':2,
-        'title_draw_center':True
+        'title_draw_center':True,
+        'text_format':r"$%3.0f$ ",
                 }
 N_params_1={
         'u_min':0.2,

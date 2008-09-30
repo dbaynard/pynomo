@@ -39,7 +39,7 @@ def eq_time(day):
 temp_a=arange(0,365.0,0.1)
 temp_b=eq_time(temp_a)
 correction=mean(temp_b) # this is 0.0171885 minutes
-print "maximum time errors: %g %g"%(min(temp_b),max(temp_b))
+#print "maximum time errors: %g %g"%(min(temp_b),max(temp_b))
 
 # declination
 def eq_declination(day):

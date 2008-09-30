@@ -28,8 +28,8 @@ from pynomo.nomographer import *
 d=40.0*pi/180.0
 h=30.0*pi/180.0
 b=60.0*pi/180.0
-print acos((sin(d)-sin(b)*sin(h))/(cos(b)*cos(h)))*180.0/pi
-print arange(0.0,40.0,1.0,dtype=double).tolist()
+#print acos((sin(d)-sin(b)*sin(h))/(cos(b)*cos(h)))*180.0/pi
+#print arange(0.0,40.0,1.0,dtype=double).tolist()
 
 a_params={
         'u_min':0.0,

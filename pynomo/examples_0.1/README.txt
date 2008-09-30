@@ -1,0 +1,1 @@
+These examples are obsolete in PyNomo 0.2.

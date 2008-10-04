@@ -64,6 +64,7 @@ class Nomo_Axis:
                              'text_size_log_0': text.size.small,
                              'text_size_log_1': text.size.tiny,
                              'text_size_log_2': text.size.tiny,
+                             'text_size_manual': text.size.small,
                              'title_distance_center':0.5,
                              'title_opposite_tick':True,
                              'title_draw_center':False,
@@ -550,12 +551,13 @@ class Nomo_Axis:
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
         for number, label_string in manual_axis_data.iteritems():
             text_distance=1.0/4
+            text_size=self.axis_appear['text_size_manual']
             if self.side=='left':
-                text_attr=[text.valign.middle,text.halign.right,text.size.small]
+                text_attr=[text.valign.middle,text.halign.right,text_size]
                 texts.append((label_string,f(number)-text_distance,
                           g(number),text_attr))
             else:
-                text_attr=[text.valign.middle,text.halign.left,text.size.small]
+                text_attr=[text.valign.middle,text.halign.left,text_size]
                 texts.append((label_string,f(number)+text_distance,
                           g(number),text_attr))
             self.canvas.fill(path.circle(f(number), g(number), 0.02))
@@ -609,10 +611,11 @@ class Nomo_Axis:
                 angle=0
             text_distance=self.axis_appear['text_distance_1']
             grid_length=self.axis_appear['grid_length_1']
+            text_size=self.axis_appear['text_size_manual']
             if dy<=0:
-                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
+                text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angle)]
             else:
-                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle)]
+                text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angle)]
             texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
             line.append(path.moveto(f(number), g(number)))
             line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))

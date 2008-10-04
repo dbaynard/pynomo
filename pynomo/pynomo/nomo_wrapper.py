@@ -26,7 +26,7 @@ from numpy import *
 import scipy
 from pyx import *
 #from copy import copy
-import copy
+import copy, re
 
 class Nomo_Wrapper:
     """
@@ -204,7 +204,11 @@ class Nomo_Wrapper:
         for block in self.block_stack:
             block.draw(canvas)
         self._draw_title_(canvas)
-        canvas.writePDFfile(self.filename)
+        for filename_this in self.filename:
+            if not re.compile(".eps").search(filename_this, 1)==None:
+                canvas.writeEPSfile(filename_this)
+            else:
+                canvas.writePDFfile(filename_this)
 
     def _draw_title_(self,c):
         """

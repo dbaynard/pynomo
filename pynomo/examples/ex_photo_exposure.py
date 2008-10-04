@@ -265,7 +265,7 @@ camera_params_1={
                 }
 camera_params_2={
         'u_min':10.0,
-        'u_max':12800.0,
+        'u_max':25600.0,
         'function':lambda S:-(10*log10(S)+1.0),
         'title':r'Film speed',
         'manual_axis_data': {10.0:'ISO 10',
@@ -280,6 +280,7 @@ camera_params_2={
                              3200.0:'ISO 3200',
                              6400.0:'ISO 6400',
                              12800.0:'ISO 12800',
+                             25600.0:'ISO 25600',
                              },
         'scale_type':'manual line'
                 }
@@ -316,32 +317,34 @@ camera_params_3={
                              },
         'scale_type':'manual line',
         'title':r't (s)',
-        'text_format':r"1/%3.0f s"
+        'text_format':r"1/%3.0f s",
+        'tag':'shutter',
+        'tick_side':'left',
                 }
 
 camera_params_4={
         'u_min':1.0,
         'u_max':22.0,
         'function':lambda N:10*log10((N/3.2)**2)+30,
-        'manual_axis_data': {1.0:'f/1',
-                             1.2:'f/1.2',
-                             1.4:'f/1.4',
-                             1.7:'f/1.7',
-                             2.0:'f/2',
-                             2.4:'f/2.4',
-                             2.8:'f/2.8',
-                             3.3:'f/3.3',
-                             4.0:'f/4',
-                             4.8:'f/4.8',
-                             5.6:'f/5.6',
-                             6.7:'f/6.7',
-                             8.0:'f/8',
-                             9.5:'f/9.5',
-                             11.0:'f/11',
-                             13.0:'f/13',
-                             16.0:'f/16',
-                             19.0:'f/19',
-                             22.0:'f/22',
+        'manual_axis_data': {1.0:'$f$/1',
+                             1.2:'$f$/1.2',
+                             1.4:'$f$/1.4',
+                             1.7:'$f$/1.7',
+                             2.0:'$f$/2',
+                             2.4:'$f$/2.4',
+                             2.8:'$f$/2.8',
+                             3.3:'$f$/3.3',
+                             4.0:'$f$/4',
+                             4.8:'$f$/4.8',
+                             5.6:'$f$/5.6',
+                             6.7:'$f$/6.7',
+                             8.0:'$f$/8',
+                             9.5:'$f$/9.5',
+                             11.0:'$f$/11',
+                             13.0:'$f$/13',
+                             16.0:'$f$/16',
+                             19.0:'$f$/19',
+                             22.0:'$f$/22',
                              },
         'scale_type':'manual line',
         'title':r'Aperture',
@@ -376,13 +379,76 @@ EV_block={
          'f_params':EV_para
             }
 
+# maximum focal length
+FL_t_para={
+        'u_min':0.1,
+        'u_max':10000.0,
+        'function':lambda t:-10*log10((1.0/t)/(1.0/10.0))-30,
+        'scale_type':'linear',
+        'tick_levels':0,
+        'tick_text_levels':0,
+        'title':r't (s)',
+        'text_format':r"1/%3.0f s",
+        'tag':'shutter',
+                }
+
+FL_factor_params_2={
+        'u_min':1.0/4.0,
+        'u_max':3.0/2.0,
+        'function':lambda factor:-10*log10(factor/10.0)+0,
+        'title':r'Sensor, IS',
+        'scale_type':'manual point',
+        'manual_axis_data': {1.0/(2.0/3.0):'DSLR',
+                     1.0/(1.0):'35mm',
+                     1.0/(8.0/3.0):'DSLR IS',
+                     1.0/(4.0):'35mm IS',
+                     },
+        'tick_side':'left',
+        'text_size_manual':text.size.footnotesize, # pyx directive
+        }
+
+FL_fl_params={
+        'u_min':20.0,
+        'u_max':1000.0,
+        'function':lambda FL:-10*log10(FL)+30,
+        'title':r'Max focal length',
+        'tick_levels':3,
+        'tick_text_levels':2,
+        'tick_side':'left',
+        'scale_type':'manual line',
+        'manual_axis_data': {20.0:'20mm',
+                             35.0:'35mm',
+                             50.0:'50mm',
+                             80.0:'80mm',
+                             100.0:'100mm',
+                             150.0:'150mm',
+                             200.0:'200mm',
+                             300.0:'300mm',
+                             400.0:'400mm',
+                             500.0:'500mm',
+                             1000.0:'1000mm'}
+        }
+
+
+
+FL_block_params={
+             'block_type':'type_1',
+             'width':12.0,
+             'height':10.0,
+             'f1_params':FL_t_para,
+             'f2_params':FL_factor_params_2,
+             'f3_params':FL_fl_params,
+             'mirror_x':True,
+             'proportion':0.5,
+             }
+
 
 main_params={
-              'filename':'ex_photo_exposure.pdf',
+              'filename':['ex_photo_exposure.pdf','ex_photo_exposure.eps'],
               'paper_height':35.0,
               'paper_width':35.0,
-              'block_params':[block_params,block_params_weather,block_params_scene,block_params_camera,EV_block],
-              #'block_params':[block_params_weather,block_params_scene,block_params_camera,EV_block],
+              'block_params':[block_params,block_params_weather,block_params_scene,block_params_camera,EV_block,FL_block_params],
+              #'block_params':[block_params_weather,block_params_scene,block_params_camera,EV_block,FL_block_params],
               'transformations':[('rotate',0.01),('scale paper',)],
               'title_x': 7,
               'title_y': 34,

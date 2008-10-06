@@ -204,11 +204,17 @@ class Nomo_Wrapper:
         for block in self.block_stack:
             block.draw(canvas)
         self._draw_title_(canvas)
-        for filename_this in self.filename:
-            if not re.compile(".eps").search(filename_this, 1)==None:
-                canvas.writeEPSfile(filename_this)
+        if isinstance(self.filename,list):
+            for filename_this in self.filename:
+                if not re.compile(".eps").search(filename_this, 1)==None:
+                    canvas.writeEPSfile(filename_this)
+                else:
+                    canvas.writePDFfile(filename_this)
+        else:
+            if not re.compile(".eps").search(self.filename, 1)==None:
+                canvas.writeEPSfile(self.filename)
             else:
-                canvas.writePDFfile(filename_this)
+                canvas.writePDFfile(self.filename)
 
     def _draw_title_(self,c):
         """

@@ -21,7 +21,7 @@ solution to an equation.
 """
 from distutils.core import setup
 setup(name='PyNomo',
-      version='0.1.0b1',
+      version='0.2.0b0',
       description='PyNomo - Python Nomograms',
       author='Leif Roschier',
       author_email='lefakkomies@users.sourceforge.net',
@@ -31,7 +31,7 @@ setup(name='PyNomo',
       license='GPL',
       platforms='OS Independent',
       classifiers=[
-          'Development Status :: 2 - Pre-Alpha',
+          'Development Status :: 3 - Alpha',
           'Topic :: Scientific/Engineering :: Visualization',
           'Topic :: Multimedia :: Graphics',
           'Topic :: Software Development :: Libraries :: Python Modules',

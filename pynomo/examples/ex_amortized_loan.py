@@ -22,7 +22,7 @@ import sys
 sys.path.insert(0, "..")
 from pynomo.nomographer import *
 
-# Type 5 grid
+# Type 5 contour
 def f1(x,u):
     return log(log(x/(x-u/(100.0*12.0)))/log(1+u/(100.0*12.0)))
 

@@ -21,4 +21,5 @@ using Python interpreter. A nomograph (nomogram) is a graphical
 solution to an equation.
 """
 
-__all__ = ["nomograph", "nomo_axis", "nomograph3"]
+__all__ = ["nomograph", "nomo_axis", "nomograph3","nomo_axis_func",
+           "nomo_grid_box","nomo_grid","nomo_wrapper","nomographer"]

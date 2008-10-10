@@ -1,11 +1,15 @@
 PyNomo
+0.2.0b0
+=======
+Totally new approach.
+
 
 0.1.0b1
 =======
 Added functionality
 -------------------
 - axis title position can be tuned
-- log axis 
+- log axis
 - two more examples
 - title box added
 - default values for "functions" (nomogram definition) added

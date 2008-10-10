@@ -11,7 +11,7 @@ solution to an equation.
 
 Documentation
 -------------
-NA. To be done.
+See http://pynomo.org
 
 Installation
 ------------
@@ -22,7 +22,7 @@ License
 -------
 see LICENSE.txt
 
- Copyright (C) 2007  Leif Roschier
+ Copyright (C) 2007-2008  Leif Roschier
 
  This program is free software: you
  can redistribute it and/or modify

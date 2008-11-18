@@ -26,7 +26,7 @@ N_params_1={
         'u_min':-10.0,
         'u_max':10.0,
         'function':lambda u:u,
-        'title':r'$p$',
+        'title':r'$q$',
         'tick_levels':3,
         'tick_text_levels':2,
         'tick_side':'left'
@@ -36,7 +36,7 @@ N_params_2={
         'u_min':-10.0,
         'u_max':10.0,
         'function':lambda u:u,
-        'title':r'$q$',
+        'title':r'$p$',
         'tick_levels':3,
         'tick_text_levels':2,
         'tick_side':'right',

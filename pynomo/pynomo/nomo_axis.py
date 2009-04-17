@@ -68,7 +68,10 @@ class Nomo_Axis:
                              'title_distance_center':0.5,
                              'title_opposite_tick':True,
                              'title_draw_center':False,
-                             'text_format':"$%3.2f$"}
+                             'text_format':"$%3.2f$",
+                             'full_angle':False,
+                             'extra_angle':0.0,
+                             'text_horizontal_align_center':False}
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
 
@@ -224,11 +227,11 @@ class Nomo_Axis:
         tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
         find_linear_ticks(start,stop,base_start,base_stop)
         # let's find tick angles
-        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop)
-        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop)
-        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop)
-        dx_units_3,dy_units_3,angles_3=find_tick_directions(tick_3_list,f,g,self.side,start,stop)
-        dx_units_4,dy_units_4,angles_4=find_tick_directions(tick_4_list,f,g,self.side,start,stop)
+        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_3,dy_units_3,angles_3=find_tick_directions(tick_3_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_4,dy_units_4,angles_4=find_tick_directions(tick_4_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
 
         # tick level 0
         if self.tick_levels>0:
@@ -295,9 +298,9 @@ class Nomo_Axis:
         tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax=\
         find_log_ticks(start,stop)
         # let's find tick angles
-        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop)
-        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop)
-        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop)
+        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
 
         # tick level 0
         if self.tick_levels>0:
@@ -344,6 +347,8 @@ class Nomo_Axis:
                 text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angles[idx])]
             else:
                 text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angles[idx])]
+            if self.axis_appear['text_horizontal_align_center']==True:
+                text_attr=[text.valign.middle,text.halign.center,text_size,trafo.rotate(angles[idx])]
             text_list.append((self._put_text_(u),f(u)+text_distance*dy_units[idx],
                               g(u)-text_distance*dx_units[idx],text_attr))
 
@@ -605,10 +610,26 @@ class Nomo_Axis:
             dy=(g(number+du)-g(number))*turn
             dx_unit=dx/math.sqrt(dx**2+dy**2)
             dy_unit=dy/math.sqrt(dx**2+dy**2)
-            if dy_unit!=0:
-                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
-            else:
-                angle=0
+#            if dy_unit!=0:
+#                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+#            else:
+#                angle=0
+            if not self.axis_appear['full_angle']:
+                if dy_unit!=0:
+                    angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+                else:
+                    angle=0
+            if self.axis_appear['full_angle']:
+                if dy_unit!=0:
+                    angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+                else:
+                    angle=0
+                if scipy.sign(dx_unit)<0 and scipy.sign(dy_unit)<0:
+                    angle=angle-180
+                if scipy.sign(dy_unit)<0 and scipy.sign(dx_unit)>=0:
+                    angle=angle+180
+            angle=angle+self.axis_appear['extra_angle']
+
             text_distance=self.axis_appear['text_distance_1']
             grid_length=self.axis_appear['grid_length_1']
             text_size=self.axis_appear['text_size_manual']
@@ -616,6 +637,8 @@ class Nomo_Axis:
                 text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angle)]
             else:
                 text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angle)]
+            if self.axis_appear['text_horizontal_align_center']==True:
+                text_attr=[text.valign.middle,text.halign.center,text_size,trafo.rotate(angle)]
             texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
             line.append(path.moveto(f(number), g(number)))
             line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))
@@ -842,7 +865,7 @@ def find_log_ticks(start,stop):
     return tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax
 
 
-def find_tick_directions(list,f,g,side,start,stop):
+def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0):
     """
     finds tick directions and angles
     """
@@ -864,10 +887,21 @@ def find_tick_directions(list,f,g,side,start,stop):
         dy=(g(u+du)-g(u))*turn
         dx_unit=dx/math.sqrt(dx**2+dy**2)
         dy_unit=dy/math.sqrt(dx**2+dy**2)
-        if dy_unit!=0:
-            angle=-math.atan(dx_unit/dy_unit)*180/math.pi
-        else:
-            angle=0
+        if not full_angle:
+            if dy_unit!=0:
+                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+            else:
+                angle=0
+        if full_angle:
+            if dy_unit!=0:
+                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+            else:
+                angle=0
+            if scipy.sign(dx_unit)<0 and scipy.sign(dy_unit)<0:
+                angle=angle-180
+            if scipy.sign(dy_unit)<0 and scipy.sign(dx_unit)>=0:
+                angle=angle+180
+        angle=angle+extra_angle
         dx_units.append(dx_unit)
         dy_units.append(dy_unit)
         angles.append(angle)
@@ -948,3 +982,35 @@ if __name__=='__main__':
                   canvas=c,type='linear',side='right')
     #gg4=Nomo_Axis(func_f=f4,func_g=g4,start=0.5,stop=1.0,turn=-1,title='func 3',canvas=c,type='linear')
     c.writePDFfile("test_nomo_axis")
+
+
+    cc = canvas.canvas()
+    axis_appear={'full_angle':True,
+                 'extra_angle':-90.0,
+                 'text_format':"$%3.0f$",
+                 'text_horizontal_align_center':True}
+    circ=Nomo_Axis(func_f=lambda u:-5*math.sin(u/180*math.pi),func_g=lambda u:5*math.cos(u/180*math.pi),start=0.0,stop=360.0,turn=-1,title='circ',
+                  canvas=cc,type='linear',side='left',axis_appear=axis_appear)
+    cc.writePDFfile("test_nomo_axis_circ")
+
+    manual_axis_data_1={10.0:'10',
+                     20.0:'20',
+                     30.0:'30',
+                     31.415:r'$\pi \times 10$',
+                     40.0:'40',
+                     50.0:'50',
+                     60.0:'60',
+                     70.0:'70',
+                     80.0:'80',
+                     90.0:'90',
+                     100.0:'100'}
+    ccc = canvas.canvas()
+    axis_appear={'full_angle':True,
+                 'extra_angle':-90.0,
+                 'text_format':"$%3.0f$",
+                 'text_horizontal_align_center':True,
+                 'grid_length_1':0.5/4}
+    circ=Nomo_Axis(func_f=lambda u:-5*math.sin(u/180*math.pi),func_g=lambda u:5*math.cos(u/180*math.pi),start=10.0,stop=100.0,turn=-1,title='circ',
+                  canvas=ccc,type='manual line',manual_axis_data=manual_axis_data_1,
+                  side='right',axis_appear=axis_appear)
+    ccc.writePDFfile("test_nomo_axis_circ_manual")

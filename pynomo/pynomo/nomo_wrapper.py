@@ -265,6 +265,8 @@ class Nomo_Wrapper:
         diff=u_stop-u_start
         u_start=u_start+0.3*diff
         u_stop=u_stop-0.3*diff
+        print "u_start: %g"%u_start
+        print "u_stop: %g"%u_stop
         x1_atom_2=atom2.give_x(u_start)
         y1_atom_2=atom2.give_y(u_start)
         x2_atom_2=atom2.give_x(u_stop)

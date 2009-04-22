@@ -32,17 +32,19 @@ class Circ_Scale:
                              'angle_max':180.0,
                              'radius':12,
                              'tick_direction':'inner', # or 'outer'
+                             'tick_levels':4,
+                             'tick_text_levels':2,
                              'scale_type':'linear',
                              'text_distance_4':1.0/4,
                              'grid_length':0.1,
                              'grid_length_0':0.5/4,
                              'grid_length_1':0.5/4,
                              'grid_length_2':0.5/4,
-                             'grid_length_3':0.3/4,
+                             'grid_length_3':0.4/4,
                              'grid_length_4':0.3/4,
                              'text_size': text.size.scriptsize,
-                             'text_size_0': text.size.small,
-                             'text_size_1': text.size.scriptsize,
+                             'text_size_0': text.size.tiny,
+                             'text_size_1': text.size.tiny,
                              'text_size_2': text.size.tiny,
                              'text_size_3': text.size.tiny,
                              'text_size_4': text.size.tiny,
@@ -50,6 +52,11 @@ class Circ_Scale:
                              'text_size_log_1': text.size.tiny,
                              'text_size_log_2': text.size.tiny,
                              'text_size_manual': text.size.small,
+                             'text_distance_0':1.0/4,
+                             'text_distance_1':1.0/4,
+                             'text_distance_2':1.0/4,
+                             'text_distance_3':1.0/4,
+                             'text_distance_4':1.0/4,
                              'title_distance_center':0.5,
                              'title_opposite_tick':True,
                              'title_draw_center':False,
@@ -70,6 +77,8 @@ class Circ_Scale:
         Nomo_Axis(func_f=self.func_f,func_g=self.func_g,
                   start=self.circ_appear['u_min'],stop=self.circ_appear['u_max'],
                   turn=-1,title='circ',
+                  tick_levels=self.circ_appear['tick_levels'],
+                  tick_text_levels=self.circ_appear['tick_text_levels'],
                   canvas=self.canvas,type=self.circ_appear['scale_type'],
                   manual_axis_data=self.circ_appear['manual_axis_data'],
                   side=self.side,axis_appear=self.circ_appear)
@@ -97,8 +106,34 @@ class Circ_Scale:
 if __name__=='__main__':
     c = canvas.canvas()
     appear={
-           'angle_min':45.0,
-           'angle_max':270.0,}
+           'function':lambda u:u,
+           'u_min':1.0,
+           'u_max':12.0,
+           'radius':4,
+           'angle_min':75.0,
+           'angle_max':270.0,
+           'scale_max':10.0,
+           'tick_levels':4,
+           'text_format':"$%3.1f$",
+           'tick_text_levels':2,
+           'extra_angle':90.0,
+}
+    appear_1={
+           'function':lambda u:u,
+           'u_min':1.0,
+           'u_max':9.0,
+           'radius':4,
+           'angle_min':0.0,
+           'angle_max':360.0,
+           'scale_max':10.0,
+           'tick_levels':5,
+           'text_format':"$%3.1f$",
+           'tick_text_levels':2,
+           'extra_angle':90.0,
+           'tick_direction':'outer',
+}
     circ_scale=Circ_Scale(canvas=c,circ_appear=appear)
     circ_scale.draw()
+    circ_scale_1=Circ_Scale(canvas=c,circ_appear=appear_1)
+    circ_scale_1.draw()
     c.writePDFfile("test_circ")

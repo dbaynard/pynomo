@@ -2,7 +2,7 @@
 #    This file is part of PyNomo -
 #    a program to create nomographs with Python (http://pynomo.sourceforge.net/)
 #
-#    Copyright (C) 2007-2008  Leif Roschier  <lefakkomies@users.sourceforge.net>
+#    Copyright (C) 2007-2009  Leif Roschier  <lefakkomies@users.sourceforge.net>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -71,7 +71,9 @@ class Nomo_Axis:
                              'text_format':"$%3.2f$",
                              'full_angle':False,
                              'extra_angle':0.0,
-                             'text_horizontal_align_center':False}
+                             'text_horizontal_align_center':False,
+                             'scale_max':None #decade for major grids
+                             }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
 
@@ -225,7 +227,7 @@ class Nomo_Axis:
         texts=[]
         # let's find tick positions
         tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
-        find_linear_ticks(start,stop,base_start,base_stop)
+        find_linear_ticks(start,stop,base_start,base_stop,self.axis_appear['scale_max'])
         # let's find tick angles
         dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
         dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
@@ -779,7 +781,7 @@ def _find_closest_tick_number_(number,tick_divisor):
         error=math.fabs(tick_number-number)
     return tick_number
 
-def find_linear_ticks(start,stop,base_start=None,base_stop=None):
+def find_linear_ticks(start,stop,base_start=None,base_stop=None,scale_max_0=None):
     """
     finds tick values for linear axis
     """
@@ -789,11 +791,14 @@ def find_linear_ticks(start,stop,base_start=None,base_stop=None):
         scale_max=10.0**math.ceil(math.log10(math.fabs(base_start-base_stop))-0.5)
     else:
         scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop))-0.5)
+    if scale_max_0 != None:
+        scale_max=scale_max_0 # set range manually
     tick_0=scale_max/10.0
     tick_1=scale_max/20.0
     tick_2=scale_max/100.0
     tick_3=scale_max/500.0
     tick_4=scale_max/1000.0
+
     tick_0_list=[]
     tick_1_list=[]
     tick_2_list=[]
@@ -807,7 +812,9 @@ def find_linear_ticks(start,stop,base_start=None,base_stop=None):
     #print "stop_major %f"%stop_major
     start_ax=None
     stop_ax=None
-    for step in range(0,9001):
+    steps=(stop-start_major)/tick_4+1
+    #print "steps %i"%steps
+    for step in range(0,int(steps)):  # used to be 9001
         number=start_major+step*tick_4
         if number>=start and number<=(stop*(1+1e-12)): # stupid numerical correction
             if start_ax==None:
@@ -823,9 +830,11 @@ def find_linear_ticks(start,stop,base_start=None,base_stop=None):
                 tick_3_list.append(number)
             if step%1==0 and step%5!=0 and step%10!=0 and step%50!=0 and step%100!=0:
                 tick_4_list.append(number)
-    #print tick_0_list
-    #print tick_1_list
-    #print tick_2_list
+#    print tick_0_list
+#    print tick_1_list
+#    print tick_2_list
+#    print tick_3_list
+#    print tick_4_list
     return tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,\
             start_ax,stop_ax
 

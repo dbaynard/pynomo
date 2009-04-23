@@ -428,7 +428,8 @@ class Nomo_Block(object):
 
     def set_reference_axes(self):
         """
-        Axes that are set to be reference axes are tuned w.r.t. to
+        Axes that are set to be reference axes (pivot lines)
+        are tuned w.r.t. to
         other "real" axes that have values.
         """
         min_y,max_y = self._calc_y_limits_original_()
@@ -460,7 +461,7 @@ class Nomo_Block(object):
                 self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
                                                         atom.params['u_min'],
                                                         atom.params['u_max']))
-            else: # this atom is reference axis
+            else: # this atom is reference axis = pivot line
                 self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x_ref,atom.give_y_ref,
                                                         atom.u_min_ref,
                                                         atom.u_max_ref))

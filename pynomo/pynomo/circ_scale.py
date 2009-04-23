@@ -102,6 +102,28 @@ class Circ_Scale:
         else:
             self.side='right'
 
+class Circ_Block(object):
+    """
+    basic class for circle objects
+    """
+    def __init__(self):
+        self.circ_scale_stack=[] # for sirc scales
+
+class Circ_Block_Type_1(Circ_Block):
+    """
+    type F1+F2+F3=0 circular slide rule
+    """
+    def __init__(self):
+        super(Nomo_Block_Type_1,self).__init__()
+
+    def set_block(self,block_params):
+        """
+        sets the block
+        """
+        self.f1_params=block_params['f1_params']
+        self.f2_params=block_params['f2_params']
+        self.f3_params=block_params['f3_params']
+        self.block_params=block_params
 
 if __name__=='__main__':
     c = canvas.canvas()

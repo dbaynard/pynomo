@@ -31,7 +31,7 @@ class Circ_Scale:
                              'angle_min':0.0,
                              'angle_max':180.0,
                              'radius':12,
-                             'tick_direction':'inner', # or 'outer'
+                             'angle_tick_direction':'inner', # or 'outer'
                              'tick_levels':4,
                              'tick_text_levels':2,
                              'scale_type':'linear',
@@ -48,10 +48,10 @@ class Circ_Scale:
                              'text_size_2': text.size.tiny,
                              'text_size_3': text.size.tiny,
                              'text_size_4': text.size.tiny,
-                             'text_size_log_0': text.size.small,
+                             'text_size_log_0': text.size.tiny,
                              'text_size_log_1': text.size.tiny,
                              'text_size_log_2': text.size.tiny,
-                             'text_size_manual': text.size.small,
+                             'text_size_manual': text.size.tiny,
                              'text_distance_0':1.0/4,
                              'text_distance_1':1.0/4,
                              'text_distance_2':1.0/4,
@@ -101,7 +101,7 @@ class Circ_Scale:
         offset=-func(u_min)*scaling+angle_min*math.pi/180.0
         self.func_f = lambda u:radius*math.cos(func(u)*scaling+offset)
         self.func_g = lambda u:radius*math.sin(func(u)*scaling+offset)
-        if self.circ_appear['tick_direction']=='inner':
+        if self.circ_appear['angle_tick_direction']=='inner':
             self.side='left'
         else:
             self.side='right'
@@ -136,15 +136,18 @@ class Circ_Block(object):
         assumes scaling is given
         """
         func=lambda u:params['circ_sign']*params['function'](u)
-        u_min=params['u_min']
-        u_max=params['u_max']
-        angle_min=params['angle_min']
-        angle_max=params['angle_max']
+        u_value=params['angle_offset_u_value']
+        angle_offset=params['angle_offset_angle_value']
         scaling=params['circ_scaling']
-        if func(u_min)<func(u_max):
-            offset=-func(u_min)*scaling+angle_min*math.pi/180.0
-        else:
-            offset=-func(u_max)*scaling+angle_min*math.pi/180.0
+        offset=-func(u_value)*scaling+angle_offset*math.pi/180.0
+#        u_min=params['u_min']
+#        u_max=params['u_max']
+#        angle_min=params['angle_min']
+#        angle_max=params['angle_max']
+#        if func(u_min)<func(u_max):
+#            offset=-func(u_min)*scaling+angle_min*math.pi/180.0
+#        else:
+#            offset=-func(u_max)*scaling+angle_min*math.pi/180.0
         return offset
 
     def _draw_(self,params,f,g,canvas):
@@ -152,13 +155,13 @@ class Circ_Block(object):
         draws the circular scale
         """
         increase=params['circ_sign']*params['function'](params['u_max'])-params['circ_sign']*params['function'](params['u_min'])
-        if params['tick_direction']=='inner' and increase>0:
+        if params['angle_tick_direction']=='inner' and increase>0:
             side='left'
-        if params['tick_direction']=='inner' and increase<0:
+        if params['angle_tick_direction']=='inner' and increase<0:
             side='right'
-        if params['tick_direction']=='outer' and increase>0:
+        if params['angle_tick_direction']=='outer' and increase>0:
             side='right'
-        if params['tick_direction']=='outer' and increase<0:
+        if params['angle_tick_direction']=='outer' and increase<0:
             side='left'
         Nomo_Axis(func_f=f,func_g=g,
                   start=params['u_min'],stop=params['u_max'],
@@ -172,10 +175,10 @@ class Circ_Block(object):
         """
         draws an arrow, F amd G are constant functions
         """
-        ccanvas.stroke(path.line(0.5*F(0), 0.5*G(0), 0.99*F(0), 0.99*G(0)),
+        ccanvas.stroke(path.line(0.8*F(0), 0.8*G(0), 0.99*F(0), 0.99*G(0)),
          [style.linewidth.thick, color.rgb.black,
           deco.earrow([deco.stroked([color.rgb.black]),
-                       deco.filled([color.rgb.black])], size=1)])
+                       deco.filled([color.rgb.black])], size=0.3)])
 
     def _draw_circle_(self,radius,ccanvas):
         """
@@ -221,7 +224,7 @@ class Circ_Block_Type_1(Circ_Block):
                              'angle_min':0.0,
                              'angle_max':180.0,
                              'radius':12,
-                             'tick_direction':'inner', # or 'outer'
+                             'angle_tick_direction':'inner', # or 'outer'
                              'tick_levels':4,
                              'tick_text_levels':2,
                              'scale_type':'linear',
@@ -238,7 +241,7 @@ class Circ_Block_Type_1(Circ_Block):
                              'text_size_2': text.size.tiny,
                              'text_size_3': text.size.tiny,
                              'text_size_4': text.size.tiny,
-                             'text_size_log_0': text.size.small,
+                             'text_size_log_0': text.size.tiny,
                              'text_size_log_1': text.size.tiny,
                              'text_size_log_2': text.size.tiny,
                              'text_size_manual': text.size.small,
@@ -256,55 +259,58 @@ class Circ_Block_Type_1(Circ_Block):
                              'text_horizontal_align_center':True,
                              'manual_axis_data':{},
                              'circ_scaling':None,
-                             'title':''}
+                             'title':'',
+                             'angle_offset_u_value':1,
+                             'angle_offset_angle_value':1,
+                             'turn_relative':True}
         ##############################################################
         # F1
         params_default_f1=general_default
         params_default_f1_0={
                          'radius':4,
-                         'tick_direction':'outer',
+                         'angle_tick_direction':'outer',
                          'circ_sign':1,
                          }
         params_default_f1.update(params_default_f1_0)
         for key in params_default_f1:
             if not self.f1_params.has_key(key):
                 self.f1_params[key]=params_default_f1[key]
-        if self.f1_params['tick_direction']=='inner':
-            self.side_f1='left'
-        else:
-            self.side_f1='right'
+#        if self.f1_params['angle_tick_direction']=='inner':
+#            self.side_f1='left'
+#        else:
+#            self.side_f1='right'
         ##############################################################
         # F2
         params_default_f2=general_default
         params_default_f2_0={
                          'radius':4,
-                         'tick_direction':'inner',
+                         'angle_tick_direction':'inner',
                          'circ_sign':-1,
                          }
         params_default_f2.update(params_default_f2_0)
         for key in params_default_f2:
             if not self.f2_params.has_key(key):
                 self.f2_params[key]=params_default_f2[key]
-        if self.f2_params['tick_direction']=='inner':
-            self.side_f2='left'
-        else:
-            self.side_f2='right'
+#        if self.f2_params['angle_tick_direction']=='inner':
+#            self.side_f2='left'
+#        else:
+#            self.side_f2='right'
         ##############################################################
         # F3
         params_default_f3=general_default
         params_default_f3_0={
                          'radius':3,
-                         'tick_direction':'outer',
+                         'angle_tick_direction':'outer',
                          'circ_sign':-1,
                          }
         params_default_f3.update(params_default_f3_0)
         for key in params_default_f3:
             if not self.f3_params.has_key(key):
                 self.f3_params[key]=params_default_f3[key]
-        if self.f3_params['tick_direction']=='inner':
-            self.side_f3='left'
-        else:
-            self.side_f3='right'
+#        if self.f3_params['angle_tick_direction']=='inner':
+#            self.side_f3='left'
+#        else:
+#            self.side_f3='right'
 
     def _calculate_funcs_(self):
         """
@@ -358,7 +364,7 @@ if __name__=='__main__':
            'text_format':"$%3.1f$",
            'tick_text_levels':2,
            'extra_angle':90.0,
-           'tick_direction':'outer',
+           'angle_tick_direction':'outer',
 }
     circ_scale=Circ_Scale(canvas=c,circ_appear=appear)
     circ_scale.draw()
@@ -367,25 +373,27 @@ if __name__=='__main__':
     c.writePDFfile("test_circ")
 
     cc=canvas.canvas()
-    para_1={'function':lambda u:u,
+    para_1={'function':lambda u:3*u,
             'radius':8,
             'u_min':0.0,
            'u_max':10.0,
            'angle_min':0.0,
-           'angle_max':90.0}
-    para_2={'function':lambda u:u,
+           'angle_max':270.0}
+    para_2={'function':lambda u:10*math.log10(u),
             'radius':8,
-            'u_min':0.0,
+            'u_min':1.0,
            'u_max':10.0,
-           'angle_min':10.0,
-           'angle_max':90.0}
-    para_3={'function':lambda u:u,
+           'angle_offset_u_value':1.0,
+           'angle_offset_angle_value':10.0,
+           'scale_type':'log'}
+    para_3={'function':lambda u:-u,
             'radius':6,
             'u_min':-15.0,
            'u_max':15.0,
-           'angle_min':0.0,
-           'angle_max':90.0,
-           'extra_angle':0}
+           'angle_offset_u_value':0.0,
+           'angle_offset_angle_value':180.0,
+           'extra_angle':0,
+           'text_horizontal_align_center':False}
     block_params={'f1_params':para_1,
                  'f2_params':para_2,
                  'f3_params':para_3}

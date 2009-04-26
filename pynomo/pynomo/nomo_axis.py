@@ -72,7 +72,9 @@ class Nomo_Axis:
                              'full_angle':False,
                              'extra_angle':0.0,
                              'text_horizontal_align_center':False,
-                             'scale_max':None #decade for major grids
+                             'scale_max':None, #decade for major grids
+                             'turn_relative':False, # 'left' and 'right' are relative
+                             'angle_tick_direction':'outer', # for circular scales
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
@@ -229,11 +231,11 @@ class Nomo_Axis:
         tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
         find_linear_ticks(start,stop,base_start,base_stop,self.axis_appear['scale_max'])
         # let's find tick angles
-        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
-        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
-        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
-        dx_units_3,dy_units_3,angles_3=find_tick_directions(tick_3_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
-        dx_units_4,dy_units_4,angles_4=find_tick_directions(tick_4_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_3,dy_units_3,angles_3=find_tick_directions(tick_3_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_4,dy_units_4,angles_4=find_tick_directions(tick_4_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
 
         # tick level 0
         if self.tick_levels>0:
@@ -300,9 +302,9 @@ class Nomo_Axis:
         tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax=\
         find_log_ticks(start,stop)
         # let's find tick angles
-        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
-        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
-        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'])
+        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
 
         # tick level 0
         if self.tick_levels>0:
@@ -349,6 +351,11 @@ class Nomo_Axis:
                 text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angles[idx])]
             else:
                 text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angles[idx])]
+            if self.axis_appear['full_angle']==True:
+                if self.axis_appear['angle_tick_direction']=='outer':
+                    text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angles[idx])]
+                else: #'inner'
+                    text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angles[idx])]
             if self.axis_appear['text_horizontal_align_center']==True:
                 text_attr=[text.valign.middle,text.halign.center,text_size,trafo.rotate(angles[idx])]
             text_list.append((self._put_text_(u),f(u)+text_distance*dy_units[idx],
@@ -747,11 +754,12 @@ class Nomo_Axis:
 #        if dy>0 and self.side=='right':
 #            self.turn=1.0
 
-def _determine_turn_(f,g,start,stop,side):
+def _determine_turn_(f,g,start,stop,side,turn_relative=False):
     """
      determines if we are going upwards or downwards at start
     _determine_turn_(f=self.func_f,g=self.func_g,start=self.start,
                      stop=self.stop,side=self.side)
+     turn_0 is for overriding the calculation
     """
     du=(stop-start)*1e-6
     dy=(g(start+du)-g(start))
@@ -763,6 +771,11 @@ def _determine_turn_(f,g,start,stop,side):
         turn=-1.0
     if dy>0 and side=='right':
         turn=1.0
+    if turn_relative==True:
+        if side=='right':
+            turn=1.0
+        else: # 'left'
+            turn=-1.0
     return turn
 
 
@@ -874,7 +887,7 @@ def find_log_ticks(start,stop):
     return tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax
 
 
-def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0):
+def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0,turn_relative=False):
     """
     finds tick directions and angles
     """
@@ -882,7 +895,7 @@ def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0
     # following two values make unit vector
     dx_units=[]
     dy_units=[]
-    turn=_determine_turn_(f=f,g=g,start=start,stop=stop,side=side)
+    turn=_determine_turn_(f=f,g=g,start=start,stop=stop,side=side,turn_relative=turn_relative)
     for idx,u in enumerate(list):
         if u!=list[-1]:
             du=(list[idx+1]-list[idx])*1e-6

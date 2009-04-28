@@ -817,8 +817,8 @@ def find_linear_ticks(start,stop,base_start=None,base_stop=None,scale_max_0=None
     tick_2_list=[]
     tick_3_list=[]
     tick_4_list=[]
-    start_major=_find_closest_tick_number_(start,tick_0)
-    stop_major=_find_closest_tick_number_(stop,tick_0)
+    start_major=_find_closest_tick_number_(start,tick_0)-tick_0
+    stop_major=_find_closest_tick_number_(stop,tick_0)+tick_0
     #print "scale_max %f"%scale_max
     #print "start %f"%start
     #print "start_major %f"%start_major

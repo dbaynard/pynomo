@@ -186,6 +186,14 @@ class Circ_Block(object):
         """
         ccanvas.stroke(path.circle(0, 0, radius), [style.linewidth.thin])
 
+    def _draw_center_circle_(self,radius,ccanvas):
+        """
+        draws circle
+        """
+        ccanvas.stroke(path.circle(0, 0, radius), [style.linewidth.thin])
+        ccanvas.stroke(path.line(-radius, 0,radius,0), [style.linewidth.thin])
+        ccanvas.stroke(path.line(0,-radius, 0,radius), [style.linewidth.thin])
+
 class Circ_Block_Type_1(Circ_Block):
     """
     type F1+F2+F3=0 circular slide rule
@@ -232,9 +240,9 @@ class Circ_Block_Type_1(Circ_Block):
                              'grid_length':0.1,
                              'grid_length_0':0.5/4,
                              'grid_length_1':0.5/4,
-                             'grid_length_2':0.5/4,
-                             'grid_length_3':0.4/4,
-                             'grid_length_4':0.3/4,
+                             'grid_length_2':0.4/4,
+                             'grid_length_3':0.3/4,
+                             'grid_length_4':0.2/4,
                              'text_size': text.size.scriptsize,
                              'text_size_0': text.size.tiny,
                              'text_size_1': text.size.tiny,
@@ -325,17 +333,41 @@ class Circ_Block_Type_1(Circ_Block):
         self.arrow_F = lambda u:self.f3_params['radius']*math.cos(self.offset_f2+self.offset_f3)
         self.arrow_G = lambda u:self.f3_params['radius']*math.sin(self.offset_f2+self.offset_f3)
 
-    def draw(self,canvas):
+    def draw(self,ccanvas,rot_angle=0.0):
         """
         draws the scales
         """
-        self._draw_(self.f1_params,self.func_F1,self.func_G1,canvas)
-        self._draw_(self.f2_params,self.func_F2,self.func_G2,canvas)
-        self._draw_(self.f3_params,self.func_F3,self.func_G3,canvas)
-        self._draw_arrow_(self.arrow_F,self.arrow_G,canvas)
-        self._draw_circle_(self.f1_params['radius']+1,canvas)
-        self._draw_circle_(0.5,canvas)
+        rotating_canvas = canvas.canvas()
+        self._draw_(self.f1_params,self.func_F1,self.func_G1,ccanvas)
+        self._draw_(self.f2_params,self.func_F2,self.func_G2,rotating_canvas)
+        self._draw_(self.f3_params,self.func_F3,self.func_G3,ccanvas)
+        self._draw_arrow_(self.arrow_F,self.arrow_G,rotating_canvas)
+        self._draw_circle_(self.f1_params['radius']+1,ccanvas)
+        self._draw_center_circle_(0.2,ccanvas)
+        # insert subcanvas into canvas
+        ccanvas.insert(rotating_canvas, [trafo.rotate(rot_angle)])
 
+    def draw_slide(self,ccanvas,rot_angle=0.0):
+        """
+        draws the rotating (transparent)
+        """
+        rotating_canvas = canvas.canvas()
+        self._draw_(self.f2_params,self.func_F2,self.func_G2,rotating_canvas)
+        self._draw_arrow_(self.arrow_F,self.arrow_G,rotating_canvas)
+        self._draw_circle_(self.f1_params['radius']+1,ccanvas)
+        self._draw_center_circle_(0.2,ccanvas)
+        # insert subcanvas into canvas
+        ccanvas.insert(rotating_canvas, [trafo.rotate(rot_angle)])
+
+    def draw_background(self,ccanvas,rot_angle=0.0):
+        """
+        draws the background
+        """
+        rotating_canvas = canvas.canvas()
+        self._draw_(self.f1_params,self.func_F1,self.func_G1,ccanvas)
+        self._draw_(self.f3_params,self.func_F3,self.func_G3,ccanvas)
+        self._draw_circle_(self.f1_params['radius']+1,ccanvas)
+        self._draw_center_circle_(0.2,ccanvas)
 
 if __name__=='__main__':
     c = canvas.canvas()
@@ -373,19 +405,22 @@ if __name__=='__main__':
     c.writePDFfile("test_circ")
 
     cc=canvas.canvas()
+    cc_slide=canvas.canvas()
+    cc_bg=canvas.canvas()
     para_1={'function':lambda u:3*u,
             'radius':8,
             'u_min':0.0,
            'u_max':10.0,
            'angle_min':0.0,
            'angle_max':270.0}
-    para_2={'function':lambda u:10*math.log10(u),
+    para_2={#'function':lambda u:10*math.log10(u),
+            'function':lambda u:u,
             'radius':8,
             'u_min':1.0,
            'u_max':10.0,
            'angle_offset_u_value':1.0,
            'angle_offset_angle_value':10.0,
-           'scale_type':'log'}
+           'scale_type':'linear'}
     para_3={'function':lambda u:-u,
             'radius':6,
             'u_min':-15.0,
@@ -400,5 +435,9 @@ if __name__=='__main__':
 
     circle_test=Circ_Block_Type_1()
     circle_test.set_block(block_params)
-    circle_test.draw(cc)
-    cc.writePDFfile("test_circ_2")
+    circle_test.draw(cc,45.0)
+    circle_test.draw_slide(cc_slide,0.0)
+    circle_test.draw_background(cc_bg,0.0)
+    cc.writePDFfile("test_circ_combined.pdf")
+    cc_slide.writePDFfile("test_circ_slide.pdf")
+    cc_bg.writePDFfile("test_circ_bg.pdf")

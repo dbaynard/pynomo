@@ -720,7 +720,10 @@ class Nomo_Axis:
             angle=-math.atan(dx_unit/dy_unit)*180/math.pi+90.0
         else:
             angle=0-90.0
-        angle = (angle+90)%180-90
+        if self.axis_appear['full_angle']==False:
+            angle = (angle+90)%180-90
+        else:
+            angle=angle+180.0
         text_distance=self.axis_appear['title_distance_center']
         c.text(center_x-text_distance*dy_unit,
                center_y+text_distance*dx_unit,

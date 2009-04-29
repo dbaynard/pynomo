@@ -194,9 +194,16 @@ class Circ_Block(object):
         ccanvas.stroke(path.line(-radius, 0,radius,0), [style.linewidth.thin])
         ccanvas.stroke(path.line(0,-radius, 0,radius), [style.linewidth.thin])
 
+    def _draw_title_ends_(self,params):
+        """
+        draws title to the ends
+        """
+
 class Circ_Block_Type_1(Circ_Block):
     """
     type F1+F2+F3=0 circular slide rule
+    scaling comes from F1
+    offsets can be set for F2 and F3
     """
     def __init__(self):
         super(Circ_Block_Type_1,self).__init__()
@@ -217,9 +224,9 @@ class Circ_Block_Type_1(Circ_Block):
         self.offset_f2=self._calculate_offset_(self.f2_params)
         self.offset_f3=self._calculate_offset_(self.f3_params)
         self._calculate_funcs_()
-        print "offset f1 %f"%self.offset_f1
-        print "offset f2 %f"%self.offset_f2
-        print "offset f3 %f"%self.offset_f3
+#        print "offset f1 %f"%self.offset_f1
+#        print "offset f2 %f"%self.offset_f2
+#        print "offset f3 %f"%self.offset_f3
 
     def _check_initial_values_(self):
         """
@@ -258,9 +265,9 @@ class Circ_Block_Type_1(Circ_Block):
                              'text_distance_2':1.0/4,
                              'text_distance_3':1.0/4,
                              'text_distance_4':1.0/4,
-                             'title_distance_center':0.5,
+                             'title_distance_center':0.7,
                              'title_opposite_tick':True,
-                             'title_draw_center':False,
+                             'title_draw_center':True,
                              'text_format':"$%3.1f$",
                              'full_angle':True,
                              'extra_angle':90.0,
@@ -408,6 +415,7 @@ if __name__=='__main__':
     cc_slide=canvas.canvas()
     cc_bg=canvas.canvas()
     para_1={'function':lambda u:3*u,
+            'title':'F1',
             'radius':8,
             'u_min':0.0,
            'u_max':10.0,
@@ -415,6 +423,7 @@ if __name__=='__main__':
            'angle_max':270.0}
     para_2={#'function':lambda u:10*math.log10(u),
             'function':lambda u:u,
+            'title':'F2',
             'radius':8,
             'u_min':1.0,
            'u_max':10.0,
@@ -422,12 +431,14 @@ if __name__=='__main__':
            'angle_offset_angle_value':10.0,
            'scale_type':'linear'}
     para_3={'function':lambda u:-u,
+            'title':'F3',
             'radius':6,
             'u_min':-15.0,
            'u_max':15.0,
            'angle_offset_u_value':0.0,
            'angle_offset_angle_value':180.0,
            'extra_angle':0,
+           'title_distance_center':1.2,
            'text_horizontal_align_center':False}
     block_params={'f1_params':para_1,
                  'f2_params':para_2,

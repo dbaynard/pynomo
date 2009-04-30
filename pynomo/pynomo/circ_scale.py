@@ -179,6 +179,17 @@ class Circ_Block(object):
          [style.linewidth.thick, color.rgb.black,
           deco.earrow([deco.stroked([color.rgb.black]),
                        deco.filled([color.rgb.black])], size=0.3)])
+#arct(      x1, y1, x2, y2, r)
+        pi=math.pi
+        angle_minus=-5.0/180*pi
+        angle_plus=5.0/180*pi
+        line=path.path(path.moveto(0.1*F(angle_minus),0.1*G(angle_minus)))
+        line.append(path.lineto(F(angle_minus),G(angle_minus)))
+        line.append(path.moveto(0.1*F(angle_plus),0.1*G(angle_plus)))
+        line.append(path.lineto(F(angle_plus),G(angle_plus)))
+        ccanvas.stroke(line)
+        radius=0.1*math.sqrt(F(angle_plus)**2+G(angle_plus)**2)
+        ccanvas.stroke(path.circle(0, 0, radius), [style.linewidth.thin])
 
     def _draw_circle_(self,radius,ccanvas):
         """
@@ -337,8 +348,8 @@ class Circ_Block_Type_1(Circ_Block):
         self.func_G2 = lambda u:self.f2_params['radius']*math.sin(self.f2_params['circ_sign']*self.f2_params['function'](u)*self.scaling+self.offset_f2)
         self.func_F3 = lambda u:self.f3_params['radius']*math.cos(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
         self.func_G3 = lambda u:self.f3_params['radius']*math.sin(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
-        self.arrow_F = lambda u:self.f3_params['radius']*math.cos(self.offset_f2+self.offset_f3)
-        self.arrow_G = lambda u:self.f3_params['radius']*math.sin(self.offset_f2+self.offset_f3)
+        self.arrow_F = lambda u:self.f3_params['radius']*math.cos(u+self.offset_f2+self.offset_f3)
+        self.arrow_G = lambda u:self.f3_params['radius']*math.sin(u+self.offset_f2+self.offset_f3)
 
     def draw(self,ccanvas,rot_angle=0.0):
         """

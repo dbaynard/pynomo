@@ -20,6 +20,11 @@
 from pyx import *
 from math import *
 from scipy import *
+"""
+for some reason previous does not always load optimize library, so let's load
+optimize explicitely
+"""
+from scipy.optimize import *
 from numpy import *
 from nomo_axis import *
 import time
@@ -391,8 +396,8 @@ class Nomo_Grid_Box(object):
         f=lambda x:x
         g=lambda x:func2(x,v)
         # find point of scale to meet point 1.0
-        x_top=optimize.fmin(func_top,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
-        x_bottom=optimize.fmin(func_bottom,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        x_top=fmin(func_top,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        x_bottom=fmin(func_bottom,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
         #print "x_top %f"%x_top
         #print "x_bottom %f" % x_bottom
         #print "g(x_top) %f"%g(x_top)

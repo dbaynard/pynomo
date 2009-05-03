@@ -196,6 +196,26 @@ class Circ_Block(object):
         draws circle
         """
         ccanvas.stroke(path.circle(0, 0, radius), [style.linewidth.thin])
+        """
+        test:
+        circ1=path.circle(0, 0, 1.5)
+        circ2=path.circle(0, 1, 1.5)
+        union_circ=self._union_paths_(circ1, circ2)
+        ccanvas.stroke(union_circ, [style.linewidth.thin])
+        ccanvas.stroke(union_circ, [deformer.smoothed(radius=0.5), color.rgb.red])
+        """
+    def _pie_(self,start_angle,stop_angle,radius):
+        """
+        draws a pie
+        """
+        pass
+
+    def _bar_(self,angle,width,radius):
+        """
+        draws a bar for arrow
+        """
+        pass
+
 
     def _draw_center_circle_(self,radius,ccanvas):
         """
@@ -209,6 +229,17 @@ class Circ_Block(object):
         """
         draws title to the ends
         """
+        pass
+
+    def _union_paths_(self,path1,path2):
+        """
+        makes union of two closed paths.
+        """
+        (path1a, path1b), (path2a, path2b) = path1.intersect(path2)
+        union = (path1.split([path1a, path1b])[0]
+         << path2.split([path2b, path2a])[0])
+        union[-1].close()
+        return union
 
 class Circ_Block_Type_1(Circ_Block):
     """

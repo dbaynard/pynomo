@@ -112,8 +112,16 @@ class Circ_Block(object):
     """
     basic class for circle objects
     """
-    def __init__(self):
-        self.circ_scale_stack=[] # for sirc scales
+    def __init__(self,params={}):
+        self.circ_scale_stack=[] # for circ scales
+        self.params={
+                        'inner_circle_radius':2,
+                        'oblique_rotator':False,
+                        'arror_bar_width':1.0,
+                        'rot_scale_extra_angle':5.0/180.0*math.pi,
+                        'rotator_fillet':1.0
+                       }
+        self.params.update(params)
 
     def _calculate_scaling_offset_(self,params):
         """
@@ -171,7 +179,7 @@ class Circ_Block(object):
                   canvas=canvas,type=params['scale_type'],
                   manual_axis_data=params['manual_axis_data'],
                   side=side,axis_appear=params)
-    def _draw_arrow_(self,F,G,ccanvas):
+    def _draw_arrow_(self,F,G,angle,radius,ccanvas):
         """
         draws an arrow, F amd G are constant functions
         """
@@ -180,16 +188,10 @@ class Circ_Block(object):
           deco.earrow([deco.stroked([color.rgb.black]),
                        deco.filled([color.rgb.black])], size=0.3)])
 #arct(      x1, y1, x2, y2, r)
-        pi=math.pi
-        angle_minus=-5.0/180*pi
-        angle_plus=5.0/180*pi
-        line=path.path(path.moveto(0.1*F(angle_minus),0.1*G(angle_minus)))
-        line.append(path.lineto(F(angle_minus),G(angle_minus)))
-        line.append(path.moveto(0.1*F(angle_plus),0.1*G(angle_plus)))
-        line.append(path.lineto(F(angle_plus),G(angle_plus)))
-        ccanvas.stroke(line)
-        radius=0.1*math.sqrt(F(angle_plus)**2+G(angle_plus)**2)
-        ccanvas.stroke(path.circle(0, 0, radius), [style.linewidth.thin])
+        width=self.params['arror_bar_width']
+        ccanvas.stroke(self._bar_(angle,width,radius))
+#        radius=0.1*math.sqrt(F(angle_plus)**2+G(angle_plus)**2)
+#        ccanvas.stroke(path.circle(0, 0, radius), [style.linewidth.thin])
 
     def _draw_circle_(self,radius,ccanvas):
         """
@@ -204,17 +206,43 @@ class Circ_Block(object):
         ccanvas.stroke(union_circ, [style.linewidth.thin])
         ccanvas.stroke(union_circ, [deformer.smoothed(radius=0.5), color.rgb.red])
         """
-    def _pie_(self,start_angle,stop_angle,radius):
+    def _draw_pie_(self,start_angle,stop_angle,radius,canvas):
         """
         draws a pie
         """
-        pass
+        p=path.path(path.moveto(0,0))
+        if start_angle>stop_angle:
+            start_angle,stop_angle=stop_angle,start_angle
+        angle=start_angle
+        while angle<=stop_angle:
+            x=radius*math.cos(angle)
+            y=radius*math.sin(angle)
+            p.append(path.lineto(x,y))
+            angle=angle+0.002
+        p.append(path.closepath())
+        p1=deformer.smoothed(self.params['rotator_fillet']).deform(p)
+        canvas.stroke(p1)
+        return p1
 
     def _bar_(self,angle,width,radius):
         """
         draws a bar for arrow
         """
-        pass
+        #deformer.smoothed(1.0).deform(p)
+        x=radius*math.cos(angle*math.pi/180)
+        y=radius*math.sin(angle*math.pi/180)
+        x1=-self.params['inner_circle_radius']/2.0*math.cos(angle*math.pi/180)
+        y1=-self.params['inner_circle_radius']/2.0*math.sin(angle*math.pi/180)
+        dx0=math.cos((angle+90)*math.pi/180)
+        dy0=math.sin((angle+90)*math.pi/180)
+        dx=width/2.0*dx0/math.sqrt(dx0**2+dy0**2)
+        dy=width/2.0*dy0/math.sqrt(dx0**2+dy0**2)
+        p=path.line(x1+dx,y1+dy,x+dx,y+dy)
+        p.append(path.lineto(x-dx,y-dy))
+        p.append(path.lineto(x1-dx,y1-dy))
+        p.append(path.closepath())
+        p1=deformer.smoothed(width).deform(p)
+        return p1
 
 
     def _draw_center_circle_(self,radius,ccanvas):
@@ -377,11 +405,18 @@ class Circ_Block_Type_1(Circ_Block):
         self.func_G1 = lambda u:self.f1_params['radius']*math.sin(self.f1_params['circ_sign']*self.f1_params['function'](u)*self.scaling+self.offset_f1)
         self.func_F2 = lambda u:self.f2_params['radius']*math.cos(self.f2_params['circ_sign']*self.f2_params['function'](u)*self.scaling+self.offset_f2)
         self.func_G2 = lambda u:self.f2_params['radius']*math.sin(self.f2_params['circ_sign']*self.f2_params['function'](u)*self.scaling+self.offset_f2)
+        self.angle_2_min=self.f2_params['circ_sign']*self.f2_params['function'](self.f2_params['u_min'])*self.scaling+self.offset_f2
+        self.angle_2_max=self.f2_params['circ_sign']*self.f2_params['function'](self.f2_params['u_max'])*self.scaling+self.offset_f2
+        if self.angle_2_max<self.angle_2_min:
+            self.angle_2_max,self.angle_2_min=self.angle_2_min,self.angle_2_max
+        self.angle_2_min=self.angle_2_min-self.params['rot_scale_extra_angle']
+        self.angle_2_max=self.angle_2_max+self.params['rot_scale_extra_angle']
         self.func_F3 = lambda u:self.f3_params['radius']*math.cos(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
         self.func_G3 = lambda u:self.f3_params['radius']*math.sin(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
         self.arrow_F = lambda u:self.f3_params['radius']*math.cos(u+self.offset_f2+self.offset_f3)
         self.arrow_G = lambda u:self.f3_params['radius']*math.sin(u+self.offset_f2+self.offset_f3)
-
+        self.arrow_angle=(self.offset_f2+self.offset_f3)*180/math.pi
+        self.arrow_radius=self.f3_params['radius']
     def draw(self,ccanvas,rot_angle=0.0):
         """
         draws the scales
@@ -390,7 +425,10 @@ class Circ_Block_Type_1(Circ_Block):
         self._draw_(self.f1_params,self.func_F1,self.func_G1,ccanvas)
         self._draw_(self.f2_params,self.func_F2,self.func_G2,rotating_canvas)
         self._draw_(self.f3_params,self.func_F3,self.func_G3,ccanvas)
-        self._draw_arrow_(self.arrow_F,self.arrow_G,rotating_canvas)
+        self._draw_arrow_(self.arrow_F,self.arrow_G,self.arrow_angle,
+                          self.arrow_radius,rotating_canvas)
+        self._draw_pie_(self.angle_2_min,self.angle_2_max,self.f2_params['radius'],rotating_canvas)
+        self._draw_circle_(self.params['inner_circle_radius'],ccanvas)
         self._draw_circle_(self.f1_params['radius']+1,ccanvas)
         self._draw_center_circle_(0.2,ccanvas)
         # insert subcanvas into canvas
@@ -402,7 +440,11 @@ class Circ_Block_Type_1(Circ_Block):
         """
         rotating_canvas = canvas.canvas()
         self._draw_(self.f2_params,self.func_F2,self.func_G2,rotating_canvas)
-        self._draw_arrow_(self.arrow_F,self.arrow_G,rotating_canvas)
+        self._draw_arrow_(self.arrow_F,self.arrow_G,self.arrow_angle,
+                          self.arrow_radius,rotating_canvas)
+
+        self._draw_pie_(self.angle_2_min,self.angle_2_max,self.f2_params['radius'],rotating_canvas)
+        self._draw_circle_(self.params['inner_circle_radius'],ccanvas)
         self._draw_circle_(self.f1_params['radius']+1,ccanvas)
         self._draw_center_circle_(0.2,ccanvas)
         # insert subcanvas into canvas

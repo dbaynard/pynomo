@@ -119,7 +119,7 @@ class Circ_Block(object):
                         'oblique_rotator':False,
                         'arror_bar_width':1.0,
                         'rot_scale_extra_angle':5.0/180.0*math.pi,
-                        'rotator_fillet':1.0
+                        'rotator_fillet':2.0
                        }
         self.params.update(params)
 
@@ -179,7 +179,8 @@ class Circ_Block(object):
                   canvas=canvas,type=params['scale_type'],
                   manual_axis_data=params['manual_axis_data'],
                   side=side,axis_appear=params)
-    def _draw_arrow_(self,F,G,angle,radius,ccanvas):
+
+    def _draw_arrow_(self,F,G,angle,ccanvas):
         """
         draws an arrow, F amd G are constant functions
         """
@@ -187,11 +188,9 @@ class Circ_Block(object):
          [style.linewidth.thick, color.rgb.black,
           deco.earrow([deco.stroked([color.rgb.black]),
                        deco.filled([color.rgb.black])], size=0.3)])
-#arct(      x1, y1, x2, y2, r)
         width=self.params['arror_bar_width']
-        ccanvas.stroke(self._bar_(angle,width,radius))
-#        radius=0.1*math.sqrt(F(angle_plus)**2+G(angle_plus)**2)
-#        ccanvas.stroke(path.circle(0, 0, radius), [style.linewidth.thin])
+        #ccanvas.stroke(self._bar_(angle,width,radius))
+
 
     def _draw_circle_(self,radius,ccanvas):
         """
@@ -210,6 +209,13 @@ class Circ_Block(object):
         """
         draws a pie
         """
+        p1=self._pie_(start_angle,stop_angle,radius)
+        canvas.stroke(p1)
+
+    def _pie_(self,start_angle,stop_angle,radius):
+        """
+        draws a pie
+        """
         p=path.path(path.moveto(0,0))
         if start_angle>stop_angle:
             start_angle,stop_angle=stop_angle,start_angle
@@ -221,7 +227,6 @@ class Circ_Block(object):
             angle=angle+0.002
         p.append(path.closepath())
         p1=deformer.smoothed(self.params['rotator_fillet']).deform(p)
-        canvas.stroke(p1)
         return p1
 
     def _bar_(self,angle,width,radius):
@@ -235,8 +240,8 @@ class Circ_Block(object):
         y1=-self.params['inner_circle_radius']/2.0*math.sin(angle*math.pi/180)
         dx0=math.cos((angle+90)*math.pi/180)
         dy0=math.sin((angle+90)*math.pi/180)
-        dx=width/2.0*dx0/math.sqrt(dx0**2+dy0**2)
-        dy=width/2.0*dy0/math.sqrt(dx0**2+dy0**2)
+        dx=-width/2.0*dx0/math.sqrt(dx0**2+dy0**2)
+        dy=-width/2.0*dy0/math.sqrt(dx0**2+dy0**2)
         p=path.line(x1+dx,y1+dy,x+dx,y+dy)
         p.append(path.lineto(x-dx,y-dy))
         p.append(path.lineto(x1-dx,y1-dy))
@@ -263,10 +268,28 @@ class Circ_Block(object):
         """
         makes union of two closed paths.
         """
-        (path1a, path1b), (path2a, path2b) = path1.intersect(path2)
-        union = (path1.split([path1a, path1b])[0]
-         << path2.split([path2b, path2a])[0])
+        path1_i,path2_i = path1.intersect(path2)
+        path1_i.sort()
+        path2_i.sort()
+        paths1=path1.split(path1_i)
+        paths2=path2.split(path2_i)
+        def longest(p):
+            best=p[0]
+            for pp in p:
+                if pp.arclen() > best.arclen():
+                    best=pp
+            return best
+        union = longest(paths1).joined(longest(paths2))
         union[-1].close()
+#        def longer(p1, p2):
+#            if p1.arclen() > p2.arclen():
+#                return p1
+#            return p2
+#        union = longer(*paths1) << longer(*paths2)
+        #union=path1.split(path1_i)[-1]<<path2.split(path1_i)[-1]
+
+        #union = path1 << path2
+        #union[-1].close()
         return union
 
 class Circ_Block_Type_1(Circ_Block):
@@ -368,7 +391,7 @@ class Circ_Block_Type_1(Circ_Block):
         # F2
         params_default_f2=general_default
         params_default_f2_0={
-                         'radius':4,
+                         'radius':3.9,
                          'angle_tick_direction':'inner',
                          'circ_sign':-1,
                          }
@@ -413,22 +436,23 @@ class Circ_Block_Type_1(Circ_Block):
         self.angle_2_max=self.angle_2_max+self.params['rot_scale_extra_angle']
         self.func_F3 = lambda u:self.f3_params['radius']*math.cos(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
         self.func_G3 = lambda u:self.f3_params['radius']*math.sin(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
-        self.arrow_F = lambda u:self.f3_params['radius']*math.cos(u+self.offset_f2+self.offset_f3)
-        self.arrow_G = lambda u:self.f3_params['radius']*math.sin(u+self.offset_f2+self.offset_f3)
+        self.arrow_F = lambda u:(self.f3_params['radius']-0.05)*math.cos(u+self.offset_f2+self.offset_f3)
+        self.arrow_G = lambda u:(self.f3_params['radius']-0.25)*math.sin(u+self.offset_f2+self.offset_f3)
         self.arrow_angle=(self.offset_f2+self.offset_f3)*180/math.pi
-        self.arrow_radius=self.f3_params['radius']
+        self.arrow_radius=self.f3_params['radius']-0.05
     def draw(self,ccanvas,rot_angle=0.0):
         """
         draws the scales
         """
         rotating_canvas = canvas.canvas()
+        self.draw_oblique_rotator_edge(rotating_canvas)
         self._draw_(self.f1_params,self.func_F1,self.func_G1,ccanvas)
         self._draw_(self.f2_params,self.func_F2,self.func_G2,rotating_canvas)
         self._draw_(self.f3_params,self.func_F3,self.func_G3,ccanvas)
         self._draw_arrow_(self.arrow_F,self.arrow_G,self.arrow_angle,
-                          self.arrow_radius,rotating_canvas)
-        self._draw_pie_(self.angle_2_min,self.angle_2_max,self.f2_params['radius'],rotating_canvas)
-        self._draw_circle_(self.params['inner_circle_radius'],ccanvas)
+                          rotating_canvas)
+        #self._draw_pie_(self.angle_2_min,self.angle_2_max,self.f2_params['radius'],rotating_canvas)
+        #self._draw_circle_(self.params['inner_circle_radius'],ccanvas)
         self._draw_circle_(self.f1_params['radius']+1,ccanvas)
         self._draw_center_circle_(0.2,ccanvas)
         # insert subcanvas into canvas
@@ -439,16 +463,37 @@ class Circ_Block_Type_1(Circ_Block):
         draws the rotating (transparent)
         """
         rotating_canvas = canvas.canvas()
+        self.draw_oblique_rotator_edge(ccanvas)
         self._draw_(self.f2_params,self.func_F2,self.func_G2,rotating_canvas)
         self._draw_arrow_(self.arrow_F,self.arrow_G,self.arrow_angle,
-                          self.arrow_radius,rotating_canvas)
+                          rotating_canvas)
 
-        self._draw_pie_(self.angle_2_min,self.angle_2_max,self.f2_params['radius'],rotating_canvas)
-        self._draw_circle_(self.params['inner_circle_radius'],ccanvas)
+        #self._draw_pie_(self.angle_2_min,self.angle_2_max,self.f2_params['radius'],rotating_canvas)
+        #self._draw_circle_(self.params['inner_circle_radius'],ccanvas)
         self._draw_circle_(self.f1_params['radius']+1,ccanvas)
         self._draw_center_circle_(0.2,ccanvas)
         # insert subcanvas into canvas
         ccanvas.insert(rotating_canvas, [trafo.rotate(rot_angle)])
+
+    def draw_oblique_rotator_edge(self,ccanvas):
+        """
+        draws oblique rotating parts
+        """
+        # path around arrow
+        bar_path=self._bar_(self.arrow_angle,self.params['arror_bar_width'],
+                            self.arrow_radius)
+        pie_path=self._pie_(self.angle_2_min,self.angle_2_max,
+                            self.f2_params['radius'])
+        circle_path=path.circle(0, 0, self.params['inner_circle_radius'])
+        #ccanvas.stroke(pie_path,[deco.filled([color.cmyk.Gray])])
+        #ccanvas.stroke(bar_path,[deco.filled([color.cmyk.Gray])])
+        #ccanvas.stroke(circle_path,[deco.filled([color.cmyk.Gray])])
+        p1=self._union_paths_(circle_path,pie_path)
+        p2=self._union_paths_(bar_path,p1)
+        p3=deformer.smoothed(self.params['rotator_fillet'],obeycurv=0).deform(p2)
+        ccanvas.fill(p3, [color.gray(0.95)])
+        ccanvas.stroke(p3)
+        self._draw_center_circle_(0.2,ccanvas)
 
     def draw_background(self,ccanvas,rot_angle=0.0):
         """
@@ -508,7 +553,7 @@ if __name__=='__main__':
     para_2={#'function':lambda u:10*math.log10(u),
             'function':lambda u:u,
             'title':'F2',
-            'radius':8,
+            'radius':7.95,
             'u_min':1.0,
            'u_max':10.0,
            'angle_offset_u_value':1.0,

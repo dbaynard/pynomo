@@ -70,7 +70,8 @@ class Nomographer:
                     blocks[-1].add_F(axis_params)
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'],
-                                     reference_padding=block_para['reference_padding'])
+                                     reference_padding=block_para['reference_padding'],
+                                     reference_titles=block_para['reference_titles'])
                 wrapper.add_block(blocks[-1])
             # TYPE 4
             if block_para['block_type']=='type_4':
@@ -228,7 +229,8 @@ class Nomographer:
                          'mirror_y':False,
                          'width':10.0,
                          'height':10.0,
-                         'reference_padding':0.2}
+                         'reference_padding':0.2,
+                         'reference_titles':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]

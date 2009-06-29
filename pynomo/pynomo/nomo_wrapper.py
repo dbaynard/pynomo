@@ -730,7 +730,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         self.N=self.N+1
         self.shift_stack.append(0)  # initial correction 0
 
-    def set_block(self,height=10.0,width=10.0,reference_padding=0.2):
+    def set_block(self,height=10.0,width=10.0,reference_padding=0.2,reference_titles=[]):
         """
         sets up equations in block after definitions are given
         """
@@ -739,6 +739,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         self.width=width
         self.height=height
         self.reference_padding=reference_padding
+        self.reference_titles=reference_titles
         self._make_definitions_()
         self._calculate_shifts_()
         for idx in range(1,self.N+1,1):
@@ -864,6 +865,8 @@ class Nomo_Block_Type_3(Nomo_Block):
             ref_para['F']=self._makeDoX_(r_table[idx])
             ref_para['G']=lambda y:y
             ref_para['reference_padding']=self.reference_padding
+            if len(self.reference_titles)>=idx:
+                ref_para['title']=self.reference_titles[idx-1]
             self.ref_params.append(ref_para)
 
     def _makeDoX_(self,value):

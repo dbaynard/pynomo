@@ -39,7 +39,8 @@ class Nomo_Wrapper:
             'title_str':'',
             'title_x': paper_width/2.0,
             'title_y': paper_height,
-            'title_box_width': paper_width/2.2}
+            'title_box_width': paper_width/2.2,
+            'extra_texts':[]}
         self.params=self.params_default
         self.params.update(params)
         self.block_stack=[]
@@ -204,6 +205,7 @@ class Nomo_Wrapper:
         for block in self.block_stack:
             block.draw(canvas)
         self._draw_title_(canvas)
+        self._draw_extra_texts_(canvas)
         if isinstance(self.filename,list):
             for filename_this in self.filename:
                 if not re.compile(".eps").search(filename_this, 1)==None:
@@ -225,6 +227,29 @@ class Nomo_Wrapper:
         self.params['title_str'],
         [text.parbox(self.params['title_box_width']),
         text.halign.boxcenter, text.halign.flushcenter])
+
+    def _draw_extra_texts_(self,c):
+        """
+        draws extra texts
+        """
+        text_default={'x':0.0,
+                      'y':0.0,
+                      'text':'no text defined...',
+                      'width':5,
+                      'pyx_extra_defs':[]
+                      }
+        if len(self.params['extra_texts'])>0:
+            for texts in self.params['extra_texts']:
+                for key in text_default:
+                    if not texts.has_key(key):
+                        texts[key]=text_default[key]
+                x=texts['x']
+                y=texts['y']
+                text_str=texts['text']
+                width=texts['width']
+                pyx_extra_defs=texts['pyx_extra_defs']
+                c.text(x,y,text_str,[text.parbox(width)]+pyx_extra_defs)
+
 
     def align_blocks(self):
         """

@@ -75,9 +75,12 @@ class Nomo_Axis:
                              'scale_max':None, #decade for major grids
                              'turn_relative':False, # 'left' and 'right' are relative
                              'angle_tick_direction':'outer', # for circular scales
+                             'arrow_size':0.2, # for drawing arrow scale
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
+
+        self.arrows=None  # only if axis is arrow axis
 
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
@@ -88,6 +91,8 @@ class Nomo_Axis:
             self._make_manual_axis_circle_(manual_axis_data)
         if type=='manual line':
             self._make_manual_axis_line_(manual_axis_data)
+        if type=='manual arrow':
+            self._make_manual_axis_arrow_(manual_axis_data)
 
         self.draw_axis(canvas)
         if self.axis_appear['title_draw_center']:
@@ -342,7 +347,7 @@ class Nomo_Axis:
         self.texts=texts
 
     def _make_texts_(self,tick_list,text_list,f,g,dx_units,dy_units,angles,
-                     text_distance,text_size):
+                     text_distance,text_size,manual_texts=[]):
         """
         makes list of text definitions
         """
@@ -358,8 +363,12 @@ class Nomo_Axis:
                     text_attr=[text.valign.middle,text.halign.left,text_size,trafo.rotate(angles[idx])]
             if self.axis_appear['text_horizontal_align_center']==True:
                 text_attr=[text.valign.middle,text.halign.center,text_size,trafo.rotate(angles[idx])]
-            text_list.append((self._put_text_(u),f(u)+text_distance*dy_units[idx],
-                              g(u)-text_distance*dx_units[idx],text_attr))
+            if len(manual_texts)>0:
+                text_list.append((manual_texts[idx],f(u)+text_distance*dy_units[idx],\
+                                  g(u)-text_distance*dx_units[idx],text_attr))
+            else: # make a number
+                text_list.append((self._put_text_(u),f(u)+text_distance*dy_units[idx],
+                                  g(u)-text_distance*dx_units[idx],text_attr))
 
     def _make_tick_lines_(self,tick_list,tick_lines,f,g,dx_units,dy_units,
                           tick_length):
@@ -370,6 +379,16 @@ class Nomo_Axis:
             tick_lines.append(path.moveto(f(u), g(u)))
             tick_lines.append(path.lineto(f(u)+tick_length*dy_units[idx],
                                           g(u)-tick_length*dx_units[idx]))
+
+    def _make_arrows_(self,tick_list,tick_lines,f,g,dx_units,dy_units,
+                          tick_length):
+        """
+        appends to list tick_list lines to be tick markers
+        """
+        for idx,u in enumerate(tick_list):
+            tick_lines.append(path.line(f(u)+tick_length*dy_units[idx],
+                                        g(u)-tick_length*dx_units[idx],
+                                        f(u), g(u)))
 
     def _make_main_line_(self,start,stop,main_line,f,g):
         """
@@ -579,6 +598,56 @@ class Nomo_Axis:
         self.thin_line=thin_line
         self.texts=texts
 
+    def _make_manual_axis_arrow_(self,manual_axis_data):
+        """
+        Makes manual axis with arrows
+        """
+        f=self.func_f
+        g=self.func_g
+        start=self.start
+        stop=self.stop
+        #self._determine_turn_()
+        # line lists
+        line = path.path(path.moveto(f(self.start), g(self.start)))
+        thin_line=path.path(path.moveto(f(self.start), g(self.start)))
+        arrows=[]
+        # text list
+        texts=[] # pyx structure
+        text_strings=[]
+        tick_list=[]
+        # let's find tick positions'
+#        manual_axis_data.sort()
+#        for number, label_string in manual_axis_data.iteritems():
+#            tick_list.append(number)
+#            text_strings.append(label_string)
+
+        keys = manual_axis_data.keys()
+        keys.sort()
+        for key in keys:
+            tick_list.append(key)
+            text_strings.append(manual_axis_data[key])
+
+        # let's find tick angles
+        dx_units,dy_units,angles=find_tick_directions(tick_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+
+        # ticks = arrows
+        if self.tick_levels>0:
+            self._make_arrows_(tick_list,arrows,f,g,dx_units,dy_units,
+                              self.axis_appear['grid_length_0'])
+        # texts
+        if self.tick_text_levels>0:
+            self._make_texts_(tick_list,texts,f,g,dx_units,dy_units,angles,
+                     self.axis_appear['text_distance_0'],
+                     self.axis_appear['text_size_0'],
+                     manual_texts=text_strings)
+        # make main line
+        self._make_main_line_(start,stop,line,f,g)
+
+        self.line=line
+        self.thin_line=thin_line
+        self.texts=texts
+        self.arrows=arrows
+
     def _make_manual_axis_line_(self,manual_axis_data):
         """
         draws axis with texts, line and ticks where texts are
@@ -659,6 +728,12 @@ class Nomo_Axis:
     def draw_axis(self,c):
         c.stroke(self.line, [style.linewidth.normal])
         c.stroke(self.thin_line, [style.linewidth.thin])
+        if self.arrows is not None:
+            for arrow in self.arrows:
+                c.stroke(arrow,
+                [style.linewidth.thick, color.rgb.black,
+                deco.earrow([deco.stroked([color.rgb.black]),
+                deco.filled([color.rgb.black])], size=self.axis_appear['arrow_size'])])
         for ttext,x,y,attr in self.texts:
             c.text(x,y,ttext,attr)
 
@@ -913,19 +988,19 @@ def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0
         dx_unit=dx/math.sqrt(dx**2+dy**2)
         dy_unit=dy/math.sqrt(dx**2+dy**2)
         if not full_angle:
-            if dy_unit!=0:
-                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+            if dy_unit!=0.0:
+                angle=-math.atan(dx_unit/dy_unit)*180.0/math.pi
             else:
-                angle=0
+                angle=0.0
         if full_angle:
-            if dy_unit!=0:
-                angle=-math.atan(dx_unit/dy_unit)*180/math.pi
+            if dy_unit!=0.0:
+                angle=-math.atan(dx_unit/dy_unit)*180.0/math.pi
             else:
-                angle=0
-            if scipy.sign(dx_unit)<0 and scipy.sign(dy_unit)<0:
-                angle=angle-180
-            if scipy.sign(dy_unit)<0 and scipy.sign(dx_unit)>=0:
-                angle=angle+180
+                angle=0.0
+            if scipy.sign(dx_unit)<0.0 and scipy.sign(dy_unit)<0.0:
+                angle=angle-180.0
+            if scipy.sign(dy_unit)<0.0 and scipy.sign(dx_unit)>=0.0:
+                angle=angle+180.0
         angle=angle+extra_angle
         dx_units.append(dx_unit)
         dy_units.append(dy_unit)
@@ -990,7 +1065,7 @@ if __name__=='__main__':
                   manual_axis_data=manual_axis_data,side='right')
 
     gr4=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',
-                  canvas=c,type='manual line',
+                  canvas=c,type='manual arrow',
                   manual_axis_data=manual_axis_data,side='right')
     gr44=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',
                   canvas=c,type='manual line',

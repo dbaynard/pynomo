@@ -76,6 +76,12 @@ class Nomo_Axis:
                              'turn_relative':False, # 'left' and 'right' are relative
                              'angle_tick_direction':'outer', # for circular scales
                              'arrow_size':0.2, # for drawing arrow scale
+                             'arrow_length':1.0,
+                             'arrow_color':color.rgb.black,
+                             'axis_color':color.rgb.black,
+                             'text_color':color.rgb.black,
+                             'title_color':color.rgb.black,
+                             'extra_titles':[],# list of dicts
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
@@ -99,6 +105,7 @@ class Nomo_Axis:
             self._draw_title_center_(canvas)
         else:
             self._draw_title_top_(canvas)
+        self._draw_extra_titles_(canvas)
 
     def _test_tick_(self,u,tick,scale_max):
         """ tests if it is time to put a tick
@@ -381,14 +388,15 @@ class Nomo_Axis:
                                           g(u)-tick_length*dx_units[idx]))
 
     def _make_arrows_(self,tick_list,tick_lines,f,g,dx_units,dy_units,
-                          tick_length):
+                          arrow_length):
         """
         appends to list tick_list lines to be tick markers
         """
         for idx,u in enumerate(tick_list):
-            tick_lines.append(path.line(f(u)+tick_length*dy_units[idx],
-                                        g(u)-tick_length*dx_units[idx],
-                                        f(u), g(u)))
+            tick_lines.append(path.line(f(u)+arrow_length*dy_units[idx],
+                                        g(u)-arrow_length*dx_units[idx],
+                                        f(u)+0.02*dy_units[idx],
+                                        g(u)-0.02*dx_units[idx]))
 
     def _make_main_line_(self,start,stop,main_line,f,g):
         """
@@ -633,11 +641,11 @@ class Nomo_Axis:
         # ticks = arrows
         if self.tick_levels>0:
             self._make_arrows_(tick_list,arrows,f,g,dx_units,dy_units,
-                              self.axis_appear['grid_length_0'])
+                              self.axis_appear['arrow_length'])
         # texts
         if self.tick_text_levels>0:
             self._make_texts_(tick_list,texts,f,g,dx_units,dy_units,angles,
-                     self.axis_appear['text_distance_0'],
+                     self.axis_appear['arrow_length']+0.15,
                      self.axis_appear['text_size_0'],
                      manual_texts=text_strings)
         # make main line
@@ -726,16 +734,19 @@ class Nomo_Axis:
         self.texts=texts
 
     def draw_axis(self,c):
-        c.stroke(self.line, [style.linewidth.normal])
-        c.stroke(self.thin_line, [style.linewidth.thin])
+        arrow_color=self.axis_appear['arrow_color']
+        text_color=self.axis_appear['text_color']
+        axis_color=self.axis_appear['axis_color']
+        c.stroke(self.line, [style.linewidth.normal,axis_color])
+        c.stroke(self.thin_line, [style.linewidth.thin,axis_color])
         if self.arrows is not None:
             for arrow in self.arrows:
                 c.stroke(arrow,
-                [style.linewidth.thick, color.rgb.black,
-                deco.earrow([deco.stroked([color.rgb.black]),
-                deco.filled([color.rgb.black])], size=self.axis_appear['arrow_size'])])
+                [style.linewidth.thick, arrow_color,
+                deco.earrow([deco.stroked([arrow_color]),
+                deco.filled([arrow_color])], size=self.axis_appear['arrow_size'])])
         for ttext,x,y,attr in self.texts:
-            c.text(x,y,ttext,attr)
+            c.text(x,y,ttext,attr+[text_color])
 
     def _draw_title_top_(self,c):
         """
@@ -754,7 +765,7 @@ class Nomo_Axis:
                 best_u=number
         c.text(self.func_f(best_u)+self.title_x_shift,
                 self.func_g(best_u)+self.title_y_shift,
-                self.title,[text.halign.center])
+                self.title,[text.halign.center,self.axis_appear['title_color']])
 
 #        # find out if start or stop has higher y-value
 #        if self.func_g(self.stop)>self.func_g(self.start):
@@ -802,9 +813,50 @@ class Nomo_Axis:
         text_distance=self.axis_appear['title_distance_center']
         c.text(center_x-text_distance*dy_unit,
                center_y+text_distance*dx_unit,
-               self.title,[text.halign.center,trafo.rotate(angle)])
+               self.title,[text.halign.center,trafo.rotate(angle),
+                           self.axis_appear['title_color']])
         #text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
         #texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
+
+    def _draw_extra_titles_(self,c):
+        """
+        draws extra titles to top
+        """
+        best_u=self.start
+        y_max=self.func_g(best_u)
+        if self.func_g(self.stop)>y_max:
+            y_max=self.func_g(self.stop)
+            best_u=self.stop
+        for dummy in range(500):
+            number=random.uniform(min(self.start,self.stop),max(self.start,self.stop))
+            y_value=self.func_g(number)
+            if y_value>y_max:
+                y_max=y_value
+                best_u=number
+#        c.text(self.func_f(best_u)+self.title_x_shift,
+#                self.func_g(best_u)+self.title_y_shift,
+#                self.title,[text.halign.center,self.axis_appear['title_color']])
+
+        text_default={'dx':0.0,
+                      'dy':0.0,
+                      'text':'no text defined...',
+                      'width':5,
+                      'pyx_extra_defs':[]
+                      }
+        if len(self.axis_appear['extra_titles'])>0:
+            for texts in self.axis_appear['extra_titles']:
+                for key in text_default:
+                    if not texts.has_key(key):
+                        texts[key]=text_default[key]
+                dx=texts['dx']
+                dy=texts['dy']
+                text_str=texts['text']
+                width=texts['width']
+                pyx_extra_defs=texts['pyx_extra_defs']
+#                c.text(x,y,text_str,[text.parbox(width)]+pyx_extra_defs)
+                c.text(self.func_f(best_u)+dx,
+                        self.func_g(best_u)+dy,
+                        text_str,[text.parbox(width)]+pyx_extra_defs)
 
     def _put_text_(self,u):
         if self.text_style=='oldstyle':
@@ -1066,14 +1118,22 @@ if __name__=='__main__':
 
     gr4=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',
                   canvas=c,type='manual arrow',
-                  manual_axis_data=manual_axis_data,side='right')
+                  manual_axis_data=manual_axis_data,side='right',
+                  axis_appear={'extra_angle':0,
+                               'text_horizontal_align_center':False,
+                               'arrow_color':color.rgb.blue,
+                               'text_color':color.rgb.red})
     gr44=Nomo_Axis(func_f=f1c,func_g=g1c,start=1.0,stop=10,turn=-1,title='func 4',
                   canvas=c,type='manual line',
                   manual_axis_data=manual_axis_data,side='left')
 
     # for some reason, this does not work when stop is 359 ??
     gr5=Nomo_Axis(func_f=f1d,func_g=g1d,start=0.0,stop=360.0,turn=-1,title='func 1',
-                  canvas=c,type='linear',side='left')
+                  canvas=c,type='linear',side='left',
+                  axis_appear={'extra_angle':0,
+                               'text_horizontal_align_center':False,
+                               'axis_color':color.rgb.blue,
+                               'text_color':color.cmyk.Orange})
 
     gr10=Nomo_Axis(func_f=lambda u:20.0,func_g=lambda x:(x+12.5)/2.0,start=-17.1757381043,stop=19.5610135785,turn=-1,title='test neg.',
                   canvas=c,type='linear',side='right')

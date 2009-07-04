@@ -90,7 +90,8 @@ class Nomographer:
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'],
                                      float_axis=block_para['float_axis'],
-                                     padding=block_para['padding'])
+                                     padding=block_para['padding'],
+                                     reference_color=block_para['reference_color'])
                 wrapper.add_block(blocks[-1])
             # TYPE 5
             if block_para['block_type']=='type_5':
@@ -112,7 +113,8 @@ class Nomographer:
                                      type=block_para['type'],
                                      x_empty=block_para['x_empty'],
                                      y_empty=block_para['y_empty'],
-                                     curve_const=block_para['curve_const'])
+                                     curve_const=block_para['curve_const'],
+                                     ladder_color=block_para['ladder_color'])
                 wrapper.add_block(blocks[-1])
             # TYPE 7
             if block_para['block_type']=='type_7':
@@ -248,7 +250,8 @@ class Nomographer:
                          'width':10.0,
                          'height':10.0,
                          'float_axis':'F1 or F2',
-                         'padding':0.9}
+                         'padding':0.9,
+                         'reference_color':color.rgb.black}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -297,6 +300,7 @@ class Nomographer:
                          'x_empty':0.2,
                          'y_empty':0.2,
                          'curve_const':0.5,
+                         'ladder_color':color.rgb.black,
                          }
         for key in params_default:
             if not params.has_key(key):

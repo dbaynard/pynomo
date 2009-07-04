@@ -973,7 +973,8 @@ class Nomo_Block_Type_4(Nomo_Block):
         self.F4_axis_ini=Axis_Wrapper(f=params['F'],g=params['G'],
                                       start=params['u_min'],stop=params['u_max'])
 
-    def set_block(self,height=10.0,width=10.0,float_axis='F1 or F2',padding=0.9):
+    def set_block(self,height=10.0,width=10.0,float_axis='F1 or F2',padding=0.9,
+                  reference_color=color.rgb.black):
         """
         sets up equations in block after definitions are given
         float_axis is the axis that's scaling is set by other's scaling
@@ -981,6 +982,7 @@ class Nomo_Block_Type_4(Nomo_Block):
         """
         self.width=width
         self.height=height
+        self.reference_color=reference_color
         x_dummy,f1_max=self.F1_axis_ini.calc_highest_point()
         #x_dummy,f1_min=self.F1_axis_ini.calc_lowest_point()
         x_dummy,f2_max=self.F2_axis_ini.calc_highest_point()
@@ -1051,6 +1053,7 @@ class Nomo_Block_Type_4(Nomo_Block):
             'title':'',
             'tick_levels':0.0,
             'tick_text_levels':0.0,
+            'axis_color':self.reference_color
                     }
         self.add_atom(Nomo_Atom(center_line_para))
 
@@ -1388,7 +1391,7 @@ class Nomo_Block_Type_6(Nomo_Block):
                              start=params2['u_min'],stop=params2['u_max'])
 
     def set_block(self,width=10.0,height=10.0,type='parallel',x_empty=0.2, y_empty=0.2,
-                  curve_const=0.5):
+                  curve_const=0.5,ladder_color=color.rgb.black):
         """
         sets original width, height and x-distance proportion for the nomogram before
         transformations
@@ -1400,6 +1403,7 @@ class Nomo_Block_Type_6(Nomo_Block):
         self.width=width
         self.height=height
         self.curve_const=curve_const
+        self.ladder_color=ladder_color
         #p=proportion
         #delta_1=proportion*width/(1+proportion)
         #delta_3=width/(proportion+1)
@@ -1508,7 +1512,8 @@ class Nomo_Block_Type_6(Nomo_Block):
                                      tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
                                      tick_1_list,f1,g1,f2,g2,canvas,style.linestyle.dashed)
-        if self.atom_F1.params['scale_type']=='manual point':
+        if self.atom_F1.params['scale_type']=='manual point' or\
+        self.atom_F1.params['scale_type']=='manual arrow':
             tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
             tick_0_list.sort()
 
@@ -1552,8 +1557,8 @@ class Nomo_Block_Type_6(Nomo_Block):
             x4,y4=f2(u), g2(u)
             curves.append(path.curve(x1,y1,x2,y2,x3,y3,x4,y4))
         for curve in curves:
-            canvas.stroke(curve,[style.linewidth.normal, line_style])
-        canvas.stroke(line, [style.linewidth.normal, line_style])
+            canvas.stroke(curve,[style.linewidth.normal, line_style, self.ladder_color])
+        canvas.stroke(line, [style.linewidth.normal, line_style, self.ladder_color])
 
 class Nomo_Block_Type_7(Nomo_Block):
     """

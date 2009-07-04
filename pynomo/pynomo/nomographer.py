@@ -71,7 +71,8 @@ class Nomographer:
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'],
                                      reference_padding=block_para['reference_padding'],
-                                     reference_titles=block_para['reference_titles'])
+                                     reference_titles=block_para['reference_titles'],
+                                     reference_color=block_para['reference_color'])
                 wrapper.add_block(blocks[-1])
             # TYPE 4
             if block_para['block_type']=='type_4':
@@ -187,7 +188,8 @@ class Nomographer:
                       'paper_height':20.0,
                       'paper_width':20.0,
                       #'block_params':[test1_block1_params,test1_block2_params],
-                      'transformations':[('rotate',0.01),('scale paper',)]
+                      'transformations':[('rotate',0.01),('scale paper',)],
+                      'title_color':color.rgb.black,
                       }
         for key in params_default:
             if not params.has_key(key):
@@ -230,7 +232,8 @@ class Nomographer:
                          'width':10.0,
                          'height':10.0,
                          'reference_padding':0.2,
-                         'reference_titles':[]}
+                         'reference_titles':[],
+                         'reference_color':color.rgb.black}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]

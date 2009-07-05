@@ -118,6 +118,15 @@ class Nomo_Grid_Box(object):
                                'wd_align_x_offset':0.0,
                                'u_align_y_offset':0.0,
                                'wd_align_y_offset':0.0,
+                               'u_axis_color':color.rgb.black,
+                               'u_text_color':color.rgb.black,
+                               'u_title_color':color.rgb.black,
+                               'v_axis_color':color.rgb.black,
+                               'v_text_color':color.rgb.black,
+                               'v_title_color':color.rgb.black,
+                               'wd_axis_color':color.rgb.black,
+                               'wd_text_color':color.rgb.black,
+                               'wd_title_color':color.rgb.black,
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -174,6 +183,9 @@ class Nomo_Grid_Box(object):
             'align_x_offset':self.params['u_align_x_offset'],
             'align_y_offset':self.params['u_align_y_offset'],
             #'text_format':self.params['u_text_format'],
+            'axis_color':self.params['u_axis_color'],
+            'text_color':self.params['u_text_color'],
+            'title_color':self.params['u_title_color'],
             }
         return self.params_u
 
@@ -211,6 +223,9 @@ class Nomo_Grid_Box(object):
             'title_distance_center':self.params['v_title_distance_center'],
             'title_draw_center':self.params['v_title_draw_center'],
             'text_format':self.params['v_text_format'],
+            'axis_color':self.params['v_axis_color'],
+            'text_color':self.params['v_text_color'],
+            'title_color':self.params['v_title_color'],
             }
         return self.params_v
 
@@ -289,6 +304,9 @@ class Nomo_Grid_Box(object):
             'align_func':self.params['wd_align_func'],
             'align_x_offset':self.params['wd_align_x_offset'],
             'align_y_offset':self.params['wd_align_y_offset'],
+            'axis_color':self.params['wd_axis_color'],
+            'text_color':self.params['wd_text_color'],
+            'title_color':self.params['wd_title_color'],
             }
         return self.params_wd
 

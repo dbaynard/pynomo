@@ -1103,24 +1103,31 @@ class Nomo_Block_Type_5(Nomo_Block):
         overrides the parent draw function
         draws also contours
         """
+        self._draw_horizontal_guides_(canvas)
+        self._draw_vertical_guides_(canvas)
+        self._draw_box_around_(canvas)
         # sets u-axis to correct side
         self._set_u_axis_side_()
-        super(Nomo_Block_Type_5,self).draw(canvas=canvas)
+        #super(Nomo_Block_Type_5,self).draw(canvas=canvas)
         # draws the inner contour lines
         x00,y00=self.grid_box.u_lines[0][0]
         x00t=self._give_trafo_x_(x00, y00)
         y00t=self._give_trafo_y_(x00, y00)
-        line = path.path(path.moveto(x00t, y00t))
+        u_line_list = path.path(path.moveto(x00t, y00t))
         for u_line in self.grid_box.u_lines:
             x0,y0=u_line[0]
             x0t=self._give_trafo_x_(x0, y0)
             y0t=self._give_trafo_y_(x0, y0)
-            line.append(path.moveto(x0t, y0t))
+            u_line_list.append(path.moveto(x0t, y0t))
             for x,y in u_line:
                 xt=self._give_trafo_x_(x, y)
                 yt=self._give_trafo_y_(x, y)
-                line.append(path.lineto(xt, yt))
+                u_line_list.append(path.lineto(xt, yt))
         # for v-title positioning
+        x00,y00=self.grid_box.v_lines[0][0]
+        x00t=self._give_trafo_x_(x00, y00)
+        y00t=self._give_trafo_y_(x00, y00)
+        v_line_list = path.path(path.moveto(x00t, y00t))
         median_v=len(self.grid_box.v_lines)/2
         if median_v==0:
             median_v=1
@@ -1128,11 +1135,11 @@ class Nomo_Block_Type_5(Nomo_Block):
             x0,y0=v_line[0]
             x0t=self._give_trafo_x_(x0, y0)
             y0t=self._give_trafo_y_(x0, y0)
-            line.append(path.moveto(x0t, y0t))
+            v_line_list.append(path.moveto(x0t, y0t))
             for x,y in v_line:
                 xt=self._give_trafo_x_(x, y)
                 yt=self._give_trafo_y_(x, y)
-                line.append(path.lineto(xt, yt))
+                v_line_list.append(path.lineto(xt, yt))
             # make texts
             x_start,y_start=v_line[0]
             x_stop,y_stop=v_line[-1]
@@ -1185,16 +1192,19 @@ class Nomo_Block_Type_5(Nomo_Block):
             dx=xt_1-xt
             dy=yt_1-yt
             self._draw_v_text_(xt,yt,dx,dy,canvas,title,title_title,x_corr,y_corr,draw_line)
-        canvas.stroke(line, [style.linewidth.normal])
-        self._draw_horizontal_guides_(canvas)
-        self._draw_vertical_guides_(canvas)
-        self._draw_box_around_(canvas)
+        canvas.stroke(u_line_list, [style.linewidth.normal,self.grid_box.params['u_axis_color']])
+        canvas.stroke(v_line_list, [style.linewidth.normal,self.grid_box.params['v_axis_color']])
+        super(Nomo_Block_Type_5,self).draw(canvas=canvas)
+        #self._draw_horizontal_guides_(canvas)
+        #self._draw_vertical_guides_(canvas)
+        #self._draw_box_around_(canvas)
 
     def _draw_v_text_(self,x,y,dx,dy,canvas,title,title_title='',x_corr=0.0,y_corr=0.0,
                       draw_line=False):
         """"
         draws titles to v-contours
         """
+        para_v=self.grid_box.params_v
         if sqrt(dx**2+dy**2)==0:
             dx_unit=0
             dy_unit=0
@@ -1210,19 +1220,23 @@ class Nomo_Block_Type_5(Nomo_Block):
             if (angle-90.0)<=-90.0:
                 angle=angle+180.0
             if dx_unit>0.0:
-                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle-90)]
+                text_attr=[text.valign.middle,text.halign.right,text.size.small,\
+                           trafo.rotate(angle-90),para_v['text_color']]
                 title_text=title_title+' '+title
             if dx_unit<=0.0:
-                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle-90)]
+                text_attr=[text.valign.middle,text.halign.left,text.size.small,\
+                           trafo.rotate(angle-90),para_v['text_color']]
                 title_text=title+' '+title_title
         else:
             if (angle+90.0)>=90.0:
                 angle=angle-180.0
             if dx_unit>0.0:
-                text_attr=[text.valign.middle,text.halign.right,text.size.small,trafo.rotate(angle+90)]
+                text_attr=[text.valign.middle,text.halign.right,text.size.small,\
+                           trafo.rotate(angle+90),para_v['text_color']]
                 title_text=title_title+' '+title
             if dx_unit<=0.0:
-                text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle+90)]
+                text_attr=[text.valign.middle,text.halign.left,text.size.small,\
+                           trafo.rotate(angle+90),para_v['text_color']]
                 title_text=title+' '+title_title
         text_distance=self.grid_box.params['v_text_distance']
         canvas.text(x-text_distance*dx_unit+x_corr,
@@ -1231,7 +1245,7 @@ class Nomo_Block_Type_5(Nomo_Block):
         # draw line if needed
         if draw_line:
             canvas.stroke(path.line(x, y, x-text_distance*dx_unit+x_corr, y-text_distance*dy_unit+y_corr),
-                           [style.linewidth.normal])
+                           [style.linewidth.normal,para_v['axis_color']])
 
     def _draw_box_around_(self,canvas):
         """
@@ -1251,7 +1265,8 @@ class Nomo_Block_Type_5(Nomo_Block):
         line.append(path.lineto(xt4, yt4))
         line.append(path.lineto(xt3, yt3))
         line.append(path.lineto(xt1, yt1))
-        canvas.stroke(line, [style.linewidth.thick])
+        #canvas.stroke(line, [style.linewidth.thick])
+        canvas.stroke(line)
 
     def _draw_horizontal_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """
@@ -1268,7 +1283,8 @@ class Nomo_Block_Type_5(Nomo_Block):
                 yt2=self._give_trafo_y_(self.grid_box.x_right, y)
                 line.append(path.moveto(xt1, yt1))
                 line.append(path.lineto(xt2, yt2))
-            canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted])
+            canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted,\
+                                 p['u_axis_color']])
 
     def _draw_vertical_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """
@@ -1285,7 +1301,8 @@ class Nomo_Block_Type_5(Nomo_Block):
                 yt2=self._give_trafo_y_(x,self.grid_box.y_bottom)
                 line.append(path.moveto(xt1, yt1))
                 line.append(path.lineto(xt2, yt2))
-            canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted])
+            canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted,\
+                                 p['wd_axis_color']])
 
 
     def _build_u_axis_(self):
@@ -2345,6 +2362,8 @@ class Nomo_Atom_Grid(Nomo_Atom):
             'u_texts_v_stop':True,
             'u_line_color':color.rgb.black,
             'v_line_color':color.rgb.black,
+            'u_text_color':color.rgb.black,
+            'v_text_color':color.rgb.black,
             'extra_params':[],
             }
         self.params=self.params_default

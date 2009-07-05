@@ -178,8 +178,36 @@ class Nomographer:
             else:
                 wrapper.do_transformation(method=trafo[0])
         c=canvas.canvas()
+        if params['make_grid']:
+            self._make_grid_(params,c)
         wrapper.draw_nomogram(c)
         self.blocks=blocks  # save for debugging
+
+    def _make_grid_(self,params,c):
+        """
+        makes a grid to help position titles, etc.
+        """
+        Nomo_Axis(func_f=lambda u:u,
+                  func_g=lambda u:0.0-3.0+u*1e-5,
+                  start=0.0,stop=params['paper_width'],turn=-1,title='',
+                  tick_levels=3,tick_text_levels=2,
+                  canvas=c,type='linear',side='right',axis_appear={'turn_relative':True})
+        Nomo_Axis(func_f=lambda u:u,
+                  func_g=lambda u:params['paper_height']+3.0+u*1e-5,
+                  start=0.0,stop=params['paper_width'],turn=-1,title='',
+                  tick_levels=3,tick_text_levels=2,
+                  canvas=c,type='linear',side='left',axis_appear={'turn_relative':True})
+        Nomo_Axis(func_f=lambda u:0.0-3.0+u*1e-5,
+                  func_g=lambda u:u,
+                  start=0.0,stop=params['paper_height'],turn=-1,title='',
+                  tick_levels=3,tick_text_levels=2,
+                  canvas=c,type='linear',side='left',axis_appear={'turn_relative':True})
+        Nomo_Axis(func_f=lambda u:params['paper_width']+3.0+u*1e-5,
+                  func_g=lambda u:u,
+                  start=0.0,stop=params['paper_height'],turn=-1,title='',
+                  tick_levels=3,tick_text_levels=2,
+                  canvas=c,type='linear',side='right',axis_appear={'turn_relative':True})
+
 
     def _check_params_(self,params):
         """
@@ -192,6 +220,7 @@ class Nomographer:
                       #'block_params':[test1_block1_params,test1_block2_params],
                       'transformations':[('rotate',0.01),('scale paper',)],
                       'title_color':color.rgb.black,
+                      'make_grid':False,
                       }
         for key in params_default:
             if not params.has_key(key):

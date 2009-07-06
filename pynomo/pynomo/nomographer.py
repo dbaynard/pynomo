@@ -180,39 +180,112 @@ class Nomographer:
         c=canvas.canvas()
         if params['make_grid']:
             self._make_grid_(params,c)
-        wrapper.draw_nomogram(c)
+        if params['pre_func'] is not None:
+            params['pre_func'](c)
+        if params['draw_lines']:
+            self._draw_lines_(params,c)
+        wrapper.draw_nomogram(c,params['post_func'])
         self.blocks=blocks  # save for debugging
 
     def _make_grid_(self,params,c):
         """
         makes a grid to help position titles, etc.
         """
+        axis_offset=3.0 # how much scales are aside
+        axis_color=color.cmyk.Brown
         Nomo_Axis(func_f=lambda u:u,
-                  func_g=lambda u:0.0-3.0+u*1e-5,
-                  start=0.0,stop=params['paper_width'],turn=-1,title='',
+                  func_g=lambda u:0.0-axis_offset+u*1e-5,
+                  start=-axis_offset,stop=params['paper_width']+axis_offset,turn=-1,title='',
                   tick_levels=3,tick_text_levels=2,
-                  canvas=c,type='linear',side='right',axis_appear={'turn_relative':True})
+                  canvas=c,type='linear',side='right',axis_appear={'turn_relative':True,
+                                                                   'axis_color':axis_color,
+                                                                   'text_color':axis_color})
         Nomo_Axis(func_f=lambda u:u,
-                  func_g=lambda u:params['paper_height']+3.0+u*1e-5,
-                  start=0.0,stop=params['paper_width'],turn=-1,title='',
+                  func_g=lambda u:params['paper_height']+axis_offset+u*1e-5,
+                  start=-axis_offset,stop=params['paper_width']+axis_offset,turn=-1,title='',
                   tick_levels=3,tick_text_levels=2,
-                  canvas=c,type='linear',side='left',axis_appear={'turn_relative':True})
-        Nomo_Axis(func_f=lambda u:0.0-3.0+u*1e-5,
+                  canvas=c,type='linear',side='left',axis_appear={'turn_relative':True,
+                                                                   'axis_color':axis_color,
+                                                                   'text_color':axis_color})
+        Nomo_Axis(func_f=lambda u:0.0-axis_offset+u*1e-5,
                   func_g=lambda u:u,
-                  start=0.0,stop=params['paper_height'],turn=-1,title='',
+                  start=-axis_offset,stop=params['paper_height']+axis_offset,turn=-1,title='',
                   tick_levels=3,tick_text_levels=2,
-                  canvas=c,type='linear',side='left',axis_appear={'turn_relative':True})
-        Nomo_Axis(func_f=lambda u:params['paper_width']+3.0+u*1e-5,
+                  canvas=c,type='linear',side='left',axis_appear={'turn_relative':True,
+                                                                   'axis_color':axis_color,
+                                                                   'text_color':axis_color})
+        Nomo_Axis(func_f=lambda u:params['paper_width']+axis_offset+u*1e-5,
                   func_g=lambda u:u,
-                  start=0.0,stop=params['paper_height'],turn=-1,title='',
+                  start=-axis_offset,stop=params['paper_height']+axis_offset,turn=-1,title='',
                   tick_levels=3,tick_text_levels=2,
-                  canvas=c,type='linear',side='right',axis_appear={'turn_relative':True})
+                  canvas=c,type='linear',side='right',axis_appear={'turn_relative':True,
+                                                                   'axis_color':axis_color,
+                                                                   'text_color':axis_color})
+        tick_0_list_v,tick_1_list_v,tick_2_list_v,tick_3_list_v,tick_4_list_v,\
+            start_ax,stop_ax=find_linear_ticks(-axis_offset,params['paper_width']+axis_offset)
+        tick_0_list_h,tick_1_list_h,tick_2_list_h,tick_3_list_h,tick_4_list_h,\
+            start_ax,stop_ax=find_linear_ticks(-axis_offset,params['paper_height']+axis_offset)
+        grid_color_0=color.cmyk.Brown
+        grid_color_1=color.cmyk.Gray
+        grid_color_2=color.cmyk.Tan
+        for tick in tick_0_list_v:
+            c.stroke(path.line(-axis_offset,tick,params['paper_height']+axis_offset,tick),
+                     [grid_color_0,style.linewidth.THin])
+        for tick in tick_1_list_v:
+            c.stroke(path.line(-axis_offset,tick,params['paper_height']+axis_offset,tick),
+                     [grid_color_1,style.linewidth.THIN])
+        for tick in tick_2_list_v:
+            c.stroke(path.line(-axis_offset,tick,params['paper_height']+axis_offset,tick),
+                     [grid_color_2,style.linewidth.THIN])
+        for tick in tick_0_list_h:
+            c.stroke(path.line(tick,-axis_offset,tick,params['paper_width']+axis_offset),
+                     [grid_color_0,style.linewidth.THin])
+        for tick in tick_1_list_h:
+            c.stroke(path.line(tick,-axis_offset,tick,params['paper_width']+axis_offset),
+                     [grid_color_1,style.linewidth.THIN])
+        for tick in tick_2_list_h:
+            c.stroke(path.line(tick,-axis_offset,tick,params['paper_width']+axis_offset),
+                     [grid_color_2,style.linewidth.THIN])
+
+    def _draw_lines_(self,params,c):
+        """
+        draws (isopleth) lines according to given coordinates
+        """
+        for line_defs in params['line_params']:
+            # line style
+            if line_defs.has_key('line_style'):
+                line_style=line_defs['line_style']
+            else:
+                line_style=self.line_defs_default['line_style']
+            # circle size
+            if line_defs.has_key('circle_size'):
+                circle_size=line_defs['circle_size']
+            else:
+                circle_size=self.line_defs_default['circle_size']
+            # circle color
+            if line_defs.has_key('circle_color'):
+                circle_color=line_defs['circle_color']
+            else:
+                circle_color=self.line_defs_default['circle_color']
+            # do lines and circles
+            for line in line_defs['coords']:
+                c.stroke(path.line(line[0],line[1],line[2],line[3]),line_style)
+                c.fill(path.circle(line[0],line[1], circle_size),[circle_color])
+                c.fill(path.circle(line[2],line[3], circle_size),[circle_color])
+
 
 
     def _check_params_(self,params):
         """
         checks if main params ok and adds default values
         """
+        self.line_defs_default={'coords':[[0,0,1,1],[2,2,3,3]],
+                                      'line_style':[color.cmyk.Red,
+                                                    style.linewidth.thick,
+                                                    style.linestyle.dashed],
+                                      'circle_size':0.05,
+                                      'circle_color':color.cmyk.Red,
+                                      }
         params_default={
                       'filename':'pynomo_default.pdf',
                       'paper_height':20.0,
@@ -221,6 +294,10 @@ class Nomographer:
                       'transformations':[('rotate',0.01),('scale paper',)],
                       'title_color':color.rgb.black,
                       'make_grid':False,
+                      'draw_lines':False, # to draw manual lines
+                      'line_params':[self.line_defs_default],
+                      'pre_func':None, # function(canvas) to draw first
+                      'post_func':None, #  function(canvas) to draw last
                       }
         for key in params_default:
             if not params.has_key(key):

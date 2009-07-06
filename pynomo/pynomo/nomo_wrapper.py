@@ -198,14 +198,17 @@ class Nomo_Wrapper:
         self.axes_wrapper.rotate_canvas(params)
         #self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
 
-    def draw_nomogram(self,canvas):
+    def draw_nomogram(self,canvas,post_func=None):
         """
         draws the nomogram = draws blocks, titles, etc.
+        post_func is a function(canvas) to be draws after all
         """
         for block in self.block_stack:
             block.draw(canvas)
         self._draw_title_(canvas)
         self._draw_extra_texts_(canvas)
+        if post_func is not None:
+            post_func(canvas)
         if isinstance(self.filename,list):
             for filename_this in self.filename:
                 if not re.compile(".eps").search(filename_this, 1)==None:

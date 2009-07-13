@@ -1,4 +1,18 @@
 PyNomo
+
+0.2.1
+=====
+- small bug fixes
+- negative values in linear axis sometimes caused errors (e.g. -30...400), now corrected.
+- colors
+- axis with arrow markings
+- R titles over pivot lines can be set manually
+- Extra titles for axes
+- option to print grid for text placement
+- brute force manual line drawing (for isopleths)
+- pre_func to draw with pyx primitives under nomograph
+- post_func to draw with pyx primitives over nomograph
+
 0.2.0b0
 =======
 Totally new approach.

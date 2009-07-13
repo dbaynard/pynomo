@@ -22,7 +22,7 @@ License
 -------
 see LICENSE.txt
 
- Copyright (C) 2007-2008  Leif Roschier
+ Copyright (C) 2007-2009  Leif Roschier
 
  This program is free software: you
  can redistribute it and/or modify

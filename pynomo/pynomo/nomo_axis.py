@@ -82,17 +82,28 @@ class Nomo_Axis:
                              'text_color':color.rgb.black,
                              'title_color':color.rgb.black,
                              'extra_titles':[],# list of dicts
+                             'base_start':None, # drive tick scaling
+                             'base_stop':None, # drive tick scaling
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
 
         self.arrows=None  # only if axis is arrow axis
+        # set axes ticks
+        if self.axis_appear['base_start'] is not None:
+            base_start_1=self.axis_appear['base_start']
+        else:
+            base_start_1=base_start
+        if self.axis_appear['base_stop'] is not None:
+            base_stop_1=self.axis_appear['base_stop']
+        else:
+            base_stop_1=base_stop
 
         if type=='log':
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
         if type=='linear':
             self._make_linear_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn,
-                                    base_start=base_start,base_stop=base_stop)
+                                    base_start=base_start_1,base_stop=base_stop_1)
         if type=='manual point':
             self._make_manual_axis_circle_(manual_axis_data)
         if type=='manual line':

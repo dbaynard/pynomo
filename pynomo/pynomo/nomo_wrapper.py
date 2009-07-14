@@ -147,6 +147,12 @@ class Nomo_Wrapper:
                         self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
                                                                 atom.params['u_min'],
                                                                 atom.params['u_max']))
+                        # add extra axes to the list to find correct transformation
+                        for extra_axis in atom.params['extra_params']:
+                            self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x,atom.give_y,
+                                                                    extra_axis['u_min'],
+                                                                    extra_axis['u_max']))
+
                 else: # this atom is reference axis
                     self.axes_wrapper.add_axis(Axis_Wrapper(atom.give_x_ref,atom.give_y_ref,
                                                             atom.u_min_ref,
@@ -2234,6 +2240,8 @@ class Nomo_Atom:
             'align_x_offset':0.0,
             'align_y_offset':0.0,
             'aligned':False,
+            'base_start':None,
+            'base_stop':None,
             'extra_params':[], # additional axis params
             }
         self.params=self.params_default
@@ -2306,22 +2314,41 @@ class Nomo_Atom:
         #print p['title']
         #print p['tick_levels']
         #print p['tick_text_levels']
+        """
+        base start is from initial dict
+        """
         if not p['reference']==True:
+            if p['base_start'] is None:
+                base_start=p['u_min']
+            else:
+                base_start=p['base_start']
+            if p['base_stop'] is None:
+                base_stop=p['u_max']
+            else:
+                base_stop=p['base_stop']
             Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
                       start=p['u_min'],stop=p['u_max'],
                       turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
                       tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
                       side=p['tick_side'],manual_axis_data=p['manual_axis_data'],
                       title_x_shift=p['title_x_shift'],title_y_shift=p['title_y_shift'],
-                      axis_appear=p)
+                      axis_appear=p,base_start=base_start,base_stop=base_stop)
             for pp in p['extra_params']:
-                    Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
-                      start=pp['u_min'],stop=pp['u_max'],
-                      turn=-1,title='',canvas=canvas,type=pp['scale_type'],
-                      tick_levels=pp['tick_levels'],tick_text_levels=pp['tick_text_levels'],
-                      side=pp['tick_side'],manual_axis_data=pp['manual_axis_data'],
-                      title_x_shift=pp['title_x_shift'],title_y_shift=pp['title_y_shift'],
-                      axis_appear=pp,base_start=p['u_min'],base_stop=p['u_max'])
+                if pp['base_start'] is None:
+                    base_start_pp=base_start
+                else:
+                    base_start_pp=pp['base_start']
+                if pp['base_stop'] is None:
+                    base_stop_pp=base_stop
+                else:
+                    base_stop_pp=pp['base_stop']
+                Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
+                  start=pp['u_min'],stop=pp['u_max'],
+                  turn=-1,title='',canvas=canvas,type=pp['scale_type'],
+                  tick_levels=pp['tick_levels'],tick_text_levels=pp['tick_text_levels'],
+                  side=pp['tick_side'],manual_axis_data=pp['manual_axis_data'],
+                  title_x_shift=pp['title_x_shift'],title_y_shift=pp['title_y_shift'],
+                  axis_appear=pp,base_start=base_start_pp,base_stop=base_stop_pp)
         else: # reference axis
             #print "u_min_ref"
             #print self.u_min_ref

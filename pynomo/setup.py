@@ -31,7 +31,7 @@ setup(name='PyNomo',
       license='GPL',
       platforms='OS Independent',
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'Topic :: Scientific/Engineering :: Visualization',
           'Topic :: Multimedia :: Graphics',
           'Topic :: Software Development :: Libraries :: Python Modules',

@@ -186,6 +186,13 @@ class Nomographer:
             self._draw_lines_(params,c)
         wrapper.draw_nomogram(c,params['post_func'])
         self.blocks=blocks  # save for debugging
+        for block in params['block_params']:
+            if block['debug']:
+                print "##### SINGLE BLOCK PARAMS #######"
+                pprint.pprint(block)
+        if params['debug']:
+            print "##### MAIN PARAMS #######"
+            pprint.pprint(params)
 
     def _make_grid_(self,params,c):
         """
@@ -298,6 +305,7 @@ class Nomographer:
                       'line_params':[self.line_defs_default],
                       'pre_func':None, # function(canvas) to draw first
                       'post_func':None, #  function(canvas) to draw last
+                      'debug':False,
                       }
         for key in params_default:
             if not params.has_key(key):
@@ -312,7 +320,8 @@ class Nomographer:
                          'mirror_y':False,
                          'width':10.0,
                          'height':10.0,
-                         'proportion':1.0}
+                         'proportion':1.0,
+                         'debug':False}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -325,7 +334,8 @@ class Nomographer:
                          'mirror_x':False,
                          'mirror_y':False,
                          'width':10.0,
-                         'height':10.0}
+                         'height':10.0,
+                         'debug':False,}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -341,7 +351,8 @@ class Nomographer:
                          'height':10.0,
                          'reference_padding':0.2,
                          'reference_titles':[],
-                         'reference_color':color.rgb.black}
+                         'reference_color':color.rgb.black,
+                         'debug':False,}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -357,7 +368,8 @@ class Nomographer:
                          'height':10.0,
                          'float_axis':'F1 or F2',
                          'padding':0.9,
-                         'reference_color':color.rgb.black}
+                         'reference_color':color.rgb.black,
+                         'debug':False,}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -388,6 +400,7 @@ class Nomographer:
            'w_tick_levels':0,
            'w_tick_text_levels':0,
            'horizontal_guides':False,
+            'debug':False,
            }
         for key in params_default:
             if not params.has_key(key):
@@ -407,6 +420,7 @@ class Nomographer:
                          'y_empty':0.2,
                          'curve_const':0.5,
                          'ladder_color':color.rgb.black,
+                         'debug':False,
                          }
         for key in params_default:
             if not params.has_key(key):
@@ -421,7 +435,8 @@ class Nomographer:
                          'mirror_y':False,
                          'width_1':10.0,
                          'angle_u':45.0,
-                         'angle_v':45.0}
+                         'angle_v':45.0,
+                         'debug':False,}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -433,7 +448,8 @@ class Nomographer:
         params_default={
                          'mirror_x':False,
                          'mirror_y':False,
-                         'length':10.0}
+                         'length':10.0,
+                         'debug':False,}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -453,6 +469,7 @@ class Nomographer:
                          'v_texts_u_stop':True,
                          'u_texts_v_start':False,
                          'u_texts_v_stop':True,
+                         'debug':False,
                          }
         for key in params_default:
             if not params.has_key(key):
@@ -466,7 +483,8 @@ class Nomographer:
                          'mirror_x':False,
                          'mirror_y':False,
                          'width':10.0,
-                         'height':10.0}
+                         'height':10.0,
+                         'debug':False}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]

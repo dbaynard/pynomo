@@ -26,7 +26,7 @@ from numpy import *
 import scipy
 from pyx import *
 #from copy import copy
-import copy, re
+import copy, re, pprint
 
 class Nomo_Wrapper:
     """
@@ -2243,6 +2243,7 @@ class Nomo_Atom:
             'base_start':None,
             'base_stop':None,
             'extra_params':[], # additional axis params
+            'debug':False, # print dictionary
             }
         self.params=self.params_default
         self.params.update(params)
@@ -2359,6 +2360,10 @@ class Nomo_Atom:
             turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
             tick_levels=0,tick_text_levels=0,
             side=p['tick_side'],axis_appear=p)
+        if p['debug']:
+            print "##### SINGLE AXIS PARAMS #######"
+            pprint.pprint(p)
+
 
 class Nomo_Atom_Grid(Nomo_Atom):
     """
@@ -2395,6 +2400,7 @@ class Nomo_Atom_Grid(Nomo_Atom):
             'u_text_color':color.rgb.black,
             'v_text_color':color.rgb.black,
             'extra_params':[],
+            'debug':False, # print dictionary
             }
         self.params=self.params_default
         self.params.update(params)
@@ -2454,6 +2460,9 @@ class Nomo_Atom_Grid(Nomo_Atom):
         # main nomogram
         gridi=Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
                         canvas=canvas,data=self.params)
+        if self.params['debug']:
+            print "##### SINGLE AXIS PARAMS #######"
+            pprint.pprint(self.params)
 
 if __name__=='__main__':
     """

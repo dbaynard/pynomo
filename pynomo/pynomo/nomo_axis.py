@@ -1044,7 +1044,7 @@ def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0
             if len(list)>1:
                 du=(list[-1]-list[-2])*1e-6
             else: # only one element in list
-                du=(stop-start)*1e-6
+                du=abs(stop-start)*1e-6
         #print u
         dx=(f(u+du)-f(u))*turn
         dy=(g(u+du)-g(u))*turn

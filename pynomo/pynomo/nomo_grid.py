@@ -67,7 +67,7 @@ class Nomo_Grid:
         # if text labels to start and/or stop
         start_texts=self.grid_data['u_texts_v_start']
         stop_texts=self.grid_data['u_texts_v_stop']
-        line_color=self.grid_data['u_line_color']
+        line_color=self.grid_data['v_line_color']
         for idx,v in enumerate(self.grid_data['v_values']):
             f_here,g_here=self._make_u_funcs_(v)
             if not self.grid_data.has_key('v_texts'):
@@ -90,7 +90,7 @@ class Nomo_Grid:
         # if text labels to start and/or stop
         start_texts=self.grid_data['v_texts_u_start']
         stop_texts=self.grid_data['v_texts_u_stop']
-        line_color=self.grid_data['v_line_color']
+        line_color=self.grid_data['u_line_color']
         for idx,u in enumerate(self.grid_data['u_values']):
             f_here,g_here=self._make_v_funcs_(u)
             if not self.grid_data.has_key('u_texts'):

@@ -287,11 +287,11 @@ class Nomographer:
         checks if main params ok and adds default values
         """
         self.line_defs_default={'coords':[[0,0,1,1],[2,2,3,3]],
-                                      'line_style':[color.cmyk.Red,
-                                                    style.linewidth.thick,
+                                      'line_style':[color.cmyk.Black,
+                                                    style.linewidth.thin,
                                                     style.linestyle.dashed],
-                                      'circle_size':0.05,
-                                      'circle_color':color.cmyk.Red,
+                                      'circle_size':0.0005,
+                                      'circle_color':color.cmyk.Black,
                                       }
         params_default={
                       'filename':'pynomo_default.pdf',

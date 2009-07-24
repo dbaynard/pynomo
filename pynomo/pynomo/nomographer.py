@@ -288,7 +288,7 @@ class Nomographer:
         """
         self.line_defs_default={'coords':[[0,0,1,1],[2,2,3,3]],
                                       'line_style':[color.cmyk.Black,
-                                                    style.linewidth.thin,
+                                                    style.linewidth.thick,
                                                     style.linestyle.dashed],
                                       'circle_size':0.0005,
                                       'circle_color':color.cmyk.Black,

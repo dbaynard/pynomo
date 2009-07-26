@@ -5,7 +5,7 @@
 
     This example has N=6: F1+F2+F3+F4+F5+F6=0
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-sys.path.insert(0, "../..")
+sys.path.insert(0, "..")
 from pynomo.nomographer import *
 
 N_params_1={
@@ -79,7 +79,7 @@ block_1_params={
              'width':10.0,
              'height':10.0,
              'f_params':[N_params_1,N_params_2,N_params_3,
-                         N_params_4,N_params_5,N_params_6]
+                         N_params_4,N_params_5,N_params_6],
              }
 
 main_params={
@@ -90,6 +90,5 @@ main_params={
               'transformations':[('rotate',0.01),('scale paper',)],
               'title_str':r'$u_1+u_2+u_3+u_4+u_5+u_6=0$',
               'title_y':21.0,
-
               }
 Nomographer(main_params)

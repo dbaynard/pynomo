@@ -907,6 +907,8 @@ class Nomo_Block_Type_3(Nomo_Block):
             ref_para['axis_color']=self.reference_color
             if len(self.reference_titles)>=idx:
                 ref_para['title']=self.reference_titles[idx-1]
+            else:
+                ref_para['title']='R$_'+`idx`+'$'
             self.ref_params.append(ref_para)
 
     def _makeDoX_(self,value):

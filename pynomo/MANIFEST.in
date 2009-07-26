@@ -2,3 +2,4 @@ recursive-include examples *.py
 include *.txt
 prune examples_png
 prune examples_0.1
+prune other

@@ -639,7 +639,7 @@ class Axes_Wrapper:
         c.text(x3+1, y3,'3')
         c.fill(path.circle(x4, y4, 0.05))
         c.text(x4+1, y4,'4')
-        c.writePDFfile('poly_debug.pdf')
+        #c.writePDFfile('poly_debug.pdf')
         #print "polygon coords:"
         #print x1,y1,x2,y2,x3,y3,x4,y4
         # calculate transformation

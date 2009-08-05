@@ -829,6 +829,9 @@ class Nomo_Block_Type_3(Nomo_Block):
             params=self.F_stack[idx-1]
             min_value=self._makeDoY_(idx)(params['u_min'])
             max_value=self._makeDoY_(idx)(params['u_max'])
+            if idx==1 or idx==self.N:
+                min_value=min_value*2
+                max_value=max_value*2
             if max_value<min_value:
                 min_value,max_value=max_value,min_value
             mean_values.append((min_value+max_value)/2.0)
@@ -838,6 +841,8 @@ class Nomo_Block_Type_3(Nomo_Block):
         for idx in range(1,self.N+1,1):
             difference=mean_values[idx-1]-mean_value
             shift=difference/self._calc_shift_(idx)
+            if idx==1 or idx==self.N:
+                shift=difference/self._calc_shift_(idx)*0.5
             self.shifts.append(shift)
             shift_sum=shift_sum+shift
         #let's divide shift sum to all shifts = correction

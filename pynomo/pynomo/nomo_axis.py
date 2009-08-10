@@ -21,6 +21,7 @@ from pyx import *
 import math
 import scipy
 import random
+import copy, re, pprint
 
 class Nomo_Axis:
     """
@@ -1069,6 +1070,204 @@ def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0
         dy_units.append(dy_unit)
         angles.append(angle)
     return dx_units,dy_units,angles
+
+def find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=None,
+                            base_stop=None,scale_max_0=None,distance_limit=0.5):
+    """
+    finds smart ticks
+    """
+    # first find tick scales
+    if start>stop:
+        start,stop=stop,start
+    if (base_start != None) and (base_stop != None):
+        scale_max=10.0**math.ceil(math.log10(math.fabs(base_start-base_stop))-0.5)
+    else:
+        scale_max=10.0**math.ceil(math.log10(math.fabs(start-stop))-0.5)
+    if scale_max_0 != None:
+        scale_max=scale_max_0 # set range manually
+    tick_0=scale_max/10.0
+    tick_1=scale_max/20.0
+    tick_2=scale_max/100.0
+    tick_3=scale_max/500.0
+    tick_4=scale_max/1000.0
+    # let's find tick positions manually
+    tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,\
+    start_ax,stop_ax=\
+    find_linear_ticks(start,stop,base_start,base_stop,scale_max_0)
+    # let's save original lists
+    tick_0_list0,tick_1_list0,tick_2_list0,tick_3_list0,tick_4_list0,\
+    start_ax0,stop_ax0=\
+    find_linear_ticks(start,stop,base_start,base_stop,scale_max_0)
+    # let's find 0 level ticks
+    distance_0={}
+    while True:
+        distances=[]
+        for idx in range(1,len(tick_0_list)-1):
+            distance1=calc_distance(f,g,tick_0_list[idx],tick_0_list[idx-1])
+            distance2=calc_distance(f,g,tick_0_list[idx],tick_0_list[idx+1])
+            if min(distance1,distance2)<=distance_limit:
+                distances.append(min(distance1,distance2))
+                distance_0[min(distance1,distance2)]=idx
+        if len(distances)==0:
+            break
+        else:
+            removed_value=tick_0_list[distance_0[min(distances)]]
+            tick_0_list.remove(tick_0_list[distance_0[min(distances)]])
+
+    tick_1_list_worked=remove_from_list_half(tick_1_list0,tick_0_list0,f,g,distance_limit=distance_limit)
+    tick_2_list_worked=remove_from_list_in_four(tick_2_list0,tick_0_list0+tick_1_list0,f,g,distance_limit=distance_limit)
+
+    pprint.pprint(tick_0_list)
+    pprint.pprint(tick_1_list_worked)
+    pprint.pprint(tick_2_list_worked)
+    return tick_0_list,tick_1_list_worked,tick_2_list_worked
+
+#    # let's check level 1
+#    for value_1 in tick_1_list0:
+#        for value_0 in tick_0_list0:
+#            distance=calc_distance(f,g,value_1,value_0)
+#            if distance<=distance_limit and abs(value_1-value_0)<=tick_1:
+#                if tick_1_list.count(value_1)>0:
+#                    tick_1_list.remove(value_1)
+###    # let's check level 2
+###    # let's check bottom
+###    upper_level_minimum=min(min(tick_0_list0),min(tick_1_list0))
+###    numbers=[x for x in tick_2_list if x<upper_level_minimum]
+###    removed_numbers=[]
+###    for y in numbers+[upper_level_minimum]:
+###        for x in numbers:
+###            if abs(x-y)<distance_limit and x!=y:
+###                if removed_numbers.count(x)==0:
+###                    removed_numbers.append(x)
+###    pprint.pprint(removed_numbers)
+###    pprint.pprint(len(removed_numbers))
+###    if len(removed_numbers)>0:
+###        for number in numbers:
+###            tick_2_list.remove(number) # remove all
+###    pprint.pprint(upper_level_minimum)
+###    # let's check top
+###    upper_level_maximum=max(max(tick_0_list0),max(tick_1_list0))
+###    numbers=[x for x in tick_2_list if x>upper_level_maximum]
+###    removed_numbers=[]
+###    for y in numbers+[upper_level_maximum]:
+###        for x in numbers:
+###            if abs(x-y)<distance_limit and x!=y:
+###                if removed_numbers.count(x)==0:
+###                    removed_numbers.append(x)
+###    pprint.pprint(removed_numbers)
+###    pprint.pprint(len(removed_numbers))
+###    if len(removed_numbers)>0:
+###        for number in numbers:
+###            tick_2_list.remove(number) # remove all
+###    pprint.pprint(upper_level_maximum)
+###    pprint.pprint(tick_2_list[0:4])
+
+def remove_from_list_in_four(work_list,upper_list,f,g,distance_limit=0.5):
+    """
+    Return a list where elements from work list are removed.
+    Assumes that ticks are in complex of four
+    """
+    upper_list.sort()
+    worked_list=copy.deepcopy(work_list)
+    # let's check bottom
+    upper_level_minimum=min(upper_list)
+    numbers=[x for x in work_list if x<upper_level_minimum]
+    removed_numbers=[]
+    for y in numbers+[upper_level_minimum]:
+        for x in numbers:
+            distance=calc_distance(f,g,x,y)
+            if distance<distance_limit and x!=y:
+                if removed_numbers.count(x)==0:
+                    removed_numbers.append(x)
+    if len(removed_numbers)>0:
+        for number in numbers:
+            worked_list.remove(number) # remove all
+    # let's check top
+    upper_level_maximum=max(upper_list)
+    numbers=[x for x in work_list if x>upper_level_maximum]
+    removed_numbers=[]
+    for y in numbers+[upper_level_maximum]:
+        for x in numbers:
+            distance=calc_distance(f,g,x,y)
+            if distance<distance_limit and x!=y:
+                if removed_numbers.count(x)==0:
+                    removed_numbers.append(x)
+    if len(removed_numbers)>0:
+        for number in numbers:
+            worked_list.remove(number) # remove all
+    # let's check between
+    worked_list_0=copy.deepcopy(worked_list)
+    upper_idx=0
+    work_idx=0
+    while len(worked_list_0)>(work_idx+1):
+        d=[]
+        if len(worked_list_0)>(work_idx) and len(upper_list)>(upper_idx):
+            d.append(calc_distance(f,g,upper_list[upper_idx],worked_list_0[work_idx]))
+        if len(worked_list_0)>(work_idx+1):
+            d.append(calc_distance(f,g,worked_list_0[work_idx],worked_list_0[work_idx+1]))
+        if len(worked_list_0)>(work_idx+2):
+            d.append(calc_distance(f,g,worked_list_0[work_idx+1],worked_list_0[work_idx+2]))
+        if len(worked_list_0)>(work_idx+3):
+            d.append(calc_distance(f,g,worked_list_0[work_idx+2],worked_list_0[work_idx+3]))
+        if len(worked_list_0)>(work_idx+3) and len(upper_list)>(upper_idx+1):
+            d.append(calc_distance(f,g,worked_list_0[work_idx+3],upper_list[upper_idx+1]))
+        if len(d)>0:
+            if min(d)<distance_limit:
+                for idx in range(work_idx,work_idx+4):
+                    worked_list.remove(worked_list_0[idx])
+        upper_idx=upper_idx+1
+        work_idx=work_idx+4
+    return worked_list
+
+def remove_from_list_half(work_list,upper_list,f,g,distance_limit=0.5):
+    """
+    removes from list half points
+    """
+    worked_list=copy.deepcopy(work_list)
+    upper_idx=0
+    work_idx=0
+    if min(work_list)<min(upper_list):
+        while len(work_list)>(work_idx+1):
+            d=[]
+            if len(upper_list)>upper_idx:
+                d.append(calc_distance(f,g,upper_list[upper_idx],work_list[work_idx]))
+            if upper_idx>0:
+                d.append(calc_distance(f,g,upper_list[upper_idx-1],work_list[work_idx]))
+            if len(d)>0:
+                if min(d)<distance_limit:
+                    worked_list.remove(work_list[work_idx])
+            upper_idx=upper_idx+1
+            work_idx=work_idx+1
+    if min(work_list)>min(upper_list):
+        while len(work_list)>(work_idx+1):
+            d=[]
+            if len(upper_list)>upper_idx:
+                d.append(calc_distance(f,g,upper_list[upper_idx],work_list[work_idx]))
+            if len(upper_list)>(upper_idx+1):
+                d.append(calc_distance(f,g,upper_list[upper_idx-1],work_list[work_idx]))
+            if len(d)>0:
+                if min(d)<distance_limit:
+                    worked_list.remove(work_list[work_idx])
+            upper_idx=upper_idx+1
+            work_idx=work_idx+1
+    return worked_list
+
+def calc_distance(f,g,u1,u2):
+    """
+    calculates distance between points u1 and u2
+    """
+    x1=f(u1)
+    x2=f(u2)
+    y1=g(u1)
+    y2=g(u2)
+    return math.sqrt((x2-x1)**2+(y2-y1)**2)
+
+def make_array_to_dict_for_manual_ticks(array_in,format='%3.2f'):
+    array_out={}
+    for x in array_in:
+        array_out[x]=format%x
+    return array_out
+
 
 ## Testing
 if __name__=='__main__':

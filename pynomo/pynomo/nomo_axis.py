@@ -85,6 +85,8 @@ class Nomo_Axis:
                              'extra_titles':[],# list of dicts
                              'base_start':None, # drive tick scaling
                              'base_stop':None, # drive tick scaling
+                             'tick_distance_smart':0.05, # tick minimum distance for smart axes
+                             'text_distance_smart':0.3, # text minimum distance for smart axes
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
@@ -104,6 +106,9 @@ class Nomo_Axis:
             self._make_log_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn)
         if type=='linear':
             self._make_linear_axis_(start=start,stop=stop,f=func_f,g=func_g,turn=turn,
+                                    base_start=base_start_1,base_stop=base_stop_1)
+        if type=='linear smart':
+            self._make_linear_axis_smart_(start=start,stop=stop,f=func_f,g=func_g,turn=turn,
                                     base_start=base_start_1,base_stop=base_stop_1)
         if type=='manual point':
             self._make_manual_axis_circle_(manual_axis_data)
@@ -312,6 +317,95 @@ class Nomo_Axis:
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
+
+    def _make_linear_axis_smart_(self,start,stop,f,g,turn=1,base_start=None,base_stop=None):
+        """
+        Makes a linear scale according to functions f(u) and g(u)
+        with values u in range [start, stop].
+        """
+        # line lists
+        line = path.path(path.moveto(f(start), g(start)))
+        thin_line=path.path(path.moveto(f(start), g(start)))
+        # text list
+        texts=[]
+        # let's find tick positions
+#        tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
+#        find_linear_ticks(start,stop,base_start,base_stop,self.axis_appear['scale_max'])
+        tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list=\
+        find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=base_start,
+                                base_stop=base_stop,scale_max_0=self.axis_appear['scale_max'],
+                                distance_limit=self.axis_appear['tick_distance_smart'])
+        text_0_list,text_1_list,text_2_list,text_3_list,text_4_list=\
+        find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=base_start,
+                                base_stop=base_stop,scale_max_0=self.axis_appear['scale_max'],
+                                distance_limit=self.axis_appear['text_distance_smart'])
+        pprint.pprint("text_list %s"%text_0_list)
+        pprint.pprint("tick_list %s"%tick_0_list)
+        # let's find tick angles
+        dx_units_0,dy_units_0,angles_0=find_tick_directions(tick_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_1,dy_units_1,angles_1=find_tick_directions(tick_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_2,dy_units_2,angles_2=find_tick_directions(tick_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_3,dy_units_3,angles_3=find_tick_directions(tick_3_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_4,dy_units_4,angles_4=find_tick_directions(tick_4_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        # let's find text angles
+        dx_units_0_text,dy_units_0_text,angles_0_text=find_tick_directions(text_0_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_1_text,dy_units_1_text,angles_1_text=find_tick_directions(text_1_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_2_text,dy_units_2_text,angles_2_text=find_tick_directions(text_2_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_3_text,dy_units_3_text,angles_3_text=find_tick_directions(text_3_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+        dx_units_4_text,dy_units_4_text,angles_4_text=find_tick_directions(text_4_list,f,g,self.side,start,stop,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+
+        # tick level 0
+        if self.tick_levels>0:
+            self._make_tick_lines_(tick_0_list,line,f,g,dx_units_0,dy_units_0,
+                              self.axis_appear['grid_length_0'])
+        # text level 0
+        if self.tick_text_levels>0:
+            self._make_texts_(text_0_list,texts,f,g,dx_units_0_text,dy_units_0_text,angles_0_text,
+                     self.axis_appear['text_distance_0'],
+                     self.axis_appear['text_size_0'])
+        # tick level 1
+        if self.tick_levels>1:
+            self._make_tick_lines_(tick_1_list,line,f,g,dx_units_1,dy_units_1,
+                              self.axis_appear['grid_length_1'])
+        # text level 1
+        if self.tick_text_levels>1:
+            self._make_texts_(text_1_list,texts,f,g,dx_units_1_text,dy_units_1_text,angles_1_text,
+                     self.axis_appear['text_distance_1'],
+                     self.axis_appear['text_size_1'])
+        # tick level 2
+        if self.tick_levels>2:
+            self._make_tick_lines_(tick_2_list,line,f,g,dx_units_2,dy_units_2,
+                              self.axis_appear['grid_length_2'])
+        # text level 2
+        if self.tick_text_levels>2:
+            self._make_texts_(text_2_list,texts,f,g,dx_units_2_text,dy_units_2_text,angles_2_text,
+                     self.axis_appear['text_distance_2'],
+                     self.axis_appear['text_size_2'])
+        # tick level 3
+        if self.tick_levels>3:
+            self._make_tick_lines_(tick_3_list,thin_line,f,g,dx_units_3,dy_units_3,
+                              self.axis_appear['grid_length_3'])
+        # text level 3
+        if self.tick_text_levels>3:
+            self._make_texts_(text_3_list,texts,f,g,dx_units_3_text,dy_units_3_text,angles_3_text,
+                     self.axis_appear['text_distance_3'],
+                     self.axis_appear['text_size_3'])
+        # tick level 4
+        if self.tick_levels>4:
+            self._make_tick_lines_(tick_4_list,thin_line,f,g,dx_units_4,dy_units_4,
+                              self.axis_appear['grid_length_4'])
+        # text level 4
+        if self.tick_text_levels>4:
+            self._make_texts_(text_4_list,texts,f,g,dx_units_4_text,dy_units_4_text,angles_4_text,
+                     self.axis_appear['text_distance_4'],
+                     self.axis_appear['text_size_4'])
+        # make main line
+        self._make_main_line_(start,stop,line,f,g)
+
+        self.line=line
+        self.thin_line=thin_line
+        self.texts=texts
+
 
     def _make_log_axis_(self,start,stop,f,g,turn=1):
         """
@@ -1116,11 +1210,16 @@ def find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=None,
 
     tick_1_list_worked=remove_from_list_half(tick_1_list0,tick_0_list0,f,g,distance_limit=distance_limit)
     tick_2_list_worked=remove_from_list_in_four(tick_2_list0,tick_0_list0+tick_1_list0,f,g,distance_limit=distance_limit)
+    tick_3_list_worked=remove_from_list_half(tick_3_list0,tick_0_list0+tick_1_list0+tick_2_list0,f,g,distance_limit=distance_limit)
+    tick_4_list_worked=remove_from_list_in_four(tick_4_list0,tick_0_list0+tick_1_list0+tick_2_list0+tick_3_list0,
+                                                f,g,distance_limit=distance_limit)
 
     pprint.pprint(tick_0_list)
     pprint.pprint(tick_1_list_worked)
     pprint.pprint(tick_2_list_worked)
-    return tick_0_list,tick_1_list_worked,tick_2_list_worked
+    pprint.pprint(tick_3_list_worked)
+    pprint.pprint(tick_4_list_worked)
+    return tick_0_list,tick_1_list_worked,tick_2_list_worked,tick_3_list_worked,tick_4_list_worked
 
 #    # let's check level 1
 #    for value_1 in tick_1_list0:
@@ -1224,32 +1323,34 @@ def remove_from_list_half(work_list,upper_list,f,g,distance_limit=0.5):
     removes from list half points
     """
     worked_list=copy.deepcopy(work_list)
+    upper_list.sort()
     upper_idx=0
     work_idx=0
-    if min(work_list)<min(upper_list):
-        while len(work_list)>(work_idx+1):
-            d=[]
-            if len(upper_list)>upper_idx:
-                d.append(calc_distance(f,g,upper_list[upper_idx],work_list[work_idx]))
-            if upper_idx>0:
-                d.append(calc_distance(f,g,upper_list[upper_idx-1],work_list[work_idx]))
-            if len(d)>0:
-                if min(d)<distance_limit:
-                    worked_list.remove(work_list[work_idx])
-            upper_idx=upper_idx+1
-            work_idx=work_idx+1
-    if min(work_list)>min(upper_list):
-        while len(work_list)>(work_idx+1):
-            d=[]
-            if len(upper_list)>upper_idx:
-                d.append(calc_distance(f,g,upper_list[upper_idx],work_list[work_idx]))
-            if len(upper_list)>(upper_idx+1):
-                d.append(calc_distance(f,g,upper_list[upper_idx-1],work_list[work_idx]))
-            if len(d)>0:
-                if min(d)<distance_limit:
-                    worked_list.remove(work_list[work_idx])
-            upper_idx=upper_idx+1
-            work_idx=work_idx+1
+    if len(work_list)>0 and len(upper_list)>0:
+        if min(work_list)<min(upper_list):
+            while len(work_list)>(work_idx+1):
+                d=[]
+                if len(upper_list)>upper_idx:
+                    d.append(calc_distance(f,g,upper_list[upper_idx],work_list[work_idx]))
+                if upper_idx>0:
+                    d.append(calc_distance(f,g,upper_list[upper_idx-1],work_list[work_idx]))
+                if len(d)>0:
+                    if min(d)<distance_limit:
+                        worked_list.remove(work_list[work_idx])
+                upper_idx=upper_idx+1
+                work_idx=work_idx+1
+        if min(work_list)>min(upper_list):
+            while len(work_list)>(work_idx+1):
+                d=[]
+                if len(upper_list)>upper_idx:
+                    d.append(calc_distance(f,g,upper_list[upper_idx],work_list[work_idx]))
+                if len(upper_list)>(upper_idx+1):
+                    d.append(calc_distance(f,g,upper_list[upper_idx-1],work_list[work_idx]))
+                if len(d)>0:
+                    if min(d)<distance_limit:
+                        worked_list.remove(work_list[work_idx])
+                upper_idx=upper_idx+1
+                work_idx=work_idx+1
     return worked_list
 
 def calc_distance(f,g,u1,u2):

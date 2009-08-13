@@ -86,7 +86,7 @@ class Nomo_Axis:
                              'base_start':None, # drive tick scaling
                              'base_stop':None, # drive tick scaling
                              'tick_distance_smart':0.05, # tick minimum distance for smart axes
-                             'text_distance_smart':0.3, # text minimum distance for smart axes
+                             'text_distance_smart':0.25, # text minimum distance for smart axes
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
@@ -1153,11 +1153,11 @@ def find_linear_ticks(start,stop,base_start=None,base_stop=None,scale_max_0=None
     #print "stop_major %f"%stop_major
     start_ax=None
     stop_ax=None
-    steps=(stop-start_major)/tick_4+1
+    steps=(stop-start_major)/tick_4+2
     #print "steps %i"%steps
     for step in range(0,int(steps)):  # used to be 9001
         number=start_major+step*tick_4
-        if number>=start and number<=(stop*(1+1e-12)): # stupid numerical correction
+        if number>=start and number<=(stop*(1+1e-6)): # stupid numerical correction
             if start_ax==None:
                 start_ax=number
             stop_ax=number
@@ -1335,6 +1335,7 @@ def find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=None,
     find_linear_ticks(start,stop,base_start,base_stop,scale_max_0)
     # let's find 0 level ticks
     distance_0={}
+    # remove smaller distances
     while True:
         distances=[]
         for idx in range(1,len(tick_0_list)-1):
@@ -1348,6 +1349,35 @@ def find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=None,
         else:
             removed_value=tick_0_list[distance_0[min(distances)]]
             tick_0_list.remove(tick_0_list[distance_0[min(distances)]])
+    # add possible middle values
+    possible_values=[]
+    for value in tick_0_list0:
+        if tick_0_list.count(value)==0:
+            possible_values.append(value)
+    if len(tick_0_list)>0:
+        while True:
+            distance_0={}
+            distances=[]
+            tick_0_list.sort()
+            for value in possible_values:
+                for idx in range(0,len(tick_0_list)):
+                    distance=calc_distance(f,g,value,tick_0_list[idx])
+                    if idx==0: # first round
+                        min_distance=distance
+                    else:
+                        if distance<min_distance:
+                            min_distance=distance
+                if min_distance>distance_limit:
+                    distances.append(min_distance)
+                    distance_0[min_distance]=value
+            if len(distances)==0:
+                break
+            else:
+                added_value=distance_0[max(distances)]
+                tick_0_list.append(added_value)
+                possible_values.remove(added_value)
+
+
 
     tick_1_list_worked=remove_from_list_half(tick_1_list0,tick_0_list0,f,g,distance_limit=distance_limit)
     tick_2_list_worked=remove_from_list_in_four(tick_2_list0,tick_0_list0+tick_1_list0,f,g,distance_limit=distance_limit)

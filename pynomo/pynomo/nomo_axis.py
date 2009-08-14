@@ -422,14 +422,79 @@ class Nomo_Axis:
         # let's find tick positions
 #        tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
 #        find_linear_ticks(start,stop,base_start,base_stop,self.axis_appear['scale_max'])
-        tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list=\
-        find_log_ticks_smart(start,stop,f,g,turn=1,base_start=base_start,
-                                base_stop=base_stop,
-                                distance_limit=self.axis_appear['tick_distance_smart'])
-        text_0_list,text_1_list,text_2_list,text_3_list,text_4_list=\
-        find_log_ticks_smart(start,stop,f,g,turn=1,base_start=base_start,
-                                base_stop=base_stop,
-                                distance_limit=self.axis_appear['text_distance_smart'])
+        if start>stop:
+            start,stop=stop,start
+        if start>0 and stop>0:
+            tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list=\
+            find_log_ticks_smart(start,stop,f,g,turn=1,base_start=base_start,
+                                    base_stop=base_stop,
+                                    distance_limit=self.axis_appear['tick_distance_smart'])
+            text_0_list,text_1_list,text_2_list,text_3_list,text_4_list=\
+            find_log_ticks_smart(start,stop,f,g,turn=1,base_start=base_start,
+                                    base_stop=base_stop,
+                                    distance_limit=self.axis_appear['text_distance_smart'])
+        if start<0 and stop<0:
+            tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list=\
+            find_log_ticks_negative_smart(start,stop,f,g,turn=1,base_start=base_start,
+                                    base_stop=base_stop,
+                                    distance_limit=self.axis_appear['tick_distance_smart'])
+            text_0_list,text_1_list,text_2_list,text_3_list,text_4_list=\
+            find_log_ticks_negative_smart(start,stop,f,g,turn=1,base_start=base_start,
+                                    base_stop=base_stop,
+                                    distance_limit=self.axis_appear['text_distance_smart'])
+
+        if start<0 and stop>0:
+            # negative side
+            start_decade=math.floor(math.log10(-start))
+            if 10**start_decade==-start:
+                start_decate=start_decade-1
+            # initialize
+            distance=2*self.axis_appear['text_distance_smart']
+            while distance>self.axis_appear['text_distance_smart']:
+                start_decade=start_decade-1
+                distance=calc_distance(f,g,-10**(start_decade),-10**(start_decade-1))
+
+            # positive side
+            stop_decade=math.floor(math.log10(stop))
+            if 10**start_decade==stop:
+                stop_decate=stop_decade-1
+            # initialize
+            distance=2*self.axis_appear['text_distance_smart']
+            while distance>self.axis_appear['text_distance_smart']:
+                stop_decade=stop_decade-1
+                distance=calc_distance(f,g,10**(stop_decade),10**(stop_decade-1))
+            print "start_decade value %f"%-10**start_decade
+            print "stop_decade value %f"%10**stop_decade
+            # make the ticks
+            tick_0_list_n,tick_1_list_n,tick_2_list_n,tick_3_list_n,tick_4_list_n=\
+            find_log_ticks_negative_smart(start,-10**(start_decade),f,g,turn=1,base_start=None,
+                                    base_stop=None,
+                                    distance_limit=self.axis_appear['tick_distance_smart'])
+            text_0_list_n,text_1_list_n,text_2_list_n,text_3_list_n,text_4_list_n=\
+            find_log_ticks_negative_smart(start,-10**(start_decade),f,g,turn=1,base_start=None,
+                                    base_stop=None,
+                                    distance_limit=self.axis_appear['text_distance_smart'])
+
+            tick_0_list_p,tick_1_list_p,tick_2_list_p,tick_3_list_p,tick_4_list_p=\
+            find_log_ticks_smart(10**(stop_decade),stop,f,g,turn=1,base_start=None,
+                                    base_stop=None,
+                                    distance_limit=self.axis_appear['tick_distance_smart'])
+            text_0_list_p,text_1_list_p,text_2_list_p,text_3_list_p,text_4_list_p=\
+            find_log_ticks_smart(10**(stop_decade),stop,f,g,turn=1,base_start=None,
+                                    base_stop=None,
+                                    distance_limit=self.axis_appear['text_distance_smart'])
+            tick_0_list=tick_0_list_n+tick_0_list_p
+            tick_1_list=tick_1_list_n+tick_1_list_p
+            tick_2_list=tick_2_list_n+tick_2_list_p
+            tick_3_list=tick_3_list_n+tick_3_list_p
+            tick_4_list=tick_4_list_n+tick_4_list_p
+            text_0_list=text_0_list_n+text_0_list_p
+            text_1_list=text_1_list_n+text_1_list_p
+            text_2_list=text_2_list_n+text_2_list_p
+            text_3_list=text_3_list_n+text_3_list_p
+            text_4_list=text_4_list_n+text_4_list_p
+
+
         ##pprint.pprint("text_list %s"%text_0_list)
         ##pprint.pprint("tick_list %s"%tick_0_list)
         # let's find tick angles
@@ -1233,8 +1298,8 @@ def find_log_ticks_smart(start,stop,f,g,turn=1,base_start=None,
     tick_4_list_final=[]
     # initial
     tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list=\
-    find_linear_ticks_smart(min_value,min(10**(min_decade+1),max_value),f,g,turn=1,base_start=base_start,\
-                            base_stop=base_stop,scale_max_0=10**(min_decade+1),\
+    find_linear_ticks_smart(min_value,min(10**(min_decade+1),max_value),f,g,turn=1,base_start=None,\
+                            base_stop=None,scale_max_0=10**(min_decade+1),\
                             distance_limit=distance_limit)
     if (10**min_decade)<=max_value:
         tick_0_list_final=tick_0_list_final+[10**(min_decade+1)]
@@ -1263,6 +1328,31 @@ def find_log_ticks_smart(start,stop,f,g,turn=1,base_start=None,
     return tick_0_list_final,tick_1_list_final,tick_2_list_final,\
            tick_3_list_final,tick_4_list_final,
 
+def make_negative(work_list):
+    for idx,number in enumerate(work_list):
+        work_list[idx]=-number
+    return work_list
+
+def find_log_ticks_negative_smart(start,stop,f,g,turn=1,base_start=None,
+                         base_stop=None,distance_limit=0.5):
+    """
+    finds tick values negative log
+    """
+    tick_0_list_final,tick_1_list_final,tick_2_list_final,\
+           tick_3_list_final,tick_4_list_final=find_log_ticks_smart(-stop,-start,lambda x:f(-x),lambda x:g(-x),turn=1,base_start=None,
+                         base_stop=None,distance_limit=distance_limit)
+    tick_0_list_final=make_negative(tick_0_list_final)
+    tick_0_list_final.sort()
+    tick_1_list_final=make_negative(tick_1_list_final)
+    tick_1_list_final.sort()
+    tick_2_list_final=make_negative(tick_2_list_final)
+    tick_2_list_final.sort()
+    tick_3_list_final=make_negative(tick_3_list_final)
+    tick_3_list_final.sort()
+    tick_4_list_final=make_negative(tick_4_list_final)
+    tick_4_list_final.sort()
+    return tick_0_list_final,tick_1_list_final,tick_2_list_final,\
+           tick_3_list_final,tick_4_list_final,
 
 def find_tick_directions(list,f,g,side,start,stop,full_angle=False,extra_angle=0,turn_relative=False):
     """

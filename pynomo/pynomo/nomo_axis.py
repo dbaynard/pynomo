@@ -69,7 +69,7 @@ class Nomo_Axis:
                              'title_distance_center':0.5,
                              'title_opposite_tick':True,
                              'title_draw_center':False,
-                             'text_format':"$%3.2f$",
+                             'text_format':"$%4.4g$",
                              'full_angle':False,
                              'extra_angle':0.0,
                              'text_horizontal_align_center':False,
@@ -463,8 +463,8 @@ class Nomo_Axis:
             while distance>self.axis_appear['text_distance_smart']:
                 stop_decade=stop_decade-1
                 distance=calc_distance(f,g,10**(stop_decade),10**(stop_decade-1))
-            print "start_decade value %f"%-10**start_decade
-            print "stop_decade value %f"%10**stop_decade
+            #print "start_decade value %f"%-10**start_decade
+            #print "stop_decade value %f"%10**stop_decade
             # make the ticks
             tick_0_list_n,tick_1_list_n,tick_2_list_n,tick_3_list_n,tick_4_list_n=\
             find_log_ticks_negative_smart(start,-10**(start_decade),f,g,turn=1,base_start=None,
@@ -1306,7 +1306,7 @@ def find_log_ticks_smart(start,stop,f,g,turn=1,base_start=None,
     tick_1_list_final=tick_1_list_final+tick_0_list
     tick_2_list_final=tick_2_list_final+tick_1_list
     tick_3_list_final=tick_3_list_final+tick_2_list
-    tick_4_list_final=tick_4_list_final+tick_3_list
+    tick_4_list_final=tick_4_list_final+tick_3_list+tick_4_list
     for decade in scipy.arange(min_decade+1,max_decade,1):
         value=10.0**decade
         start=value
@@ -1320,11 +1320,16 @@ def find_log_ticks_smart(start,stop,f,g,turn=1,base_start=None,
         tick_1_list_final=tick_1_list_final+tick_0_list
         tick_2_list_final=tick_2_list_final+tick_1_list
         tick_3_list_final=tick_3_list_final+tick_2_list
-        tick_4_list_final=tick_4_list_final+tick_3_list
+        tick_4_list_final=tick_4_list_final+tick_3_list+tick_4_list
     # let's remove decades from list
     for decade in tick_0_list_final:
         while tick_1_list_final.count(decade)>0:
             tick_1_list_final.remove(decade)
+    tick_0_list_final.sort()
+    tick_1_list_final.sort()
+    tick_2_list_final.sort()
+    tick_3_list_final.sort()
+    tick_4_list_final.sort()
     return tick_0_list_final,tick_1_list_final,tick_2_list_final,\
            tick_3_list_final,tick_4_list_final,
 
@@ -1467,7 +1472,7 @@ def find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=None,
                 tick_0_list.append(added_value)
                 possible_values.remove(added_value)
 
-
+    tick_0_list.sort()
 
     tick_1_list_worked=remove_from_list_half(tick_1_list0,tick_0_list0,f,g,distance_limit=distance_limit)
     tick_2_list_worked=remove_from_list_in_four(tick_2_list0,tick_0_list0+tick_1_list0,f,g,distance_limit=distance_limit)

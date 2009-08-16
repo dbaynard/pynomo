@@ -342,6 +342,12 @@ class Nomo_Axis:
         find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=base_start,
                                 base_stop=base_stop,scale_max_0=self.axis_appear['scale_max'],
                                 distance_limit=self.axis_appear['text_distance_smart'])
+        remove_text_if_not_tick(tick_0_list,text_0_list)
+        remove_text_if_not_tick(tick_1_list,text_1_list)
+        remove_text_if_not_tick(tick_2_list,text_2_list)
+        remove_text_if_not_tick(tick_3_list,text_3_list)
+        remove_text_if_not_tick(tick_4_list,text_4_list)
+
 #        pprint.pprint("text_list %s"%text_0_list)
 #        pprint.pprint("tick_list %s"%tick_0_list)
         # let's find tick angles
@@ -1434,16 +1440,46 @@ def find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=None,
     while True:
         distances=[]
         for idx in range(1,len(tick_0_list)-1):
+#            # for debugging
+#            number1=tick_0_list[idx-1]
+#            number2=tick_0_list[idx]
+#            number3=tick_0_list[idx+1]
             distance1=calc_distance(f,g,tick_0_list[idx],tick_0_list[idx-1])
             distance2=calc_distance(f,g,tick_0_list[idx],tick_0_list[idx+1])
-            if min(distance1,distance2)<=distance_limit:
-                distances.append(min(distance1,distance2))
-                distance_0[min(distance1,distance2)]=idx
-        if len(distances)==0:
+            # check if going round edge of scale
+            diff_1a=tick_0_list[idx]-tick_0_list[idx-1]
+            distance1a=calc_distance(f,g,tick_0_list[idx],tick_0_list[idx-1]+0.01*diff_1a)
+            diff_2a=tick_0_list[idx]-tick_0_list[idx+1]
+            distance2a=calc_distance(f,g,tick_0_list[idx],tick_0_list[idx+1]+0.01*diff_2a)
+            value1=0
+            value2=0
+            if distance1>distance1a:
+                value1=distance1
+            if distance2>distance2a:
+                value2=distance2
+            # let's make zeros better
+            if value1==0:
+                value1=value2
+            if value2==0:
+                value2=value1
+            distances.append([idx,value1,value2])
+        # find minimum distance
+        no_found=True
+        for [idx,value1,value2] in distances:
+            if value1<distance_limit or value2<distance_limit:
+                if value1>0 or value2>0:
+                    if no_found:
+                        minimum_idx=idx
+                        minimum_value=value1+value2
+                        no_found=False # first found
+                    else: # something is found before
+                        if minimum_value>(value1+value2):
+                            minimum_value=value1+value2
+                            minimum_idx=idx
+        if no_found:
             break
         else:
-            removed_value=tick_0_list[distance_0[min(distances)]]
-            tick_0_list.remove(tick_0_list[distance_0[min(distances)]])
+            tick_0_list.pop(minimum_idx)
     # add possible middle values
     possible_values=[]
     for value in tick_0_list0:
@@ -1455,13 +1491,20 @@ def find_linear_ticks_smart(start,stop,f,g,turn=1,base_start=None,
             distances=[]
             tick_0_list.sort()
             for value in possible_values:
+                no_distance=True
                 for idx in range(0,len(tick_0_list)):
                     distance=calc_distance(f,g,value,tick_0_list[idx])
-                    if idx==0: # first round
-                        min_distance=distance
-                    else:
-                        if distance<min_distance:
+                    # let's see if turned between
+                    diff=(value-tick_0_list[idx])*1e-3
+                    distance_bigger=calc_distance(f,g,value+diff,tick_0_list[idx]-diff)
+                    distance_smaller=calc_distance(f,g,value-diff,tick_0_list[idx]+diff)
+                    if distance_smaller<distance_bigger: # see if not turned
+                        if no_distance: # first round
                             min_distance=distance
+                            no_distance=False
+                        else:
+                            if distance<min_distance:
+                                min_distance=distance
                 if min_distance>distance_limit:
                     distances.append(min_distance)
                     distance_0[min_distance]=value
@@ -1525,6 +1568,9 @@ def remove_from_list_in_four(work_list,upper_list,f,g,distance_limit=0.5):
     upper_idx=0
     work_idx=0
     while len(worked_list_0)>(work_idx+1):
+        # to start in correct position
+        while worked_list_0[work_idx]<min(upper_list):
+            work_idx=work_idx+1
         d=[]
         if len(worked_list_0)>(work_idx) and len(upper_list)>(upper_idx):
             d.append(calc_distance(f,g,upper_list[upper_idx],worked_list_0[work_idx]))
@@ -1539,7 +1585,8 @@ def remove_from_list_in_four(work_list,upper_list,f,g,distance_limit=0.5):
         if len(d)>0:
             if min(d)<distance_limit:
                 for idx in range(work_idx,work_idx+4):
-                    worked_list.remove(worked_list_0[idx])
+                    if len(worked_list_0)>idx:
+                        worked_list.remove(worked_list_0[idx])
         upper_idx=upper_idx+1
         work_idx=work_idx+4
     return worked_list
@@ -1578,6 +1625,14 @@ def remove_from_list_half(work_list,upper_list,f,g,distance_limit=0.5):
                 upper_idx=upper_idx+1
                 work_idx=work_idx+1
     return worked_list
+
+def remove_text_if_not_tick(tick_values,text_values):
+    """
+    removes text so that no text is in place where not ticks
+    """
+    for text_value in text_values:
+        if tick_values.count(text_value)==0:
+            text_values.remove(text_value)
 
 def calc_distance(f,g,u1,u2):
     """

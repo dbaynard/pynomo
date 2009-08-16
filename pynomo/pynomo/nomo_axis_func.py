@@ -98,7 +98,8 @@ class Axis_Wrapper:
                 u+=delta_u
                 #print u,stop
                 count=count+1
-                line.append((f(u), g(u)))
+                if u<stop:
+                    line.append((f(u), g(u)))
             else:
                 line.append((f(stop), g(stop)))
                 #print count
@@ -203,13 +204,14 @@ class Axis_Wrapper:
         # small in order to avoid singularities. These are
         # specifically for dual-axis stationary scales
         if x_left==x_right:
-            x_left=x_right-1e-4*abs(y_top-y_bottom)
+            x_left=x_right-1e-2*abs(y_top-y_bottom)
         if y_top==y_bottom:
-            y_top=y_bottom+1e-4*abs(x_left-x_right)
+            y_top=y_bottom+1e-2*abs(x_left-x_right)
         self.x_left=x_left
         self.x_right=x_right
         self.y_top=y_top
         self.y_bottom=y_bottom
+        #print x_left,x_right,y_bottom,y_top
         return x_left,x_right,y_bottom,y_top
 
     def calc_highest_point(self):

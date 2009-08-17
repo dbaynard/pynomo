@@ -470,59 +470,74 @@ class Nomo_Axis:
                 stop_decade=stop_decade-1
                 distance=calc_distance(f,g,10**(stop_decade),10**(stop_decade-1))
             # make the ticks
-            start_decade=start_decade
-            stop_decade=stop_decade
+            start_decade=start_decade+1
+            stop_decade=stop_decade+1
             print "start_decade value %f"%-10**start_decade
             print "stop_decade value %f"%10**stop_decade
             tick_0_list_n,tick_1_list_n,tick_2_list_n,tick_3_list_n,tick_4_list_n=\
-            find_log_ticks_negative_smart(start,-10**(start_decade),f,g,turn=1,base_start=None,
+            find_log_ticks_negative_smart(start,-10**(start_decade)*1.0001,f,g,turn=1,base_start=None,
                                     base_stop=None,
                                     distance_limit=self.axis_appear['tick_distance_smart'])
             text_0_list_n,text_1_list_n,text_2_list_n,text_3_list_n,text_4_list_n=\
-            find_log_ticks_negative_smart(start,-10**(start_decade),f,g,turn=1,base_start=None,
+            find_log_ticks_negative_smart(start,-10**(start_decade)*1.0001,f,g,turn=1,base_start=None,
                                     base_stop=None,
                                     distance_limit=self.axis_appear['text_distance_smart'])
 
             tick_0_list_p,tick_1_list_p,tick_2_list_p,tick_3_list_p,tick_4_list_p=\
-            find_log_ticks_smart(10**(stop_decade),stop,f,g,turn=1,base_start=None,
+            find_log_ticks_smart(10**(stop_decade)*1.0001,stop,f,g,turn=1,base_start=None,
                                     base_stop=None,
                                     distance_limit=self.axis_appear['tick_distance_smart'])
             text_0_list_p,text_1_list_p,text_2_list_p,text_3_list_p,text_4_list_p=\
-            find_log_ticks_smart(10**(stop_decade),stop,f,g,turn=1,base_start=None,
+            find_log_ticks_smart(10**(stop_decade)*1.0001,stop,f,g,turn=1,base_start=None,
                                     base_stop=None,
                                     distance_limit=self.axis_appear['text_distance_smart'])
             # middle
-            tick_0_list_m,tick_1_list_m,tick_2_list_m,tick_3_list_m,tick_4_list_m=\
-            find_linear_ticks_smart(-10**(start_decade+1),10**(stop_decade+1),f,g,turn=1,base_start=None,
-                                    base_stop=None,
+            tick_0_list_mn,tick_1_list_mn,tick_2_list_mn,tick_3_list_mn,tick_4_list_mn=\
+            find_linear_ticks_smart(-10**(start_decade),0,f,g,turn=1,base_start=None,
+                                    base_stop=None,scale_max_0=10*10**(start_decade),
                                     distance_limit=self.axis_appear['tick_distance_smart'])
-            text_0_list_m,text_1_list_m,text_2_list_m,text_3_list_m,text_4_list_m=\
-            find_linear_ticks_smart(-10**(start_decade+1),10**(stop_decade+1),f,g,turn=1,base_start=None,
-                                    base_stop=None,
+            text_0_list_mn,text_1_list_mn,text_2_list_mn,text_3_list_mn,text_4_list_mn=\
+            find_linear_ticks_smart(-10**(start_decade),0,f,g,turn=1,base_start=None,
+                                    base_stop=None,scale_max_0=10*10**(start_decade),
                                     distance_limit=self.axis_appear['text_distance_smart'])
-            pprint.pprint(text_0_list_m)
-            pprint.pprint(text_1_list_m)
-            tick_0_list=tick_0_list_n+tick_0_list_p#+tick_0_list_m
-            tick_1_list=tick_1_list_n+tick_1_list_p#+tick_1_list_m
-            tick_2_list=tick_2_list_n+tick_2_list_p#+tick_2_list_m
-            tick_3_list=tick_3_list_n+tick_3_list_p#+tick_3_list_m
-            tick_4_list=tick_4_list_n+tick_4_list_p
-            text_0_list=text_0_list_n+text_0_list_p#+text_0_list_m
-            text_1_list=text_1_list_n+text_1_list_p#+text_1_list_m
-            text_2_list=text_2_list_n+text_2_list_p#+text_2_list_m
-            text_3_list=text_3_list_n+text_3_list_p#+text_3_list_m
-            text_4_list=text_4_list_n+text_4_list_p
-#            remove_multiple_and_sort(tick_0_list)
-#            remove_multiple_and_sort(tick_1_list)
-#            remove_multiple_and_sort(tick_2_list)
-#            remove_multiple_and_sort(tick_3_list)
-#            remove_multiple_and_sort(tick_4_list)
-#            remove_multiple_and_sort(text_0_list)
-#            remove_multiple_and_sort(text_1_list)
-#            remove_multiple_and_sort(text_2_list)
-#            remove_multiple_and_sort(text_3_list)
-#            remove_multiple_and_sort(text_4_list)
+            tick_0_list_mp,tick_1_list_mp,tick_2_list_mp,tick_3_list_mp,tick_4_list_mp=\
+            find_linear_ticks_smart(0,10**(stop_decade),f,g,turn=1,base_start=None,
+                                    base_stop=None,scale_max_0=10*10**(stop_decade),
+                                    distance_limit=self.axis_appear['tick_distance_smart'])
+            text_0_list_mp,text_1_list_mp,text_2_list_mp,text_3_list_mp,text_4_list_mp=\
+            find_linear_ticks_smart(0,10**(stop_decade),f,g,turn=1,base_start=None,
+                                    base_stop=None,scale_max_0=10*10**(stop_decade),
+                                    distance_limit=self.axis_appear['text_distance_smart'])
 
+            tick_0_list=tick_0_list_n+tick_0_list_p+tick_0_list_mn+tick_0_list_mp
+            tick_1_list=tick_1_list_n+tick_1_list_p+tick_1_list_mn+tick_1_list_mp
+            tick_2_list=tick_2_list_n+tick_2_list_p+tick_2_list_mn+tick_2_list_mp
+            tick_3_list=tick_3_list_n+tick_3_list_p+tick_3_list_mn+tick_3_list_mp
+            tick_4_list=tick_4_list_n+tick_4_list_p
+            text_0_list=text_0_list_n+text_0_list_p+text_0_list_mn+text_0_list_mp
+            text_1_list=text_1_list_n+text_1_list_p+text_1_list_mn+text_1_list_mp
+            text_2_list=text_2_list_n+text_2_list_p+text_2_list_mn+text_2_list_mp
+            text_3_list=text_3_list_n+text_3_list_p+text_3_list_mn+text_3_list_mp
+            text_4_list=text_4_list_n+text_4_list_p
+            remove_multiple_and_sort(tick_0_list)
+            remove_multiple_and_sort(tick_1_list)
+            remove_multiple_and_sort(tick_2_list)
+            remove_multiple_and_sort(tick_3_list)
+            remove_multiple_and_sort(tick_4_list)
+            remove_multiple_and_sort(text_0_list)
+            remove_multiple_and_sort(text_1_list)
+            remove_multiple_and_sort(text_2_list)
+            remove_multiple_and_sort(text_3_list)
+            remove_multiple_and_sort(text_4_list)
+            # manual removing of possible top clashes
+            if max(tick_0_list)==max(tick_1_list):
+                tick_1_list.remove(max(tick_1_list))
+            if max(text_0_list)==max(text_1_list):
+                text_1_list.remove(max(text_1_list))
+            if min(tick_0_list)==min(tick_1_list):
+                tick_1_list.remove(min(tick_1_list))
+            if min(text_0_list)==min(text_1_list):
+                text_1_list.remove(min(text_1_list))
         ##pprint.pprint("text_list %s"%text_0_list)
         ##pprint.pprint("tick_list %s"%tick_0_list)
         # let's find tick angles
@@ -1316,8 +1331,8 @@ def find_log_ticks_smart(start,stop,f,g,turn=1,base_start=None,
         min_value,max_value=start,stop
     else:
         min_value,max_value=stop,start
-    max_decade=math.ceil(math.log10(max_value))
-    min_decade=math.floor(math.log10(min_value))
+    max_decade=math.ceil(math.log10(max_value)-0.0001)
+    min_decade=math.floor(math.log10(min_value)+0.0001)
     # resulting lists
     tick_0_list_final=[]
     tick_1_list_final=[]
@@ -1329,7 +1344,7 @@ def find_log_ticks_smart(start,stop,f,g,turn=1,base_start=None,
     find_linear_ticks_smart(min_value,min(10**(min_decade+1),max_value),f,g,turn=1,base_start=None,\
                             base_stop=None,scale_max_0=10**(min_decade+1),\
                             distance_limit=distance_limit)
-    if (10**min_decade)<=max_value:
+    if (10**(min_decade+1))<=max_value:
         tick_0_list_final=tick_0_list_final+[10**(min_decade+1)]
     tick_1_list_final=tick_1_list_final+tick_0_list
     tick_2_list_final=tick_2_list_final+tick_1_list
@@ -1674,17 +1689,20 @@ def make_array_to_dict_for_manual_ticks(array_in,format='%3.2f'):
 
 def remove_multiple_and_sort(work_list):
     work_list.sort()
-    copy_list=copy.deepcopy(work_list)
-    for element in copy_list:
-        if work_list.count(element)>1:
-            work_list.remove(element)
-    # remove very small differences
-    for idx1,value1 in enumerate(work_list):
-        for idx2,value2 in enumerate(work_list):
-            if idx1!=idx2:
-                if (value1-value2)<value1*1e-9:
-                    if work_list.count(value2)>0:
-                        work_list.remove(value2)
+    while work_list.count(0)>1:
+        work_list.remove(0)
+    # just sort
+#    copy_list=copy.deepcopy(work_list)
+#    for element in copy_list:
+#        if work_list.count(element)>1:
+#            work_list.remove(element)
+#    # remove very small differences
+#    for idx1,value1 in enumerate(work_list):
+#        for idx2,value2 in enumerate(work_list):
+#            if idx1!=idx2:
+#                if (value1-value2)<value1*1e-9:
+#                    if work_list.count(value2)>0:
+#                        work_list.remove(value2)
 
 
 ## Testing

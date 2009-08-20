@@ -2265,6 +2265,60 @@ class Nomo_Atom:
         self.f_ref = self.params['F'] # x-coord func for reflection axis
         self.g_ref = self.params['G'] # y-coord func for reflection axis
 
+    def calc_line_and_sections(self):
+        """
+        calculates line and sections
+        """
+        self.line=[]
+        start=self.params['u_min']
+        stop=self.params['u_max']
+        f=self.give_x
+        g=self.give_y
+        if start>stop:
+            start,stop=stop,start
+        du=math.fabs(stop-start)*1e-12
+        # approximate line length is found
+        line_length_straigth=math.sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
+        random.seed(0.0) # so that mistakes always the same
+        for dummy in range(100): # for case if start = stop
+            first=random.uniform(start,stop)
+            second=random.uniform(start,stop)
+            temp=math.sqrt((f(first)-f(second))**2+(g(first)-g(second))**2)
+            if temp>line_length_straigth:
+                line_length_straigth=temp
+                #print "length: %f"%line_length_straigth
+        sections=350.0 # about number of sections
+        section_length=line_length_straigth/sections
+        u=start
+        laskuri=1
+        self.line.append((f(start), g(start)))
+        while True:
+            if u<stop:
+                self.line.append((f(u), g(u)))
+                dx=(f(u+du)-f(u))
+                dy=(g(u+du)-g(u))
+                dl=math.sqrt(dx**2+dy**2)
+                if dl>0:
+                    delta_u=du*section_length/dl
+                else:
+                    delta_u=du
+                # in order to avoid too slow derivatives
+                if math.fabs(stop-start)<(delta_u*100.0):
+                    delta_u=math.fabs(stop-start)/500.0
+                u+=delta_u
+
+            else:
+                self.line.append((f(stop), g(stop)))
+                break
+        # calculate sections
+        sections=[]
+        for index,(x,y) in enumerate(line):
+            if index>1:
+                sections.append((x,y,prev_x,prev_y))
+            prev_x=x
+            prev_y=y
+        self.sections=sections
+
     def set_trafo(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
                            alpha2=0.0,beta2=1.0,gamma2=0.0,
                            alpha3=0.0,beta3=0.0,gamma3=1.0):
@@ -2420,6 +2474,12 @@ class Nomo_Atom_Grid(Nomo_Atom):
         self.set_trafo() # initialize
         self.f=self.params['F_grid']
         self.g=self.params['G_grid']
+
+    def calc_line_and_sections(self):
+        """
+        calculates line and sections... TBD
+        """
+        pass
 
     def give_x(self,u):
         """

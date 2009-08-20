@@ -177,6 +177,7 @@ class Nomographer:
                 wrapper.do_transformation(method=trafo[0],params=trafo[1])
             else:
                 wrapper.do_transformation(method=trafo[0])
+        # transformations done
         c=canvas.canvas()
         if params['make_grid']:
             self._make_grid_(params,c)

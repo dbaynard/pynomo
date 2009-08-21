@@ -1,5 +1,5 @@
 #    PyNomo - nomographs with Python
-#    Copyright (C) 2007  Leif Roschier
+#    Copyright (C) 2007-2009  Leif Roschier
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -22,4 +22,5 @@ solution to an equation.
 """
 
 __all__ = ["nomograph", "nomo_axis", "nomograph3","nomo_axis_func",
-           "nomo_grid_box","nomo_grid","nomo_wrapper","nomographer"]
+           "nomo_grid_box","nomo_grid","nomo_wrapper","nomographer",
+           "isopleth"]

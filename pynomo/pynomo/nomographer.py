@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from nomo_wrapper import *
-
+from isopleth import *
 
 class Nomographer:
     """
@@ -30,6 +30,7 @@ class Nomographer:
                              paper_height=params['paper_height'],
                              filename=params['filename'])
         blocks=[]
+        isopleths=Isopleth_Wrapper()
         for block_para in params['block_params']:
             # TYPE 1
             if block_para['block_type']=='type_1':
@@ -46,6 +47,8 @@ class Nomographer:
                                      height=block_para['height'],
                                      proportion=block_para['proportion'])
                 wrapper.add_block(blocks[-1])
+                isopleth_block=Isopleth_Block_Type_1(blocks[-1],block_para)
+                isopleths.add_isopleth_block(isopleth_block)
             # TYPE 2
             if block_para['block_type']=='type_2':
                 self._check_block_type_2_params_(block_para)
@@ -172,6 +175,7 @@ class Nomographer:
                 wrapper.add_block(blocks[-1])
         wrapper.align_blocks()
         wrapper.build_axes_wrapper() # build structure for transformations
+        # do transformations
         for trafo in params['transformations']:
             if len(trafo)>1:
                 wrapper.do_transformation(method=trafo[0],params=trafo[1])
@@ -185,6 +189,9 @@ class Nomographer:
             params['pre_func'](c)
         if params['draw_lines']:
             self._draw_lines_(params,c)
+        # draw isopleths
+        isopleths.draw(c)
+        # draw the nomogram
         wrapper.draw_nomogram(c,params['post_func'])
         self.blocks=blocks  # save for debugging
         for block in params['block_params']:
@@ -322,7 +329,8 @@ class Nomographer:
                          'width':10.0,
                          'height':10.0,
                          'proportion':1.0,
-                         'debug':False}
+                         'debug':False,
+                         'isopleth_values':None}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]

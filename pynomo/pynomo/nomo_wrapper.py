@@ -26,7 +26,7 @@ from numpy import *
 import scipy
 from pyx import *
 #from copy import copy
-import copy, re, pprint
+import copy, re, pprint,random
 
 class Nomo_Wrapper:
     """
@@ -2312,7 +2312,7 @@ class Nomo_Atom:
                 break
         # calculate sections
         sections=[]
-        for index,(x,y) in enumerate(line):
+        for index,(x,y) in enumerate(self.line):
             if index>1:
                 sections.append((x,y,prev_x,prev_y))
             prev_x=x

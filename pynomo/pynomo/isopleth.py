@@ -46,7 +46,7 @@ class Isopleth_Wrapper(object):
         """
         solves unknown values
         """
-        for isopleth in self.isopleth_list:
+        for idx,isopleth in enumerate(self.isopleth_list):
             isopleth.solve(self.solutions)
 
 
@@ -121,20 +121,20 @@ class Isopleth_Block(object):
             distances.append(distance)
             if distance<smallest_distance:
                 smallest_distance=distance
-                smallest_idx=0
-        if idx==0:
+                smallest_idx=idx
+        if smallest_idx==0:
             idx2=1
-        if idx==len(distances):
+        if smallest_idx==len(distances):
             idx2=len(distances)-1
-        if idx>0 and idx<len(distances):
-            if distances[idx-1]<distances[idx+1]:
-                idx2=idx-1
+        if smallest_idx>0 and smallest_idx<len(distances):
+            if distances[smallest_idx-1]<distances[smallest_idx+1]:
+                idx2=smallest_idx-1
             else:
-                idx2=idx+1
-        sum_distance=distances[idx]+distances[idx2]
-        middle_x=distances[idx]/sum_distance*line[idx][0]+\
+                idx2=smallest_idx+1
+        sum_distance=distances[smallest_idx]+distances[idx2]
+        middle_x=distances[smallest_idx]/sum_distance*line[smallest_idx][0]+\
                  distances[idx2]/sum_distance*line[idx2][0]
-        middle_y=distances[idx]/sum_distance*line[idx][1]+\
+        middle_y=distances[smallest_idx]/sum_distance*line[smallest_idx][1]+\
                  distances[idx2]/sum_distance*line[idx2][1]
         return middle_x,middle_y
 
@@ -166,13 +166,23 @@ class Isopleth_Block(object):
         """
         for (x1,y1,x2,y2,x3,y3) in self.draw_coordinates:
             xx1,yy1,xx2,yy2=self.find_farthest_pair(x1,y1,x2,y2,x3,y3)
-            print xx1,yy1,xx2,yy2
+            #print xx1,yy1,xx2,yy2
             # check for collinearity
 #            if not self.collinear(x1, y1, x2, y2, x3, y3):
 #                print "found points not collinear in isopleth..."
             canvas.stroke(path.line(xx1,yy1,xx2,yy2),[color.cmyk.Black,
                                                     style.linewidth.thick,
                                                     style.linestyle.dashed])
+            self._draw_circle_(canvas,x1,y1,0.1)
+            self._draw_circle_(canvas,x2,y2,0.1)
+            self._draw_circle_(canvas,x3,y3,0.1)
+
+    def _draw_circle_(self,canvas,x,y,r):
+        """
+        draws marker circle
+        """
+        canvas.fill(path.circle(x, y, r), [color.rgb.white])
+        canvas.stroke(path.circle(x,y,r))
 
     def solve(self,solutions):
         """

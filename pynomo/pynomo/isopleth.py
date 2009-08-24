@@ -46,8 +46,16 @@ class Isopleth_Wrapper(object):
         """
         solves unknown values
         """
-        for idx,isopleth in enumerate(self.isopleth_list):
-            isopleth.solve(self.solutions)
+        solutions_updated=True
+        while solutions_updated:
+            for idx,isopleth in enumerate(self.isopleth_list):
+                isopleth.solve(self.solutions)
+            # updates solutions
+            solutions_updated=False
+            for idx,isopleth in enumerate(self.isopleth_list):
+                update=isopleth.update_solutions(self.solutions)
+                if update==True:
+                    solutions_updated=True
 
 
 
@@ -60,9 +68,9 @@ class Isopleth_Block(object):
         """
         params is for example:
         {
-        'isopleth_values':[['x1',0.1,0.2]],
+        'isopleth_values':[['x',0.1,0.2]],
         }
-        if x1 is found outside this implementation, 'x1' is replaced
+        if x is found outside this implementation, 'x' is replaced
         by tuple (x,y) of the coordinate pair
         """
         self.params=params
@@ -79,19 +87,19 @@ class Isopleth_Block(object):
             # calculates lines (list of coordinates)
             atom.calc_line_and_sections()
 
-    def _replace_found_values_(self,found_dict={}):
-        """
-        replaces found variables with the coordinates
-        found_dict is of form (for example)
-        {
-        'x1':(1.0,2.0),
-        'y2':(3.4,2.1)
-        }
-        """
-        for key in found_dict.keys():
-            if self.params['points'].count(key)>0:
-                idx=self.params['points'].index(key)
-                self.params['points'][idx]=found_dict[key]
+#    def _replace_found_values_(self,found_dict={}):
+#        """
+#        replaces found variables with the coordinates
+#        found_dict is of form (for example)
+#        {
+#        'x1':(1.0,2.0),
+#        'y2':(3.4,2.1)
+#        }
+#        """
+#        for key in found_dict.keys():
+#            if self.params['points'].count(key)>0:
+#                idx=self.params['points'].index(key)
+#                self.params['points'][idx]=found_dict[key]
 
     def _calc_distance_(self,x0,y0,x1,y1,x2,y2):
         """
@@ -190,6 +198,22 @@ class Isopleth_Block(object):
         """
         pass
 
+    def update_solutions(self,solutions):
+        """
+        Updates solutions
+        """
+        solutions_updated=False
+        for idx,solution in enumerate(solutions):
+            for key in solution.keys():
+                for atom_idx,atom in enumerate(self.atom_stack):
+                    if atom.params['tag']==key:
+                        if isinstance(self.isopleth_values[idx][atom_idx],str):
+                            self.isopleth_values[idx][atom_idx]=solution[key]
+                            solutions_updated=True
+        return solutions_updated
+
+
+
     def _check_if_enough_params_(self,idx):
         """
         parent class to be overriden, checks if enough params to solve
@@ -212,7 +236,7 @@ class Isopleth_Block_Type_1(Isopleth_Block):
         numbers=self.isopleth_values[idx]
         given=0
         for number in numbers:
-            if isinstance(number,(int,float)):
+            if isinstance(number,(int,float,tuple)):
                          given=given+1
         if given<2:
             return False # isopleth not solvable (right now)
@@ -227,9 +251,9 @@ class Isopleth_Block_Type_1(Isopleth_Block):
         for idx,isopleth_values_single in enumerate(self.isopleth_values):
             if len(self.draw_coordinates)<(idx+1):
                 self.draw_coordinates.append([]) # dummy expansion of matrix
+            if len(solutions)<(idx+1):
+                solutions.append({})
             if self._check_if_enough_params_(idx):
-                if len(solutions)<(idx+1):
-                    solutions.append({})
                 x0,y0,x1,y1,x2,y2=self.solve_single(solutions[idx],
                                                     isopleth_values_single)
                 self.draw_coordinates[idx]=[x0,y0,x1,y1,x2,y2]
@@ -250,29 +274,47 @@ class Isopleth_Block_Type_1(Isopleth_Block):
             x0=atom_stack[0].give_x(isopleth_values[0])
             y0=atom_stack[0].give_y(isopleth_values[0])
             f1_known=True
+        if isinstance(isopleth_values[0],tuple):
+            x0=isopleth_values[0][0]
+            y0=isopleth_values[0][1]
+            f1_known=True
         # f2 known
         if isinstance(isopleth_values[1],(int,float)):
             x1=atom_stack[1].give_x(isopleth_values[1])
             y1=atom_stack[1].give_y(isopleth_values[1])
+            f2_known=True
+        if isinstance(isopleth_values[1],tuple):
+            x1=isopleth_values[1][0]
+            y1=isopleth_values[1][1]
             f2_known=True
         # f3 known
         if isinstance(isopleth_values[2],(int,float)):
             x2=atom_stack[2].give_x(isopleth_values[2])
             y2=atom_stack[2].give_y(isopleth_values[2])
             f3_known=True
+        if isinstance(isopleth_values[2],tuple):
+            x2=isopleth_values[2][0]
+            y2=isopleth_values[2][1]
+            f3_known=True
         if not f1_known:
             line=self.atom_stack[0].line
             x0,y0=self._find_closest_point_(line,x1,y1,x2,y2)
-            solution[isopleth_values[0]]=(x0,y0)
+            #solution[isopleth_values[0]]=(x0,y0)
+            if not self.atom_stack[0].params['tag']=='none':
+                solution[self.atom_stack[0].params['tag']]=(x0,y0)
             isopleth_values[0]=(x0,y0)
         if not f2_known:
             line=self.atom_stack[1].line
             x1,y1=self._find_closest_point_(line,x0,y0,x2,y2)
-            solution[isopleth_values[1]]=(x1,y1)
+            #solution[isopleth_values[1]]=(x1,y1)
+            if not self.atom_stack[1].params['tag']=='none':
+                solution[self.atom_stack[1].params['tag']]=(x1,y1)
             isopleth_values[1]=(x1,y1)
         if not f3_known:
             line=self.atom_stack[2].line
             x2,y2=self._find_closest_point_(line,x0,y0,x1,y1)
-            solution[isopleth_values[2]]=(x2,y2)
+            #solution[isopleth_values[2]]=(x2,y2)
+            if not self.atom_stack[2].params['tag']=='none':
+                solution[self.atom_stack[2].params['tag']]=(x2,y2)
             isopleth_values[2]=(x2,y2)
         return x0,y0,x1,y1,x2,y2

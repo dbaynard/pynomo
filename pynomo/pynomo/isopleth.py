@@ -50,13 +50,17 @@ class Isopleth_Wrapper(object):
         while solutions_updated:
             for idx,isopleth in enumerate(self.isopleth_list):
                 isopleth.solve(self.solutions)
+                # take initial values (tjey are most correct)
+                isopleth.find_initial_solutions(self.solutions)
             # updates solutions
             solutions_updated=False
             for idx,isopleth in enumerate(self.isopleth_list):
                 update=isopleth.update_solutions(self.solutions)
                 if update==True:
                     solutions_updated=True
-
+        # check for error
+        for idx,isopleth in enumerate(self.isopleth_list):
+            isopleth.check_if_all_solutions_found(self.solutions)
 
 
 class Isopleth_Block(object):
@@ -197,6 +201,25 @@ class Isopleth_Block(object):
         parent class to be overriden, solves coordinates
         """
         pass
+
+    def check_if_all_solutions_found(self,solutions):
+        all_found=True
+        for atom_idx,atom in enumerate(self.atom_stack):
+            for idx,dummy in enumerate(solutions):
+                if not isinstance(self.isopleth_values[idx][atom_idx],(int,float,tuple)):
+                    print "not all isopleths solvable?"
+
+
+    def find_initial_solutions(self,solutions):
+        """
+        Finds initial solutions
+        """
+        for atom_idx,atom in enumerate(self.atom_stack):
+            if not atom.params['tag']=='none':
+                for idx,dummy in enumerate(solutions):
+                    if isinstance(self.isopleth_values[idx][atom_idx],(int,float,tuple)):
+                        solutions[idx][atom.params['tag']]=self.isopleth_values[idx][atom_idx]
+
 
     def update_solutions(self,solutions):
         """

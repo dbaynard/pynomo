@@ -341,3 +341,12 @@ class Isopleth_Block_Type_1(Isopleth_Block):
                 solution[self.atom_stack[2].params['tag']]=(x2,y2)
             isopleth_values[2]=(x2,y2)
         return x0,y0,x1,y1,x2,y2
+
+class Isopleth_Block_Type_2(Isopleth_Block_Type_1):
+    """
+    type F1=F2*F3 isopleth
+    atom stack is the stack of scales
+    solution_dict is a dictionary of found solutions
+    """
+    def __init__(self,block,params):
+        super(Isopleth_Block_Type_2,self).__init__(block,params)

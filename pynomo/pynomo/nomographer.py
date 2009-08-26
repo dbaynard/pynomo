@@ -63,6 +63,8 @@ class Nomographer:
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'])
                 wrapper.add_block(blocks[-1])
+                isopleth_block=Isopleth_Block_Type_2(blocks[-1],block_para)
+                isopleths.add_isopleth_block(isopleth_block)
             # TYPE 3
             if block_para['block_type']=='type_3':
                 self._check_block_type_3_params_(block_para)
@@ -344,7 +346,8 @@ class Nomographer:
                          'mirror_y':False,
                          'width':10.0,
                          'height':10.0,
-                         'debug':False,}
+                         'debug':False,
+                         'isopleth_values':None}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]

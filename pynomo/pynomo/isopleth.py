@@ -143,11 +143,15 @@ class Isopleth_Block(object):
                 idx2=smallest_idx-1
             else:
                 idx2=smallest_idx+1
-        sum_distance=distances[smallest_idx]+distances[idx2]
-        middle_x=distances[smallest_idx]/sum_distance*line[smallest_idx][0]+\
-                 distances[idx2]/sum_distance*line[idx2][0]
-        middle_y=distances[smallest_idx]/sum_distance*line[smallest_idx][1]+\
-                 distances[idx2]/sum_distance*line[idx2][1]
+#        sum_distance=distances[smallest_idx]+distances[idx2]
+#        middle_x=distances[smallest_idx]/sum_distance*line[smallest_idx][0]+\
+#                 distances[idx2]/sum_distance*line[idx2][0]
+#        middle_y=distances[smallest_idx]/sum_distance*line[smallest_idx][1]+\
+#                 distances[idx2]/sum_distance*line[idx2][1]
+        # a better
+        middle_x,middle_y=self._two_line_intersection_(line[smallest_idx][0],line[smallest_idx][1],
+                                                        line[idx2][0], line[idx2][1],
+                                                        x1,y1,x2,y2)
         return middle_x,middle_y
 
     def collinear(self,x1,y1,x2,y2,x3,y3):
@@ -185,9 +189,9 @@ class Isopleth_Block(object):
             canvas.stroke(path.line(xx1,yy1,xx2,yy2),[color.cmyk.Black,
                                                     style.linewidth.thick,
                                                     style.linestyle.dashed])
-            self._draw_circle_(canvas,x1,y1,0.1)
-            self._draw_circle_(canvas,x2,y2,0.1)
-            self._draw_circle_(canvas,x3,y3,0.1)
+            self._draw_circle_(canvas,x1,y1,0.05)
+            self._draw_circle_(canvas,x2,y2,0.05)
+            self._draw_circle_(canvas,x3,y3,0.05)
 
     def _draw_circle_(self,canvas,x,y,r):
         """
@@ -242,6 +246,19 @@ class Isopleth_Block(object):
         parent class to be overriden, checks if enough params to solve
         """
         pass
+
+    def _two_line_intersection_(self,x1,y1,x2,y2,x3,y3,x4,y4):
+        """
+        intersection of lines (x1,y1)-(x2,y2) and (x3,y3)-(x4,y4)
+        """
+        x=self._det_(self._det_(x1,y1,x2,y2),(x1-x2),self._det_(x3,y3,x4,y4),(x3-x4))/\
+        self._det_(x1-x2,y1-y2,x3-x4,y3-y4)
+        y=self._det_(self._det_(x1,y1,x2,y2),(y1-y2),self._det_(x3,y3,x4,y4),(y3-y4))/\
+        self._det_(x1-x2,y1-y2,x3-x4,y3-y4)
+        return x,y
+
+    def _det_(self,a,b,c,d):
+        return a*d-c*b
 
 class Isopleth_Block_Type_1(Isopleth_Block):
     """
@@ -350,3 +367,14 @@ class Isopleth_Block_Type_2(Isopleth_Block_Type_1):
     """
     def __init__(self,block,params):
         super(Isopleth_Block_Type_2,self).__init__(block,params)
+
+
+
+class Isopleth_Block_Type_10(Isopleth_Block_Type_1):
+    """
+    type F1(u)+F2(v)*F3(w)+F4(w)=0
+    atom stack is the stack of scales
+    solution_dict is a dictionary of found solutions
+    """
+    def __init__(self,block,params):
+        super(Isopleth_Block_Type_10,self).__init__(block,params)

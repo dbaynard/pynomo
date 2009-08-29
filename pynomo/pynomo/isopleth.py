@@ -82,6 +82,7 @@ class Isopleth_Block(object):
         self.isopleth_values=params['isopleth_values']
         self.atom_stack=block.atom_stack
         self.draw_coordinates=[] # coordinates [[x1,y1,x2,y2,x3,y3],...] to be drawn
+        self.other_points=[] # list of additional solution coordinates
 
     def calc_atoms(self):
         """
@@ -120,7 +121,7 @@ class Isopleth_Block(object):
 
     def _find_closest_point_(self,line,x1,y1,x2,y2):
         """
-        finds closest point of isopleth and axis (scale)
+        finds closest point(S) of isopleth and axis (scale)
         """
         x=line[0][0]
         y=line[0][1]
@@ -154,12 +155,38 @@ class Isopleth_Block(object):
                                                         x1,y1,x2,y2)
         return middle_x,middle_y
 
+    def _find_closest_other_points_(self,sections,x1,y1,x2,y2,x_found,y_found):
+        """
+        finds closest point(S) of isopleth and axis (scale)
+        x_found, y_found are found already before
+        """
+        f=1-1e-12 # factor to reduce double hits
+        interps=[]
+        for idx,(x1s,y1s,x2s,y2s) in enumerate(sections):
+            x_inter,y_inter=self._two_line_intersection_(x1s,y1s,x2s*f,y2s*f,x1,y1,x2,y2)
+            # check if instersection
+            if (min(x1s,x2s*f)<=x_inter<=max(x1s,x2*f)) and (min(y1s,y2s*f)<=y_inter<=max(y1s,y2s*f)):
+                if not x_found==x_inter and not y_found==y_inter:
+                    interps.append((x_inter,y_inter))
+        return interps
+
+
     def collinear(self,x1,y1,x2,y2,x3,y3):
         determinant=x1*(y2-y3)+x2*(y3-y1)+x3*(y1-y2)
         if abs(determinant)<1e-3:
             return True
         else:
             return False
+
+    def find_farthest_pair_extra(self,x1,y1,x2,y2,x3,y3):
+        """
+        finds farthest pair including extra points
+        """
+        xf1,yf1,xf2,yf2=self.find_farthest_pair(x1,y1,x2,y2,x3,y3)
+        for points in self.other_points:
+            for (x,y) in points:
+                xf1,yf1,xf2,yf2=self.find_farthest_pair(xf1,yf1,xf2,yf2,x,y)
+        return xf1,yf1,xf2,yf2
 
     def find_farthest_pair(self,x1,y1,x2,y2,x3,y3):
         """
@@ -181,7 +208,7 @@ class Isopleth_Block(object):
         draws the isopleth
         """
         for (x1,y1,x2,y2,x3,y3) in self.draw_coordinates:
-            xx1,yy1,xx2,yy2=self.find_farthest_pair(x1,y1,x2,y2,x3,y3)
+            xx1,yy1,xx2,yy2=self.find_farthest_pair_extra(x1,y1,x2,y2,x3,y3)
             #print xx1,yy1,xx2,yy2
             # check for collinearity
 #            if not self.collinear(x1, y1, x2, y2, x3, y3):
@@ -192,6 +219,9 @@ class Isopleth_Block(object):
             self._draw_circle_(canvas,x1,y1,0.05)
             self._draw_circle_(canvas,x2,y2,0.05)
             self._draw_circle_(canvas,x3,y3,0.05)
+        for points in self.other_points:
+            for (x,y) in points:
+                self._draw_circle_(canvas,x,y,0.05)
 
     def _draw_circle_(self,canvas,x,y,r):
         """
@@ -339,24 +369,30 @@ class Isopleth_Block_Type_1(Isopleth_Block):
         if not f1_known:
             line=self.atom_stack[0].line
             x0,y0=self._find_closest_point_(line,x1,y1,x2,y2)
+            other_points=self._find_closest_other_points_(self.atom_stack[0].sections,x1,y1,x2,y2,x0,y0)
             #solution[isopleth_values[0]]=(x0,y0)
             if not self.atom_stack[0].params['tag']=='none':
                 solution[self.atom_stack[0].params['tag']]=(x0,y0)
             isopleth_values[0]=(x0,y0)
+            self.other_points.append(other_points)
         if not f2_known:
             line=self.atom_stack[1].line
             x1,y1=self._find_closest_point_(line,x0,y0,x2,y2)
+            other_points=self._find_closest_other_points_(self.atom_stack[1].sections,x0,y0,x2,y2,x1,y1)
             #solution[isopleth_values[1]]=(x1,y1)
             if not self.atom_stack[1].params['tag']=='none':
                 solution[self.atom_stack[1].params['tag']]=(x1,y1)
             isopleth_values[1]=(x1,y1)
+            self.other_points.append(other_points)
         if not f3_known:
             line=self.atom_stack[2].line
             x2,y2=self._find_closest_point_(line,x0,y0,x1,y1)
+            other_points=self._find_closest_other_points_(self.atom_stack[2].sections,x0,y0,x1,y1,x2,y2)
             #solution[isopleth_values[2]]=(x2,y2)
             if not self.atom_stack[2].params['tag']=='none':
                 solution[self.atom_stack[2].params['tag']]=(x2,y2)
             isopleth_values[2]=(x2,y2)
+            self.other_points.append(other_points)
         return x0,y0,x1,y1,x2,y2
 
 class Isopleth_Block_Type_2(Isopleth_Block_Type_1):

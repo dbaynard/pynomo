@@ -2270,10 +2270,16 @@ class Nomo_Atom:
         calculates line and sections
         """
         self.line=[]
-        start=self.params['u_min']
-        stop=self.params['u_max']
-        f=self.give_x
-        g=self.give_y
+        if self.params['reference']==False:
+            start=self.params['u_min']
+            stop=self.params['u_max']
+            f=self.give_x
+            g=self.give_y
+        else:
+            start=self.u_min_ref
+            stop=self.u_max_ref
+            f=self.give_x_ref
+            g=self.give_y_ref
         if start>stop:
             start,stop=stop,start
         du=math.fabs(stop-start)*1e-12

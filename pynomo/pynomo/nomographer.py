@@ -47,7 +47,7 @@ class Nomographer:
                                      height=block_para['height'],
                                      proportion=block_para['proportion'])
                 wrapper.add_block(blocks[-1])
-                isopleths.add_isopleth_block(Isopleth_Block_Type_1(blocks[-1],block_para))
+                isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 2
             if block_para['block_type']=='type_2':
                 self._check_block_type_2_params_(block_para)
@@ -62,7 +62,7 @@ class Nomographer:
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'])
                 wrapper.add_block(blocks[-1])
-                isopleths.add_isopleth_block(Isopleth_Block_Type_2(blocks[-1],block_para))
+                isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 3
             if block_para['block_type']=='type_3':
                 self._check_block_type_3_params_(block_para)
@@ -77,6 +77,7 @@ class Nomographer:
                                      reference_titles=block_para['reference_titles'],
                                      reference_color=block_para['reference_color'])
                 wrapper.add_block(blocks[-1])
+                isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 4
             if block_para['block_type']=='type_4':
                 self._check_block_type_4_params_(block_para)
@@ -173,7 +174,7 @@ class Nomographer:
                 blocks[-1].set_block(width=block_para['width'],
                                      height=block_para['height'])
                 wrapper.add_block(blocks[-1])
-                isopleths.add_isopleth_block(Isopleth_Block_Type_10(blocks[-1],block_para))
+                isopleths.add_isopleth_block(blocks[-1],block_para)
         wrapper.align_blocks()
         wrapper.build_axes_wrapper() # build structure for transformations
         # do transformations

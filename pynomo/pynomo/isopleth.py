@@ -39,6 +39,9 @@ class Isopleth_Wrapper(object):
         if block_para['block_type']=='type_2':
             iso_block=Isopleth_Block_Type_2(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
+        if block_para['block_type']=='type_7':
+            iso_block=Isopleth_Block_Type_7(block.atom_stack,block_para)
+            self.isopleth_list.append(iso_block)
         if block_para['block_type']=='type_10':
             iso_block=Isopleth_Block_Type_10(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
@@ -82,7 +85,27 @@ class Isopleth_Wrapper(object):
             for idx,atom_stack in enumerate(center_atom_stack):
                 self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack,block_para_middles[idx]))
             self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack_stop,block_para_stop))
-
+        # type 4
+        if block_para['block_type']=='type_4':
+            atoms=block.atom_stack
+            atom_stack_12=[atoms[0],atoms[1],atoms[4]] # 4 = ref line
+            atom_stack_34=[atoms[2],atoms[3],atoms[4]]
+            # tag the reference line
+            atoms[4].params['tag']='ref_type4'+`self.ref_tag_number`
+            self.ref_tag_number=self.ref_tag_number+1
+            # make blocks
+            block_para_12=copy.deepcopy(block_para)
+            block_para_12['isopleth_values']=[]
+            for idx,isopleth_values in enumerate(block_para['isopleth_values']):
+                block_para_12['isopleth_values'].append([block_para['isopleth_values'][idx][0],\
+                                                            block_para['isopleth_values'][idx][1],'x'])
+            block_para_34=copy.deepcopy(block_para)
+            block_para_34['isopleth_values']=[]
+            for idx,isopleth_values in enumerate(block_para['isopleth_values']):
+                block_para_34['isopleth_values'].append([block_para['isopleth_values'][idx][2],\
+                                                            block_para['isopleth_values'][idx][3],'x'])
+            self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack_12,block_para_12))
+            self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack_34,block_para_34))
     def draw(self,canvas):
         """
         solves isopleths and draws them
@@ -133,7 +156,7 @@ class Isopleth_Block(object):
         self.isopleth_values=params['isopleth_values']
         self.atom_stack=atom_stack
         self.draw_coordinates=[] # coordinates [[x1,y1,x2,y2,x3,y3],...] to be drawn
-        self.other_points=[] # list of additional solution coordinates
+        self.other_points=[] # list of list of additional solution coordinates
 
     def calc_atoms(self):
         """
@@ -245,12 +268,12 @@ class Isopleth_Block(object):
         else:
             return False
 
-    def find_farthest_pair_extra(self,x1,y1,x2,y2,x3,y3):
+    def find_farthest_pair_extra(self,x1,y1,x2,y2,x3,y3,idx):
         """
         finds farthest pair including extra points
         """
         xf1,yf1,xf2,yf2=self.find_farthest_pair(x1,y1,x2,y2,x3,y3)
-        for points in self.other_points:
+        for points in self.other_points[idx]:
             for (x,y) in points:
                 xf1,yf1,xf2,yf2=self.find_farthest_pair(xf1,yf1,xf2,yf2,x,y)
         return xf1,yf1,xf2,yf2
@@ -274,8 +297,8 @@ class Isopleth_Block(object):
         """
         draws the isopleth
         """
-        for (x1,y1,x2,y2,x3,y3) in self.draw_coordinates:
-            xx1,yy1,xx2,yy2=self.find_farthest_pair_extra(x1,y1,x2,y2,x3,y3)
+        for idx,(x1,y1,x2,y2,x3,y3) in enumerate(self.draw_coordinates):
+            xx1,yy1,xx2,yy2=self.find_farthest_pair_extra(x1,y1,x2,y2,x3,y3,idx)
             #print xx1,yy1,xx2,yy2
             # check for collinearity
 #            if not self.collinear(x1, y1, x2, y2, x3, y3):
@@ -286,9 +309,10 @@ class Isopleth_Block(object):
             self._draw_circle_(canvas,x1,y1,0.05)
             self._draw_circle_(canvas,x2,y2,0.05)
             self._draw_circle_(canvas,x3,y3,0.05)
-        for points in self.other_points:
-            for (x,y) in points:
-                self._draw_circle_(canvas,x,y,0.05)
+        for line_points in self.other_points:
+            for points in line_points:
+                for (x,y) in points:
+                    self._draw_circle_(canvas,x,y,0.05)
 
     def _draw_circle_(self,canvas,x,y,r):
         """
@@ -390,17 +414,20 @@ class Isopleth_Block_Type_1(Isopleth_Block):
                 self.draw_coordinates.append([]) # dummy expansion of matrix
             if len(solutions)<(idx+1):
                 solutions.append({})
+            if len(self.other_points)<(idx+1):
+                self.other_points.append([])
             if self._check_if_enough_params_(idx):
                 x0,y0,x1,y1,x2,y2=self.solve_single(solutions[idx],
-                                                    isopleth_values_single)
+                                                    isopleth_values_single,idx)
                 self.draw_coordinates[idx]=[x0,y0,x1,y1,x2,y2]
 
 
-    def solve_single(self,solution,isopleth_values):
+    def solve_single(self,solution,isopleth_values,idx):
         """
         solves single isopleth
         solution = dict with values of found solutions
         isopleth_values = list of values and coordinates
+        idx = # of isopleth line
         """
         atom_stack=self.atom_stack
         f1_known=False
@@ -441,7 +468,7 @@ class Isopleth_Block_Type_1(Isopleth_Block):
             if not self.atom_stack[0].params['tag']=='none':
                 solution[self.atom_stack[0].params['tag']]=(x0,y0)
             isopleth_values[0]=(x0,y0)
-            self.other_points.append(other_points)
+            self.other_points[idx].append(other_points)
         if not f2_known:
             #line=self.atom_stack[1].line
             x1,y1=self._find_closest_point_(self.atom_stack[1].sections,x0,y0,x2,y2)
@@ -450,7 +477,7 @@ class Isopleth_Block_Type_1(Isopleth_Block):
             if not self.atom_stack[1].params['tag']=='none':
                 solution[self.atom_stack[1].params['tag']]=(x1,y1)
             isopleth_values[1]=(x1,y1)
-            self.other_points.append(other_points)
+            self.other_points[idx].append(other_points)
         if not f3_known:
             #line=self.atom_stack[2].line
             x2,y2=self._find_closest_point_(self.atom_stack[2].sections,x0,y0,x1,y1)
@@ -459,7 +486,7 @@ class Isopleth_Block_Type_1(Isopleth_Block):
             if not self.atom_stack[2].params['tag']=='none':
                 solution[self.atom_stack[2].params['tag']]=(x2,y2)
             isopleth_values[2]=(x2,y2)
-            self.other_points.append(other_points)
+            self.other_points[idx].append(other_points)
         return x0,y0,x1,y1,x2,y2
 
 class Isopleth_Block_Type_2(Isopleth_Block_Type_1):
@@ -471,6 +498,14 @@ class Isopleth_Block_Type_2(Isopleth_Block_Type_1):
     def __init__(self,block,params):
         super(Isopleth_Block_Type_2,self).__init__(block,params)
 
+class Isopleth_Block_Type_7(Isopleth_Block_Type_1):
+    """
+    type 1/F1+1/F2=1/F3 isopleth
+    atom stack is the stack of scales
+    solution_dict is a dictionary of found solutions
+    """
+    def __init__(self,block,params):
+        super(Isopleth_Block_Type_7,self).__init__(block,params)
 
 
 class Isopleth_Block_Type_10(Isopleth_Block_Type_1):

@@ -97,6 +97,7 @@ class Nomographer:
                                      padding=block_para['padding'],
                                      reference_color=block_para['reference_color'])
                 wrapper.add_block(blocks[-1])
+                isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 5
             if block_para['block_type']=='type_5':
                 self._check_block_type_5_params_(block_para)
@@ -135,6 +136,7 @@ class Nomographer:
                                      angle_u=block_para['angle_u'],
                                      angle_v=block_para['angle_v'])
                 wrapper.add_block(blocks[-1])
+                isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 8
             if block_para['block_type']=='type_8':
                 self._check_block_type_8_params_(block_para)

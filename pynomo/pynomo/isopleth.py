@@ -19,6 +19,7 @@
 import math
 from pyx import *
 import copy
+from scipy.optimize import *
 
 class Isopleth_Wrapper(object):
     """
@@ -33,18 +34,23 @@ class Isopleth_Wrapper(object):
         """
         Add block of type derived from Isopleth_Block
         """
+        # type 1
         if block_para['block_type']=='type_1':
             iso_block=Isopleth_Block_Type_1(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
+        # type 2
         if block_para['block_type']=='type_2':
             iso_block=Isopleth_Block_Type_2(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
+        # type 7
         if block_para['block_type']=='type_7':
             iso_block=Isopleth_Block_Type_7(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
+        # type 10
         if block_para['block_type']=='type_10':
             iso_block=Isopleth_Block_Type_10(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
+        # type 3
         if block_para['block_type']=='type_3':
             # handle type 3 as multiple type 1
             N=block.N
@@ -85,6 +91,7 @@ class Isopleth_Wrapper(object):
             for idx,atom_stack in enumerate(center_atom_stack):
                 self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack,block_para_middles[idx]))
             self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack_stop,block_para_stop))
+
         # type 4
         if block_para['block_type']=='type_4':
             atoms=block.atom_stack
@@ -106,6 +113,12 @@ class Isopleth_Wrapper(object):
                                                             block_para['isopleth_values'][idx][3],'x'])
             self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack_12,block_para_12))
             self.isopleth_list.append(Isopleth_Block_Type_1(atom_stack_34,block_para_34))
+
+        # type 5 (contour)
+        if block_para['block_type']=='type_5':
+            iso_block=Isopleth_Block_Type_5(block.atom_stack,block_para,block)
+            self.isopleth_list.append(iso_block)
+
     def draw(self,canvas):
         """
         solves isopleths and draws them
@@ -387,8 +400,8 @@ class Isopleth_Block_Type_1(Isopleth_Block):
     atom stack is the stack of scales
     solution_dict is a dictionary of found solutions
     """
-    def __init__(self,block,params):
-        super(Isopleth_Block_Type_1,self).__init__(block,params)
+    def __init__(self,atom_stack,params):
+        super(Isopleth_Block_Type_1,self).__init__(atom_stack,params)
 
     def _check_if_enough_params_(self,idx):
         """
@@ -495,8 +508,307 @@ class Isopleth_Block_Type_2(Isopleth_Block_Type_1):
     atom stack is the stack of scales
     solution_dict is a dictionary of found solutions
     """
-    def __init__(self,block,params):
-        super(Isopleth_Block_Type_2,self).__init__(block,params)
+    def __init__(self,atom_stack,params):
+        super(Isopleth_Block_Type_2,self).__init__(atom_stack,params)
+
+class Isopleth_Block_Type_5(Isopleth_Block):
+    """
+    type 5 = contour, nomo_block = block of class Nomo_Block_Type_5
+    """
+    def __init__(self,atom_stack,params,nomo_block):
+        super(Isopleth_Block_Type_5,self).__init__(atom_stack,params)
+        self.nomo_block=nomo_block
+
+    def _check_if_enough_params_(self,idx):
+        """
+        checks if enough numbers given to find solution
+        """
+        numbers=self.isopleth_values[idx]
+        given=0
+        for number in numbers:
+            if isinstance(number,(int,float,tuple)):
+                         given=given+1
+        if given<2:
+            return False # isopleth not solvable (right now)
+        else:
+            return True # isopleth solvable
+
+    def draw(self,canvas):
+        """
+        draws the isopleth
+        """
+        for idx,(x1,y1,x2,y2,x3,y3) in enumerate(self.draw_coordinates):
+            canvas.stroke(path.line(x1,y1,x2,y2),[color.cmyk.Blue,
+                                                    style.linewidth.thick,
+                                                    style.linestyle.dashed])
+            canvas.stroke(path.line(x2,y2,x3,y3),[color.cmyk.Blue,
+                                                    style.linewidth.thick,
+                                                    style.linestyle.dashed])
+            self._draw_circle_(canvas,x1,y1,0.05)
+            self._draw_circle_(canvas,x2,y2,0.05)
+            self._draw_circle_(canvas,x3,y3,0.05)
+        for line_points in self.other_points:
+            for points in line_points:
+                for (x,y) in points:
+                    self._draw_circle_(canvas,x,y,0.05)
+
+    def solve(self,solutions):
+        """
+        solves coordinates
+        solutions is list of dicts of found solutions
+        """
+        for idx,isopleth_values_single in enumerate(self.isopleth_values):
+            if len(self.draw_coordinates)<(idx+1):
+                self.draw_coordinates.append([]) # dummy expansion of matrix
+            if len(solutions)<(idx+1):
+                solutions.append({})
+            if len(self.other_points)<(idx+1):
+                self.other_points.append([])
+            if self._check_if_enough_params_(idx):
+                x_u,y_u,x_v,y_v,x_wd,y_wd=self.solve_single(solutions[idx],
+                                                    isopleth_values_single,idx)
+                self.draw_coordinates[idx]=[x_u,y_u,x_v,y_v,x_wd,y_wd]
+
+    def solve_single(self,solution,isopleth_values,idx):
+        """
+        solves the thing
+        """
+        atom_stack=self.atom_stack
+        u_known=False
+        v_known=False
+        wd_known=False
+        # initial values that are replaced (for debugging)
+        x_u=-10
+        y_u=-10
+        x_wd=-10
+        y_wd=-10
+        x_v=-10
+        x_v=-10
+        # u known
+        if isinstance(isopleth_values[0],(int,float)):
+            x_u,x_u_ini,y_u_ini=self.x_u(isopleth_values[0])
+            y_u,x_u_ini,y_u_ini=self.y_u(isopleth_values[0])
+            u_known=True
+        # u known as tuple
+        if isinstance(isopleth_values[0],tuple):
+            x_u,x_u_ini,y_u_ini=isopleth_values[0][0]
+            y_u,x_u_ini,y_u_ini=isopleth_values[0][1]
+            u_known=True
+        # wd known
+        if isinstance(isopleth_values[2],(int,float)):
+            x_wd,x_wd_ini,y_wd_ini=self.x_wd(isopleth_values[2])
+            y_wd,x_wd_ini,y_wd_ini=self.y_wd(isopleth_values[2])
+            wd_known=True
+        # wd known as tuple
+        if isinstance(isopleth_values[2],tuple):
+            wd_value=self.wd_x_y_interp(isopleth_values[2][0],isopleth_values[2][1])
+            x_wd,x_wd_ini,y_wd_ini=self.x_wd(wd_value)
+            y_wd,x_wd_ini,y_wd_ini=self.y_wd(wd_value)
+            wd_known=True
+        # v known as tuple (possible?)
+        if isinstance(isopleth_values[1],tuple):
+            x_v,x_v_ini,y_v_ini=isopleth_values[1][0]
+            y_v,x_v_ini,y_v_ini=isopleth_values[1][1]
+            v_known=True
+        # v and wd known as values
+        if isinstance(isopleth_values[1],(int,float)) and isinstance(isopleth_values[2],(int,float)):
+            x_v,x_v_ini,y_v_ini=self.x_v_wd(isopleth_values[1],isopleth_values[2])
+            y_v,x_v_ini,y_v_ini=self.y_v_wd(isopleth_values[1],isopleth_values[2])
+            v_known=True
+        # v known as value and wd known as tuple (x,y)
+        if isinstance(isopleth_values[1],(int,float)) and isinstance(isopleth_values[2],(tuple)):
+            x_v,x_v_ini,y_v_ini=self.x_v_wd_tuple(isopleth_values[1],isopleth_values[2])
+            y_v,x_v_ini,y_v_ini=self.y_v_wd_tuple(isopleth_values[1],isopleth_values[2])
+            v_known=True
+        # v and u known as values
+        if isinstance(isopleth_values[1],(int,float)) and isinstance(isopleth_values[0],(int,float)):
+            x_v,y_v,x_v_ini,y_v_ini=self.xy_v_u(isopleth_values[1],isopleth_values[0])
+            v_known=True
+        # v known as value and u known as tuple (x,y)
+        if isinstance(isopleth_values[1],(int,float)) and isinstance(isopleth_values[0],(tuple)):
+            x_v,y_v,x_v_ini,y_v_ini=self.xy_v_u_tuple(isopleth_values[1],isopleth_values[0])
+            v_known=True
+        # now, all needed coordinates known
+        if not u_known and v_known and wd_known:
+            x_u_ini=self.nomo_block.grid_box.params_u['F'](0)
+            y_u_ini=y_v_ini
+            x_u=self.nomo_block._give_trafo_x_(x_u_ini, y_u_ini)
+            y_u=self.nomo_block._give_trafo_y_(x_u_ini, y_u_ini)
+        if not v_known and u_known and wd_known:
+            x_v_ini=x_wd_ini
+            y_v_ini=y_u_ini
+            x_v=self.nomo_block._give_trafo_x_(x_v_ini, y_v_ini)
+            y_v=self.nomo_block._give_trafo_y_(x_v_ini, y_v_ini)
+        if not wd_known and u_known and v_known:
+            x_wd_ini=x_v_ini
+            y_wd_ini=self.nomo_block.grid_box.params_wd['G'](0)
+            x_wd=self.nomo_block._give_trafo_x_(x_wd_ini, y_wd_ini)
+            y_wd=self.nomo_block._give_trafo_y_(x_wd_ini, y_wd_ini)
+        return x_u,y_u,x_v,y_v,x_wd,y_wd
+
+    def x_u(self, u):
+        """
+        give x(u)
+        """
+        x0=self.nomo_block.grid_box.params_u['F'](u)
+        y0=self.nomo_block.grid_box.params_u['G'](u)
+        return self.nomo_block._give_trafo_x_(x0, y0),x0,y0
+
+    def y_u(self, u):
+        """
+        give y(u)
+        """
+        x0=self.nomo_block.grid_box.params_u['F'](u)
+        y0=self.nomo_block.grid_box.params_u['G'](u)
+        return self.nomo_block._give_trafo_y_(x0, y0),x0,y0
+
+    def x_wd(self, wd):
+        """
+        give x(wd)
+        """
+        x0=self.nomo_block.grid_box.params_wd['F'](wd)
+        y0=self.nomo_block.grid_box.params_wd['G'](wd)
+        return self.nomo_block._give_trafo_x_(x0, y0),x0,y0
+
+    def y_wd(self, wd):
+        """
+        give y(wd)
+        """
+        x0=self.nomo_block.grid_box.params_wd['F'](wd)
+        y0=self.nomo_block.grid_box.params_wd['G'](wd)
+        return self.nomo_block._give_trafo_y_(x0, y0),x0,y0
+
+    def xy_v_u(self, v,u):
+        """
+        give x(v,u), y(v,u)
+        """
+        x_start=self.nomo_block.grid_box.x_left
+        x_stop=self.nomo_block.grid_box.x_right
+        x_init=(x_start+x_stop)/2.0
+        v_func=self.nomo_block.grid_box.v_func
+        u_func=self.nomo_block.grid_box.u_func
+        u_value=u_func(u) # = y
+        func_opt=lambda x:(v_func(x,v)-u_value)**2 # func to minimize
+        # find x point where u meets v
+        x_opt=fmin(func_opt,[x_init],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        x_transformed=self.nomo_block._give_trafo_x_(x_opt, u_value)
+        y_transformed=self.nomo_block._give_trafo_y_(x_opt, u_value)
+        return x_transformed, y_transformed,x_opt,u_value
+
+    def xy_v_u_tuple(self, v,u):
+        """
+        give x(v,u), y(v,u) where u is tuple (x,y)
+        """
+        return self.xy_v_u(v,self.u_x_y_interp(u[0],u[1]))
+
+    def x_v_wd(self, v,wd):
+        """
+        give x(v,wd)
+        """
+        x0=self.nomo_block.grid_box.params_wd['F'](wd)
+        y0=self.nomo_block.grid_box.v_func(x0,v)
+        return self.nomo_block._give_trafo_x_(x0, y0),x0,y0
+
+    def y_v_wd(self, v,wd):
+        """
+        give y(v,wd)
+        """
+        x0=self.nomo_block.grid_box.params_wd['F'](wd)
+        y0=self.nomo_block.grid_box.v_func(x0,v)
+        return self.nomo_block._give_trafo_y_(x0, y0),x0,y0
+
+    def x_v_wd_tuple(self,v,wd):
+        """
+        give x(v,wd) where wd is tuple of final coordinates
+        """
+        return self.x_v_wd(v,self.wd_x_y_interp(wd[0],wd[1]))
+
+    def y_v_wd_tuple(self,v,wd):
+        """
+        give y(v,wd) where wd is tuple of final coordinates
+        """
+        return self.y_v_wd(v,self.wd_x_y_interp(wd[0],wd[1]))
+
+    def wd_x_y_interp(self,x,y):
+        """
+        given a point in wd-axis, corresponding value is interpolated
+        """
+        f=1.0
+        interps=[]
+        min_distance=None
+        for idx,(x1s,y1s,x2s,y2s) in enumerate(self.nomo_block.atom_wd.sections):
+            distance_1=self._calc_distance_points_(x1s,y1s,x,y)
+            distance_2=self._calc_distance_points_(x2s,y2s,x,y)
+            distance=min(distance_1,distance_2)
+            if min_distance==None:
+                min_distance=distance
+                closest_value=self.nomo_block.atom_wd.section_values[idx][0]
+            else:
+                if distance<min_distance:
+                    min_distance=distance
+                    value_0=self.nomo_block.atom_wd.section_values[idx][0]
+                    value_1=self.nomo_block.atom_wd.section_values[idx][1]
+                    closest_value=self.interpolate(x1s,y1s,x2s,y2s,x,y,value_0,value_1)
+                    closest_value_0=value_0
+                    closest_value_1=value_1
+        print closest_value,closest_value_0,closest_value_1
+        return closest_value
+
+    def u_x_y_interp(self,x,y):
+        """
+        given a point in u-axis, corresponding value is interpolated
+        """
+        f=1.0
+        interps=[]
+        min_distance=None
+        for idx,(x1s,y1s,x2s,y2s) in enumerate(self.nomo_block.atom_u.sections):
+            distance_1=self._calc_distance_points_(x1s,y1s,x,y)
+            distance_2=self._calc_distance_points_(x2s,y2s,x,y)
+            distance=min(distance_1,distance_2)
+            if min_distance==None:
+                min_distance=distance
+                closest_value=self.nomo_block.atom_u.section_values[idx][0]
+            else:
+                if distance<min_distance:
+                    min_distance=distance
+                    value_0=self.nomo_block.atom_u.section_values[idx][0]
+                    value_1=self.nomo_block.atom_u.section_values[idx][1]
+                    closest_value=self.interpolate(x1s,y1s,x2s,y2s,x,y,value_0,value_1)
+                    closest_value_0=value_0
+                    closest_value_1=value_1
+        print closest_value,closest_value_0,closest_value_1
+        return closest_value
+
+
+    def interpolate_old(self,x1,y1,x2,y2,x3,y3,value_1,value_2):
+        """
+        value 1 = x1,y1
+        value 2 = x2,y2
+        point = x3,y3
+        Interpolates linearly what is the value of point in line (x1,y1)-(x2,y2)
+        """
+        diff_x=x1-x2
+        diff_y=y1-y2
+        # dummy points to make line to calculate intersections
+        x4=x3-diff_y
+        y4=y3+diff_x
+        xp,yp=self._two_line_intersection_(x1, y1, x2, y2, x3, y3, x4, y4)
+        distance_1=self._calc_distance_points_(x1,y1,xp,yp)
+        distance_2=self._calc_distance_points_(x2,y2,xp,yp)
+        value=value_1+(value_2-value_1)*distance_1/(distance_1+distance_2)
+        return value
+
+    def interpolate(self,x1,y1,x2,y2,x3,y3,value_1,value_2):
+        """
+        value 1 = x1,y1
+        value 2 = x2,y2
+        point = x3,y3
+        Interpolates linearly what is the value of point in line (x1,y1)-(x2,y2)
+        """
+        distance_1=self._calc_distance_points_(x1,y1,x3,y3)
+        distance_2=self._calc_distance_points_(x2,y2,x3,y3)
+        value=value_1+(value_2-value_1)*distance_1/(distance_1+distance_2)
+        return value
 
 class Isopleth_Block_Type_7(Isopleth_Block_Type_1):
     """
@@ -504,8 +816,8 @@ class Isopleth_Block_Type_7(Isopleth_Block_Type_1):
     atom stack is the stack of scales
     solution_dict is a dictionary of found solutions
     """
-    def __init__(self,block,params):
-        super(Isopleth_Block_Type_7,self).__init__(block,params)
+    def __init__(self,atom_stack,params):
+        super(Isopleth_Block_Type_7,self).__init__(atom_stack,params)
 
 
 class Isopleth_Block_Type_10(Isopleth_Block_Type_1):
@@ -514,5 +826,5 @@ class Isopleth_Block_Type_10(Isopleth_Block_Type_1):
     atom stack is the stack of scales
     solution_dict is a dictionary of found solutions
     """
-    def __init__(self,block,params):
-        super(Isopleth_Block_Type_10,self).__init__(block,params)
+    def __init__(self,atom_stack,params):
+        super(Isopleth_Block_Type_10,self).__init__(atom_stack,params)

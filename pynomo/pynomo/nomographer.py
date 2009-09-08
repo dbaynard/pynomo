@@ -106,6 +106,7 @@ class Nomographer:
                 blocks[-1].define_block(block_para)
                 blocks[-1].set_block()
                 wrapper.add_block(blocks[-1])
+                isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 6
             if block_para['block_type']=='type_6':
                 self._check_block_type_6_params_(block_para)

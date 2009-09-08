@@ -2270,6 +2270,7 @@ class Nomo_Atom:
         calculates line and sections
         """
         self.line=[]
+        self.value_list=[] # list of values corresponding to points
         if self.params['reference']==False:
             start=self.params['u_min']
             stop=self.params['u_max']
@@ -2298,9 +2299,11 @@ class Nomo_Atom:
         u=start
         laskuri=1
         self.line.append((f(start), g(start)))
+        self.value_list.append(start)
         while True:
             if u<stop:
                 self.line.append((f(u), g(u)))
+                self.value_list.append(u)
                 dx=(f(u+du)-f(u))
                 dy=(g(u+du)-g(u))
                 dl=math.sqrt(dx**2+dy**2)
@@ -2315,15 +2318,20 @@ class Nomo_Atom:
 
             else:
                 self.line.append((f(stop), g(stop)))
+                self.value_list.append(stop)
                 break
         # calculate sections
         sections=[]
+        section_values=[]
         for index,(x,y) in enumerate(self.line):
             if index>1:
                 sections.append((x,y,prev_x,prev_y))
+                section_values.append([self.value_list[index],
+                                       self.value_list[index-1]])
             prev_x=x
             prev_y=y
         self.sections=sections
+        self.section_values=section_values
 
     def set_trafo(self,alpha1=1.0,beta1=0.0,gamma1=0.0,
                            alpha2=0.0,beta2=1.0,gamma2=0.0,

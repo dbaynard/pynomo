@@ -140,7 +140,7 @@ class Nomo_Grid_Box(object):
         self._draw_debug_ini_()
         # build scaled versions
         self._scale_and_mirror_()
-        self._draw_debug_ini_('after.pdf')
+        #self._draw_debug_ini_('after.pdf')
 
         self.give_u_data()
         self.give_v_data()

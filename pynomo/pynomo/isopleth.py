@@ -591,8 +591,9 @@ class Isopleth_Block_Type_5(Isopleth_Block):
             u_known=True
         # u known as tuple
         if isinstance(isopleth_values[0],tuple):
-            x_u,x_u_ini,y_u_ini=isopleth_values[0][0]
-            y_u,x_u_ini,y_u_ini=isopleth_values[0][1]
+            u_value=self.u_x_y_interp(isopleth_values[0][0],isopleth_values[0][1])
+            x_u,x_u_ini,y_u_ini=self.x_u(u_value)
+            y_u,x_u_ini,y_u_ini=self.y_u(u_value)
             u_known=True
         # wd known
         if isinstance(isopleth_values[2],(int,float)):
@@ -634,16 +635,22 @@ class Isopleth_Block_Type_5(Isopleth_Block):
             y_u_ini=y_v_ini
             x_u=self.nomo_block._give_trafo_x_(x_u_ini, y_u_ini)
             y_u=self.nomo_block._give_trafo_y_(x_u_ini, y_u_ini)
+            if not self.nomo_block.grid_box.params_u['tag']=='none':
+                solution[self.nomo_block.grid_box.params_u['tag']]=(x_u,y_u)
         if not v_known and u_known and wd_known:
             x_v_ini=x_wd_ini
             y_v_ini=y_u_ini
             x_v=self.nomo_block._give_trafo_x_(x_v_ini, y_v_ini)
             y_v=self.nomo_block._give_trafo_y_(x_v_ini, y_v_ini)
+            if not self.nomo_block.grid_box.params_v['tag']=='none':
+                solution[self.nomo_block.grid_box.params_v['tag']]=(x_v,y_v)
         if not wd_known and u_known and v_known:
             x_wd_ini=x_v_ini
             y_wd_ini=self.nomo_block.grid_box.params_wd['G'](0)
             x_wd=self.nomo_block._give_trafo_x_(x_wd_ini, y_wd_ini)
             y_wd=self.nomo_block._give_trafo_y_(x_wd_ini, y_wd_ini)
+            if not self.nomo_block.grid_box.params_wd['tag']=='none':
+                solution[self.nomo_block.grid_box.params_wd['tag']]=(x_wd,y_wd)
         return x_u,y_u,x_v,y_v,x_wd,y_wd
 
     def x_u(self, u):
@@ -690,7 +697,7 @@ class Isopleth_Block_Type_5(Isopleth_Block):
         u_value=u_func(u) # = y
         func_opt=lambda x:(v_func(x,v)-u_value)**2 # func to minimize
         # find x point where u meets v
-        x_opt=fmin(func_opt,[x_init],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        x_opt=fmin(func_opt,[x_init],disp=0,ftol=1e-8,xtol=1e-8)[0]
         x_transformed=self.nomo_block._give_trafo_x_(x_opt, u_value)
         y_transformed=self.nomo_block._give_trafo_y_(x_opt, u_value)
         return x_transformed, y_transformed,x_opt,u_value

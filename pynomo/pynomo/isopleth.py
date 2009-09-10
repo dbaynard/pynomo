@@ -20,6 +20,7 @@ import math
 from pyx import *
 import copy
 from scipy.optimize import *
+from scipy import arange
 
 class Isopleth_Wrapper(object):
     """
@@ -691,13 +692,35 @@ class Isopleth_Block_Type_5(Isopleth_Block):
         """
         x_start=self.nomo_block.grid_box.x_left
         x_stop=self.nomo_block.grid_box.x_right
-        x_init=(x_start+x_stop)/2.0
+        if x_start>x_stop: # should no be
+            x_start,x_stop=x_stop,x_start
+        #x_init=(x_start+x_stop)/2.0
         v_func=self.nomo_block.grid_box.v_func
         u_func=self.nomo_block.grid_box.u_func
         u_value=u_func(u) # = y
         func_opt=lambda x:(v_func(x,v)-u_value)**2 # func to minimize
-        # find x point where u meets v
-        x_opt=fmin(func_opt,[x_init],disp=0,ftol=1e-8,xtol=1e-8)[0]
+        # let's try to find good starting point for optimization
+        x_range=arange(x_start,x_stop,(x_stop-x_start)/30.0)
+#        print "x_range:"
+#        print x_range
+        # use complex numbers to filter results with complex part
+        values=func_opt(x_range.astype(complex))
+        values_list_complex=values.tolist()
+        values_list=[]
+        for value in values_list_complex:
+            if value.imag==0:
+                values_list.append(value.real)
+            else:
+                values_list.append(1e12) # large number
+#        print "values_list:"
+#        print values_list
+        min_x_idx=values_list.index(min(values_list))
+        x_init=x_range[min_x_idx]
+#        print "x_start %g"%x_start
+#        print "x_stop %g"%x_stop
+#        print "x_init %g"%x_init
+        # find x point where u meets v = optimization
+        x_opt=fmin(func_opt,[x_init],disp=0,maxiter=1e5,maxfun=1e5,ftol=1e-8,xtol=1e-8)[0]
         x_transformed=self.nomo_block._give_trafo_x_(x_opt, u_value)
         y_transformed=self.nomo_block._give_trafo_y_(x_opt, u_value)
         return x_transformed, y_transformed,x_opt,u_value
@@ -758,7 +781,7 @@ class Isopleth_Block_Type_5(Isopleth_Block):
                     closest_value=self.interpolate(x1s,y1s,x2s,y2s,x,y,value_0,value_1)
                     closest_value_0=value_0
                     closest_value_1=value_1
-        print closest_value,closest_value_0,closest_value_1
+        #print closest_value,closest_value_0,closest_value_1
         return closest_value
 
     def u_x_y_interp(self,x,y):

@@ -51,6 +51,8 @@ class Nomo_Grid:
                              'circles':False, # if marker circles
                              'text_prefix_u':'', # for example r'$\alpha$='
                              'text_prefix_v':'', # for example r'$\beta$='
+                             'text_format_u':"$%4.4g$",
+                             'text_format_v':"$%4.4g$",
                              }
         self.grid_data=data_default_values
         self.grid_data.update(data)
@@ -73,7 +75,7 @@ class Nomo_Grid:
             if not self.grid_data.has_key('v_texts'):
                 #print self.grid_data['text_prefix_v']
                 self._draw_line_(f_here,g_here,start,stop,
-                                 r"%s%2.2f"%(self.grid_data['text_prefix_v'],v),line_color,
+                                 r"%s%s"%(self.grid_data['text_prefix_v'],self.grid_data['text_format_v'])%v,line_color,
                                  start_texts,stop_texts,self.grid_data['v_text_color'])
             else:
                 self._draw_line_(f_here,g_here,start,stop,
@@ -95,7 +97,7 @@ class Nomo_Grid:
             f_here,g_here=self._make_v_funcs_(u)
             if not self.grid_data.has_key('u_texts'):
                 self._draw_line_(f_here,g_here,start,stop,
-                                  r"%s%2.2f"%(self.grid_data['text_prefix_u'],u),line_color,
+                                  r"%s%s"%(self.grid_data['text_prefix_u'],self.grid_data['text_format_u'])%u,line_color,
                                  start_texts,stop_texts,self.grid_data['u_text_color'])
             else:
                 self._draw_line_(f_here,g_here,start,stop,

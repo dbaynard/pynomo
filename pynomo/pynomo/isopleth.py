@@ -47,6 +47,14 @@ class Isopleth_Wrapper(object):
         if block_para['block_type']=='type_7':
             iso_block=Isopleth_Block_Type_7(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
+        # type 8
+        if block_para['block_type']=='type_8':
+            iso_block=Isopleth_Block_Type_8(block.atom_stack,block_para)
+            self.isopleth_list.append(iso_block)
+        # type 9
+        if block_para['block_type']=='type_9':
+            iso_block=Isopleth_Block_Type_9(block.atom_stack,block_para)
+            self.isopleth_list.append(iso_block)
         # type 10
         if block_para['block_type']=='type_10':
             iso_block=Isopleth_Block_Type_10(block.atom_stack,block_para)
@@ -248,12 +256,13 @@ class Isopleth_Block(object):
         """
         finds closest point(S) of isopleth and axis (scale)
         """
-        f=1.0 # factor to reduce double hits
+        f1=1.0-1e-12
+        f2=1.0+1e-12
         interps=[]
         for idx,(x1s,y1s,x2s,y2s) in enumerate(sections):
-            x_inter,y_inter=self._two_line_intersection_(x1s,y1s,x2s*f,y2s*f,x1,y1,x2,y2)
+            x_inter,y_inter=self._two_line_intersection_(x1s,y1s,x2s,y2s,x1,y1,x2,y2)
             # check if instersection
-            if (min(x1s,x2s*f)<=x_inter<=max(x1s,x2s*f)) and (min(y1s,y2s*f)<=y_inter<=max(y1s,y2s*f)):
+            if (f1*min(x1s,x2s)<=x_inter<=f2*max(x1s,x2s)) and (f1*min(y1s,y2s)<=y_inter<=f2*max(y1s,y2s)):
                 interps.append((x_inter,y_inter))
         if len(interps)<1:
             interps.append((-10,-10)) # dummy point
@@ -411,7 +420,7 @@ class Isopleth_Block_Type_1(Isopleth_Block):
         numbers=self.isopleth_values[idx]
         given=0
         for number in numbers:
-            if isinstance(number,(int,float,tuple)):
+            if isinstance(number,(int,float,tuple,list)):
                          given=given+1
         if given<2:
             return False # isopleth not solvable (right now)
@@ -456,6 +465,10 @@ class Isopleth_Block_Type_1(Isopleth_Block):
             x0=isopleth_values[0][0]
             y0=isopleth_values[0][1]
             f1_known=True
+        if isinstance(isopleth_values[0],list): #= this is grid
+            x0=atom_stack[0].give_x_grid(isopleth_values[0][0],isopleth_values[0][1])
+            y0=atom_stack[0].give_y_grid(isopleth_values[0][0],isopleth_values[0][1])
+            f1_known=True
         # f2 known
         if isinstance(isopleth_values[1],(int,float)):
             x1=atom_stack[1].give_x(isopleth_values[1])
@@ -465,6 +478,10 @@ class Isopleth_Block_Type_1(Isopleth_Block):
             x1=isopleth_values[1][0]
             y1=isopleth_values[1][1]
             f2_known=True
+        if isinstance(isopleth_values[1],list): #= this is grid
+            x1=atom_stack[1].give_x_grid(isopleth_values[1][0],isopleth_values[1][1])
+            y1=atom_stack[1].give_y_grid(isopleth_values[1][0],isopleth_values[1][1])
+            f2_known=True
         # f3 known
         if isinstance(isopleth_values[2],(int,float)):
             x2=atom_stack[2].give_x(isopleth_values[2])
@@ -473,6 +490,10 @@ class Isopleth_Block_Type_1(Isopleth_Block):
         if isinstance(isopleth_values[2],tuple):
             x2=isopleth_values[2][0]
             y2=isopleth_values[2][1]
+            f3_known=True
+        if isinstance(isopleth_values[2],list): #= this is grid
+            x2=atom_stack[2].give_x_grid(isopleth_values[2][0],isopleth_values[2][1])
+            y2=atom_stack[2].give_y_grid(isopleth_values[2][0],isopleth_values[2][1])
             f3_known=True
         if not f1_known:
             #line=self.atom_stack[0].line
@@ -849,6 +870,92 @@ class Isopleth_Block_Type_7(Isopleth_Block_Type_1):
     def __init__(self,atom_stack,params):
         super(Isopleth_Block_Type_7,self).__init__(atom_stack,params)
 
+class Isopleth_Block_Type_8(Isopleth_Block):
+    """
+    type single
+    atom stack is the stack of scales
+    solution_dict is a dictionary of found solutions
+    """
+    def __init__(self,atom_stack,params):
+        super(Isopleth_Block_Type_8,self).__init__(atom_stack,params)
+
+    def _check_if_enough_params_(self,idx):
+        """
+        checks if enough numbers given to find solution
+        """
+        numbers=self.isopleth_values[idx]
+        given=0
+        for number in numbers:
+            if isinstance(number,(int,float,tuple,list)):
+                         given=given+1
+        if given>0:
+            return True # isopleth not solvable (right now)
+        else:
+            return False # isopleth solvable
+
+    def solve(self,solutions):
+        """
+        solves coordinates
+        solutions is list of dicts of found solutions
+        """
+        for idx,isopleth_values_single in enumerate(self.isopleth_values):
+            if len(self.draw_coordinates)<(idx+1):
+                self.draw_coordinates.append([]) # dummy expansion of matrix
+            if len(solutions)<(idx+1):
+                solutions.append({})
+            if len(self.other_points)<(idx+1):
+                self.other_points.append([])
+            if self._check_if_enough_params_(idx):
+                x0,y0=self.solve_single(solutions[idx],isopleth_values_single,idx)
+                self.draw_coordinates[idx]=[x0,y0]
+
+
+    def solve_single(self,solution,isopleth_values,idx):
+        """
+        solves single isopleth
+        solution = dict with values of found solutions
+        isopleth_values = list of values and coordinates
+        idx = # of isopleth line
+        """
+        atom_stack=self.atom_stack
+        # value known
+        if isinstance(isopleth_values[0],(int,float)):
+            x0=atom_stack[0].give_x(isopleth_values[0])
+            y0=atom_stack[0].give_y(isopleth_values[0])
+        if isinstance(isopleth_values[0],tuple):
+            x0=isopleth_values[0][0]
+            y0=isopleth_values[0][1]
+        if not self.atom_stack[0].params['tag']=='none':
+            solution[self.atom_stack[0].params['tag']]=(x0,y0)
+        return x0,y0
+
+    def draw(self,canvas):
+        """
+        draws the isopleth
+        """
+        for idx,(x1,y1) in enumerate(self.draw_coordinates):
+            x_offset=self.atom_stack[0].params['align_x_offset']
+            y_offset=self.atom_stack[0].params['align_y_offset']
+            if x_offset!=0 or y_offset!=0:
+                canvas.stroke(path.line(x1,y1,x1-x_offset,y1-y_offset),[color.cmyk.Blue,
+                                                    style.linewidth.thick,
+                                                    style.linestyle.dashed])
+            self._draw_circle_(canvas,x1,y1,0.05)
+        for line_points in self.other_points:
+            for points in line_points:
+                for (x,y) in points:
+                    self._draw_circle_(canvas,x,y,0.05)
+
+
+
+
+class Isopleth_Block_Type_9(Isopleth_Block_Type_1):
+    """
+    type general determinant isopleth
+    note, that parameters for grid should be given, they are not solved
+    """
+    def __init__(self,atom_stack,params):
+        super(Isopleth_Block_Type_9,self).__init__(atom_stack,params)
 
 class Isopleth_Block_Type_10(Isopleth_Block_Type_1):
     """

@@ -262,11 +262,53 @@ class Isopleth_Block(object):
         for idx,(x1s,y1s,x2s,y2s) in enumerate(sections):
             x_inter,y_inter=self._two_line_intersection_(x1s,y1s,x2s,y2s,x1,y1,x2,y2)
             # check if instersection
-            if (f1*min(x1s,x2s)<=x_inter<=f2*max(x1s,x2s)) and (f1*min(y1s,y2s)<=y_inter<=f2*max(y1s,y2s)):
+            #if (f1*min(x1s,x2s)<=x_inter<=f2*max(x1s,x2s)) and (f1*min(y1s,y2s)<=y_inter<=f2*max(y1s,y2s)):
+            if self._between_(x1s,y1s,x2s,y2s,x_inter,y_inter):
                 interps.append((x_inter,y_inter))
         if len(interps)<1:
             interps.append((-10,-10)) # dummy point
         return interps[0][0],interps[0][1]
+
+    def _between_(self,x1s,y1s,x2s,y2s,x,y):
+        """
+        checks if (x,y) in rectangle of (x1s,y1s)-(x2s,y2s)
+        """
+        f1=1.0-1e-12
+        f2=1.0+1e-12
+        f3=1e-6
+        xs_min=min(x1s,x2s)
+        if xs_min>0:
+            xs_min=xs_min*f1
+        else:
+            xs_min=xs_min*f2
+        xs_max=max(x1s,x2s)
+        if xs_max>0:
+            xs_max=xs_max*f2
+        else:
+            xs_max=xs_max*f1
+        ys_min=min(y1s,y2s)
+        if ys_min>0:
+            ys_min=ys_min*f1
+        else:
+            ys_min=ys_min*f2
+        ys_max=max(y1s,y2s)
+        if ys_max>0:
+            ys_max=ys_max*f2
+        else:
+            ys_max=ys_max*f1
+        # trick to make little little over zero
+        if xs_min==0:
+            xs_min=-xs_max*f3
+        if xs_max==0:
+            xs_max=-xs_min*f3
+        if ys_min==0:
+            ys_min=-ys_max*f3
+        if ys_max==0:
+            ys_max=-ys_min*f3
+        if xs_min<=x<=xs_max and ys_min<=y<=ys_max:
+            return True
+        else:
+            return False
 
     def _find_closest_other_points_(self,sections,x1,y1,x2,y2,x_found,y_found):
         """
@@ -365,9 +407,14 @@ class Isopleth_Block(object):
         for atom_idx,atom in enumerate(self.atom_stack):
             if not atom.params['tag']=='none':
                 for idx,dummy in enumerate(solutions):
-                    if isinstance(self.isopleth_values[idx][atom_idx],(int,float,tuple)):
+                    # store only true (x,y) tuples
+                    if isinstance(self.isopleth_values[idx][atom_idx],(tuple)):
                         solutions[idx][atom.params['tag']]=self.isopleth_values[idx][atom_idx]
-
+                    if isinstance(self.isopleth_values[idx][atom_idx],(int,float)):
+                        value=self.isopleth_values[idx][atom_idx]
+                        x=atom.give_x(value)-atom.params['align_x_offset']
+                        y=atom.give_y(value)-atom.params['align_y_offset']
+                        solutions[idx][atom.params['tag']]=(x,y)
 
     def update_solutions(self,solutions):
         """

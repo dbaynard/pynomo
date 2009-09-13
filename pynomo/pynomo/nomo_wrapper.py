@@ -291,7 +291,7 @@ class Nomo_Wrapper:
     def _find_trafo_2_atoms_(self,atom1,atom2):
         """
         finds transformation that aligns atom2 to atom1
-        In practice takes endpoints and a third point in 90 degree
+        In practice takes 0.3 from endpoints and a third point in 90 degree
         to form a triangle for both atoms to be aligned
         """
         # taking points from atom1
@@ -300,8 +300,8 @@ class Nomo_Wrapper:
         diff=u_stop-u_start
         u_start=u_start+0.3*diff
         u_stop=u_stop-0.3*diff
-        print "u_start: %g"%u_start
-        print "u_stop: %g"%u_stop
+        #print "u_start: %g"%u_start
+        #print "u_stop: %g"%u_stop
         x1_atom_2=atom2.give_x(u_start)
         y1_atom_2=atom2.give_y(u_start)
         x2_atom_2=atom2.give_x(u_stop)
@@ -2324,7 +2324,7 @@ class Nomo_Atom:
         sections=[]
         section_values=[]
         for index,(x,y) in enumerate(self.line):
-            if index>1:
+            if index>0:
                 sections.append((x,y,prev_x,prev_y))
                 section_values.append([self.value_list[index],
                                        self.value_list[index-1]])

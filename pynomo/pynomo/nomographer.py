@@ -122,6 +122,7 @@ class Nomographer:
                                      curve_const=block_para['curve_const'],
                                      ladder_color=block_para['ladder_color'])
                 wrapper.add_block(blocks[-1])
+                isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 7
             if block_para['block_type']=='type_7':
                 self._check_block_type_7_params_(block_para)
@@ -435,7 +436,7 @@ class Nomographer:
                          'type':'parallel',
                          'x_empty':0.2,
                          'y_empty':0.2,
-                         'curve_const':0.5,
+                         'curve_const':0.0,
                          'ladder_color':color.rgb.black,
                          'debug':False,
                          }

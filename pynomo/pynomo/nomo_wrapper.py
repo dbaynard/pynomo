@@ -217,12 +217,12 @@ class Nomo_Wrapper:
             post_func(canvas)
         if isinstance(self.filename,list):
             for filename_this in self.filename:
-                if not re.compile(".eps").search(filename_this, 1)==None:
+                if not re.compile(".eps$").search(filename_this, 1)==None:
                     canvas.writeEPSfile(filename_this)
                 else:
                     canvas.writePDFfile(filename_this)
         else:
-            if not re.compile(".eps").search(self.filename, 1)==None:
+            if not re.compile(".eps$").search(self.filename, 1)==None:
                 canvas.writeEPSfile(self.filename)
             else:
                 canvas.writePDFfile(self.filename)
@@ -1486,7 +1486,7 @@ class Nomo_Block_Type_6(Nomo_Block):
         super(Nomo_Block_Type_6,self).draw(canvas=canvas)
         self._do_ladder_lines_(canvas)
 
-    def _do_ladder_lines_(self,canvas):
+    def _do_ladder_lines_(self,canvas_given):
         """
         finds points and derivatives for ladder
         1. find points (according to F1 or given)
@@ -1505,6 +1505,7 @@ class Nomo_Block_Type_6(Nomo_Block):
         side1=self.atom_F1.params['tick_side']
         side2=self.atom_F2.params['tick_side']
 
+        # Linear
         if self.atom_F1.params['scale_type']=='linear':
             tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
             find_linear_ticks(start,stop)
@@ -1522,10 +1523,93 @@ class Nomo_Block_Type_6(Nomo_Block):
             find_tick_directions(tick_1_list,f2,g2,side2,start,stop)
 
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
-                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
+                                     tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
-                                     tick_1_list,f1,g1,f2,g2,canvas,style.linestyle.dashed)
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
 
+        # Linear smart
+        if self.atom_F1.params['scale_type']=='linear smart':
+
+            tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list=\
+            find_linear_ticks_smart(start,stop,f1,g1,turn=1,
+                                    base_start=self.atom_F1.params['base_start'],
+                                    base_stop=self.atom_F1.params['base_stop'],
+                                    scale_max_0=self.atom_F1.params['scale_max'],
+                                    distance_limit=self.atom_F1.params['tick_distance_smart'])
+
+#            tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
+#            find_linear_ticks(start,stop)
+
+            dx_units_0_1,dy_units_0_1,angles_0_1=find_tick_directions(tick_0_list,f1,g1,side1,start,stop,full_angle=self.atom_F1.params['full_angle'],extra_angle=self.atom_F1.params['extra_angle'],turn_relative=self.atom_F1.params['turn_relative'])
+#            dx_units_0_1,dy_units_0_1,angles_0_1=\
+#            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+
+            dx_units_0_2,dy_units_0_2,angles_0_2=find_tick_directions(tick_0_list,f2,g2,side2,start,stop,full_angle=self.atom_F2.params['full_angle'],extra_angle=self.atom_F2.params['extra_angle'],turn_relative=self.atom_F2.params['turn_relative'])
+#            dx_units_0_2,dy_units_0_2,angles_0_2=\
+#            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+#
+            dx_units_1_1,dy_units_1_1,angles_1_1=find_tick_directions(tick_1_list,f1,g1,side1,start,stop,full_angle=self.atom_F1.params['full_angle'],extra_angle=self.atom_F1.params['extra_angle'],turn_relative=self.atom_F1.params['turn_relative'])
+
+#            dx_units_1_1,dy_units_1_1,angles_1_1=\
+#            find_tick_directions(tick_1_list,f1,g1,side1,start,stop)
+#
+            dx_units_1_2,dy_units_1_2,angles_1_2=find_tick_directions(tick_1_list,f2,g2,side2,start,stop,full_angle=self.atom_F2.params['full_angle'],extra_angle=self.atom_F2.params['extra_angle'],turn_relative=self.atom_F2.params['turn_relative'])
+#            dx_units_1_2,dy_units_1_2,angles_1_2=\
+#            find_tick_directions(tick_1_list,f2,g2,side2,start,stop)
+
+            self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
+                                     tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
+            self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
+
+        # log smart
+        if self.atom_F1.params['scale_type']=='log smart':
+            c=canvas.canvas()
+            dummy_axis=Nomo_Axis(f1,g1,start,stop,turn=1,title='',canvas=c,type='log smart',
+                 text_style='normal',title_x_shift=0,title_y_shift=0.25,
+                 tick_levels=4,tick_text_levels=3,
+                 text_color=color.rgb.black, axis_color=color.rgb.black,
+                 manual_axis_data={},
+                 axis_appear=self.atom_F1.params,side=self.atom_F1.params['tick_side'],
+                 base_start=self.atom_F1.params['base_start'],
+                 base_stop=self.atom_F1.params['base_stop'])
+            tick_0_list=dummy_axis.tick_0_list
+            tick_1_list=dummy_axis.tick_1_list
+            tick_2_list=dummy_axis.tick_2_list
+            tick_3_list=dummy_axis.tick_3_list
+            tick_4_list=dummy_axis.tick_4_list
+            find_linear_ticks_smart(start,stop,f1,g1,turn=1,
+                                    base_start=self.atom_F1.params['base_start'],
+                                    base_stop=self.atom_F1.params['base_stop'],
+                                    scale_max_0=self.atom_F1.params['scale_max'],
+                                    distance_limit=self.atom_F1.params['tick_distance_smart'])
+
+#            tick_0_list,tick_1_list,tick_2_list,tick_3_list,tick_4_list,start_ax,stop_ax=\
+#            find_linear_ticks(start,stop)
+
+            dx_units_0_1,dy_units_0_1,angles_0_1=find_tick_directions(tick_0_list,f1,g1,side1,start,stop,full_angle=self.atom_F1.params['full_angle'],extra_angle=self.atom_F1.params['extra_angle'],turn_relative=self.atom_F1.params['turn_relative'])
+#            dx_units_0_1,dy_units_0_1,angles_0_1=\
+#            find_tick_directions(tick_0_list,f1,g1,side1,start,stop)
+
+            dx_units_0_2,dy_units_0_2,angles_0_2=find_tick_directions(tick_0_list,f2,g2,side2,start,stop,full_angle=self.atom_F2.params['full_angle'],extra_angle=self.atom_F2.params['extra_angle'],turn_relative=self.atom_F2.params['turn_relative'])
+#            dx_units_0_2,dy_units_0_2,angles_0_2=\
+#            find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
+#
+            dx_units_1_1,dy_units_1_1,angles_1_1=find_tick_directions(tick_1_list,f1,g1,side1,start,stop,full_angle=self.atom_F1.params['full_angle'],extra_angle=self.atom_F1.params['extra_angle'],turn_relative=self.atom_F1.params['turn_relative'])
+
+#            dx_units_1_1,dy_units_1_1,angles_1_1=\
+#            find_tick_directions(tick_1_list,f1,g1,side1,start,stop)
+#
+            dx_units_1_2,dy_units_1_2,angles_1_2=find_tick_directions(tick_1_list,f2,g2,side2,start,stop,full_angle=self.atom_F2.params['full_angle'],extra_angle=self.atom_F2.params['extra_angle'],turn_relative=self.atom_F2.params['turn_relative'])
+#            dx_units_1_2,dy_units_1_2,angles_1_2=\
+#            find_tick_directions(tick_1_list,f2,g2,side2,start,stop)
+
+            self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
+                                     tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
+            self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
+
+        # log
         if self.atom_F1.params['scale_type']=='log':
             tick_0_list,tick_1_list,tick_2_list,start_ax,stop_ax=\
             find_log_ticks(start,stop)
@@ -1542,9 +1626,11 @@ class Nomo_Block_Type_6(Nomo_Block):
             dx_units_1_2,dy_units_1_2,angles_1_2=\
             find_tick_directions(tick_1_list,f2,g2,side2,start,stop)
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
-                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
+                                     tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
-                                     tick_1_list,f1,g1,f2,g2,canvas,style.linestyle.dashed)
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
+
+        # manual point or manual arrow
         if self.atom_F1.params['scale_type']=='manual point' or\
         self.atom_F1.params['scale_type']=='manual arrow':
             tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
@@ -1557,8 +1643,9 @@ class Nomo_Block_Type_6(Nomo_Block):
             find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
 
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
-                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
+                                     tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
 
+        # manual line
         if self.atom_F1.params['scale_type']=='manual line':
             tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
             tick_0_list.sort()
@@ -1570,7 +1657,7 @@ class Nomo_Block_Type_6(Nomo_Block):
             find_tick_directions(tick_0_list,f2,g2,side2,start,stop)
 
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
-                                     tick_0_list,f1,g1,f2,g2,canvas,style.linestyle.solid)
+                                     tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
 
     def _draw_ladder_lines_(self,dx_units_1,dy_units_1,dx_units_2,dy_units_2,
                             tick_list,f1,g1,f2,g2,canvas,line_style):
@@ -2249,8 +2336,13 @@ class Nomo_Atom:
             'aligned':False,
             'base_start':None,
             'base_stop':None,
+            'scale_max':None,
             'extra_params':[], # additional axis params
             'debug':False, # print dictionary
+            'tick_distance_smart':0.05,
+            'full_angle':False,
+            'extra_angle':0.0,
+            'turn_relative':False,
             }
         self.params=self.params_default
         self.params.update(params)

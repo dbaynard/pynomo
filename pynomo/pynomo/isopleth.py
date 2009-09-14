@@ -59,6 +59,10 @@ class Isopleth_Wrapper(object):
         if block_para['block_type']=='type_10':
             iso_block=Isopleth_Block_Type_10(block.atom_stack,block_para)
             self.isopleth_list.append(iso_block)
+        # type 6
+        if block_para['block_type']=='type_6':
+            iso_block=Isopleth_Block_Type_6(block.atom_stack,block_para)
+            self.isopleth_list.append(iso_block)
         # type 3
         if block_para['block_type']=='type_3':
             # handle type 3 as multiple type 1
@@ -450,6 +454,43 @@ class Isopleth_Block(object):
 
     def _det_(self,a,b,c,d):
         return a*d-c*b
+
+    def interp_xy(self,x,y,atom):
+        """
+        given a point in u-axis, corresponding value is interpolated
+        """
+        f=1.0
+        interps=[]
+        min_distance=None
+        for idx,(x1s,y1s,x2s,y2s) in enumerate(atom.sections):
+            distance_1=self._calc_distance_points_(x1s,y1s,x,y)
+            distance_2=self._calc_distance_points_(x2s,y2s,x,y)
+            distance=min(distance_1,distance_2)
+            if min_distance==None:
+                min_distance=distance
+                closest_value=atom.section_values[idx][0]
+            else:
+                if distance<min_distance:
+                    min_distance=distance
+                    value_0=atom.section_values[idx][0]
+                    value_1=atom.section_values[idx][1]
+                    closest_value=self.interpolate(x1s,y1s,x2s,y2s,x,y,value_0,value_1)
+                    closest_value_0=value_0
+                    closest_value_1=value_1
+        #print closest_value,closest_value_0,closest_value_1
+        return closest_value
+
+    def interpolate(self,x1,y1,x2,y2,x3,y3,value_1,value_2):
+        """
+        value 1 = x1,y1
+        value 2 = x2,y2
+        point = x3,y3
+        Interpolates linearly what is the value of point in line (x1,y1)-(x2,y2)
+        """
+        distance_1=self._calc_distance_points_(x1,y1,x3,y3)
+        distance_2=self._calc_distance_points_(x2,y2,x3,y3)
+        value=value_1+(value_2-value_1)*distance_1/(distance_1+distance_2)
+        return value
 
 class Isopleth_Block_Type_1(Isopleth_Block):
     """
@@ -877,36 +918,113 @@ class Isopleth_Block_Type_5(Isopleth_Block):
         print closest_value,closest_value_0,closest_value_1
         return closest_value
 
+class Isopleth_Block_Type_6(Isopleth_Block):
+    """
+    type single
+    atom stack is the stack of scales
+    solution_dict is a dictionary of found solutions
+    """
+    def __init__(self,atom_stack,params):
+        super(Isopleth_Block_Type_6,self).__init__(atom_stack,params)
 
-    def interpolate_old(self,x1,y1,x2,y2,x3,y3,value_1,value_2):
+    def _check_if_enough_params_(self,idx):
         """
-        value 1 = x1,y1
-        value 2 = x2,y2
-        point = x3,y3
-        Interpolates linearly what is the value of point in line (x1,y1)-(x2,y2)
+        checks if enough numbers given to find solution
         """
-        diff_x=x1-x2
-        diff_y=y1-y2
-        # dummy points to make line to calculate intersections
-        x4=x3-diff_y
-        y4=y3+diff_x
-        xp,yp=self._two_line_intersection_(x1, y1, x2, y2, x3, y3, x4, y4)
-        distance_1=self._calc_distance_points_(x1,y1,xp,yp)
-        distance_2=self._calc_distance_points_(x2,y2,xp,yp)
-        value=value_1+(value_2-value_1)*distance_1/(distance_1+distance_2)
-        return value
+        numbers=self.isopleth_values[idx]
+        given=0
+        for number in numbers:
+            if isinstance(number,(int,float,tuple,list)):
+                         given=given+1
+        if given>0:
+            return True # isopleth solvable (right now)
+        else:
+            return False # isopleth not solvable
 
-    def interpolate(self,x1,y1,x2,y2,x3,y3,value_1,value_2):
+    def solve(self,solutions):
         """
-        value 1 = x1,y1
-        value 2 = x2,y2
-        point = x3,y3
-        Interpolates linearly what is the value of point in line (x1,y1)-(x2,y2)
+        solves coordinates
+        solutions is list of dicts of found solutions
         """
-        distance_1=self._calc_distance_points_(x1,y1,x3,y3)
-        distance_2=self._calc_distance_points_(x2,y2,x3,y3)
-        value=value_1+(value_2-value_1)*distance_1/(distance_1+distance_2)
-        return value
+        for idx,isopleth_values_single in enumerate(self.isopleth_values):
+            if len(self.draw_coordinates)<(idx+1):
+                self.draw_coordinates.append([]) # dummy expansion of matrix
+            if len(solutions)<(idx+1):
+                solutions.append({})
+            if len(self.other_points)<(idx+1):
+                self.other_points.append([])
+            if self._check_if_enough_params_(idx):
+                x1,y1,x2,y2=self.solve_single(solutions[idx],isopleth_values_single,idx)
+                self.draw_coordinates[idx]=[x1,y1,x2,y2]
+
+
+    def solve_single(self,solution,isopleth_values,idx):
+        """
+        solves single isopleth
+        solution = dict with values of found solutions
+        isopleth_values = list of values and coordinates
+        idx = # of isopleth line
+        """
+        atom_stack=self.atom_stack
+        atom1=atom_stack[0]
+        atom2=atom_stack[1]
+        f1_known=False
+        f2_known=False
+        # f1 value known
+        if isinstance(isopleth_values[0],(int,float)):
+            x1=atom_stack[0].give_x(isopleth_values[0])
+            y1=atom_stack[0].give_y(isopleth_values[0])
+            f1_known=True
+            value=self.interp_xy(x1,y1,atom1)
+        if isinstance(isopleth_values[0],tuple):
+            x1=isopleth_values[0][0]
+            y1=isopleth_values[0][1]
+            f1_known=True
+            value=self.interp_xy(x1,y1,atom1)
+        # f2 value known
+        if isinstance(isopleth_values[1],(int,float)):
+            x2=atom_stack[1].give_x(isopleth_values[1])
+            y2=atom_stack[1].give_y(isopleth_values[1])
+            f2_known=True
+            value=self.interp_xy(x2,y2,atom2)
+        if isinstance(isopleth_values[1],tuple):
+            x2=isopleth_values[1][0]
+            y2=isopleth_values[1][1]
+            f2_known=True
+            value=self.interp_xy(x2,y2,atom2)
+        if not f1_known:
+            x1=atom1.give_x(value)
+            y1=atom1.give_y(value)
+        if not f2_known:
+            x2=atom2.give_x(value)
+            y2=atom2.give_y(value)
+        # let's save the result
+        if not atom1.params['tag']=='none':
+            solution[atom1.params['tag']]=(x1,y1)
+        if not atom2.params['tag']=='none':
+            solution[atom2.params['tag']]=(x2,y2)
+        return x1,y1,x2,y2
+
+    def draw(self,canvas):
+        """
+        draws the isopleth
+        """
+        for idx,(x1,y1,x2,y2) in enumerate(self.draw_coordinates):
+            x_offset1=self.atom_stack[0].params['align_x_offset']
+            y_offset1=self.atom_stack[0].params['align_y_offset']
+            x_offset2=self.atom_stack[1].params['align_x_offset']
+            y_offset2=self.atom_stack[1].params['align_y_offset']
+            canvas.stroke(path.line(x1-x_offset1,y1-y_offset1,x2-x_offset2,y2-y_offset2),
+                          [color.cmyk.Blue,
+                           style.linewidth.thick,
+                           style.linestyle.dashed])
+            self._draw_circle_(canvas,x1,y1,0.05)
+            self._draw_circle_(canvas,x2,y2,0.05)
+        for line_points in self.other_points:
+            for points in line_points:
+                for (x,y) in points:
+                    self._draw_circle_(canvas,x,y,0.05)
+
 
 class Isopleth_Block_Type_7(Isopleth_Block_Type_1):
     """
@@ -936,9 +1054,9 @@ class Isopleth_Block_Type_8(Isopleth_Block):
             if isinstance(number,(int,float,tuple,list)):
                          given=given+1
         if given>0:
-            return True # isopleth not solvable (right now)
+            return True # isopleth solvable (right now)
         else:
-            return False # isopleth solvable
+            return False # isopleth not solvable
 
     def solve(self,solutions):
         """

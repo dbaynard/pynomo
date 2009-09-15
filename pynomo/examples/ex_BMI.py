@@ -3,7 +3,7 @@
 
     Body mass index BMI=w(kg)/h(m)**2
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,6 +63,7 @@ block_1_params={
              'f1_params':N_params_1,
              'f2_params':N_params_2,
              'f3_params':N_params_3,
+             'isopleth_values':[[1.84,'x',85]]
              }
 
 weight_params_lbs={
@@ -81,7 +82,8 @@ weight_params_lbs={
 
 block_2_params={
                  'block_type':'type_8',
-                 'f_params':weight_params_lbs
+                 'f_params':weight_params_lbs,
+                 'isopleth_values':[['x']]
                  }
 
 height_params_inch={
@@ -101,11 +103,12 @@ height_params_inch={
 
 block_3_params={
                  'block_type':'type_8',
-                 'f_params':height_params_inch
+                 'f_params':height_params_inch,
+                 'isopleth_values':[['x']]
                  }
 
 main_params={
-              'filename':'ex_BMI.eps',
+              'filename':'ex_BMI.pdf',
               'paper_height':12.0,
               'paper_width':8.0,
               'block_params':[block_1_params,block_2_params,block_3_params],

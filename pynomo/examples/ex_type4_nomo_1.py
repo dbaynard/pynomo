@@ -69,6 +69,7 @@ block_1_params={
                 'f2_params':N_params_2,
                 'f3_params':N_params_3,
                 'f4_params':N_params_4,
+                'isopleth_values':[[7,6,2,'x']],
                              }
 
 main_params={

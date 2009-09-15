@@ -3,7 +3,7 @@
 
     Second order equation: z**2+p*z+q=0
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ N_params_2={
 
 N_params_3={
         'u_min':0.0,
-        'u_max':5.0,
+        'u_max':12.0,
         'function_3':lambda u:u,
         'function_4':lambda u:u**2,
         'title':r'$z$',
@@ -53,10 +53,11 @@ N_params_3={
         'title_draw_center':True,
         'title_opposite_tick':False,
         'extra_params':[{'tick_side':'left',
+                         'scale_type':'linear smart',
                          'u_min':0.1,
                          'u_max':12.0,
-                         'tick_text_levels':2,
-                         'tick_levels':3
+                         'tick_text_levels':4,
+                         'tick_levels':4
                          }]
                 }
 
@@ -67,6 +68,7 @@ block_1_params={
              'f1_params':N_params_1,
              'f2_params':N_params_2,
              'f3_params':N_params_3,
+             'isopleth_values':[[2,-7,'x']]
              }
 
 main_params={

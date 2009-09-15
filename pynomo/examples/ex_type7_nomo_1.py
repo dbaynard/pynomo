@@ -59,7 +59,8 @@ block_1_params={
              'f2_params':N_params_2,
              'f3_params':N_params_3,
              'angle_u':30.0,
-             'angle_v':70.0
+             'angle_v':70.0,
+             'isopleth_values':[[9,5,'x']],
              }
 
 main_params={

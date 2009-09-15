@@ -3,7 +3,7 @@
 
     Sensitivity of radio-frequency single electron transistor (RF-SET).
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,6 +70,7 @@ block_contour_params={
            'mirror_y':False,
            'wd_tick_levels':0,
            'wd_tick_text_levels':0,
+           'isopleth_values':[[R_sigma/1e3,Z_tr,'x']]
              }
 
 # this is non-obvious trick to find bottom edge coordinates of the grid in order
@@ -100,8 +101,8 @@ N_params_1={
         'function':f_ec,
         'title':r'$E_C (K)$',
         'tick_levels':4,
-        'tick_text_levels':3,
-        'scale_type':'log',
+        'tick_text_levels':4,
+        'scale_type':'log smart',
                 }
 N_params_2={
         'u_min':0.1,
@@ -109,8 +110,8 @@ N_params_2={
         'function':f_t,
         'title':r'$T (K)$',
         'tick_levels':4,
-        'tick_text_levels':3,
-        'scale_type':'log',
+        'tick_text_levels':4,
+        'scale_type':'log smart',
                 }
 N_params_3={
         'u_min':0.5,
@@ -118,17 +119,17 @@ N_params_3={
         'function':f_dq,
         'title':r'$\delta q (\mu e/\sqrt{Hz})$',
         'tick_levels':4,
-        'tick_text_levels':2,
-        'scale_type':'log',
+        'tick_text_levels':4,
+        'scale_type':'log smart',
                 }
 N_params_4={
         'u_min':0.1,
         'u_max':20.0,
         'function':f_t0,
         'title':r'$T_0 (K)$',
-        'tick_levels':2,
-        'tick_text_levels':1,
-        'scale_type':'log',
+        'tick_levels':4,
+        'tick_text_levels':4,
+        'scale_type':'log smart',
             }
 
 
@@ -137,9 +138,10 @@ block_1_params={
              'width':5.0,
              'height':10.0,
              'mirror_x':True,
-             'reference_padding':0.05,
+             'reference_padding':0.0    ,
              'f_params':[N_params_1,N_params_2,N_params_3,
-                         N_params_4,x_params]
+                         N_params_4,x_params],
+             'isopleth_values':[[E_C/k_b,T,'x',T_0,'x']]
              }
 
 main_params={

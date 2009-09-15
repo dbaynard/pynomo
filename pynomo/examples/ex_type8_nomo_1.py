@@ -37,6 +37,7 @@ block_params={
               'f_params':N_params_1,
               'width':5.0,
               'height':10.0,
+              'isopleth_values':[[5]]
                      }
 
 main_params={

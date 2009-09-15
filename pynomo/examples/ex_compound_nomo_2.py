@@ -3,7 +3,7 @@
 
     Compound nomograph: q = u**v+w
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,9 +28,10 @@ u_params={
         'u_max':10.0,
         'function':lambda u:log(u),
         'title':r'$u$',
-        'tick_levels':3,
-        'tick_text_levels':1,
+        'tick_levels':4,
+        'tick_text_levels':3,
         'tick_side':'left',
+        'scale_type':'linear smart',
                 }
 
 v_params={
@@ -75,6 +76,7 @@ block_params_1={
              'f1_params':u_params,
              'f2_params':v_params,
              'f3_params':R_params,
+             'isopleth_values':[[6,0.5,'x']]
              }
 # Ladder
 R_params_a={
@@ -105,6 +107,7 @@ block_params_2={
               'width':5.0,
               'height':10.0,
               'mirror_x':True,
+              'isopleth_values':[['x','x']]
                      }
 # type 1: q-w-r=0
 r_params_c={
@@ -122,7 +125,7 @@ w_params={
         'u_max':10.0,
         'function':lambda u:-u,
         'title':r'$w$',
-        'tick_levels':2,
+        'tick_levels':3,
         'tick_text_levels':1,
                 }
 
@@ -131,7 +134,7 @@ q_params={
         'u_max':10.0,
         'function':lambda u:u,
         'title':r'$q$',
-        'tick_levels':2,
+        'tick_levels':3,
         'tick_text_levels':1,
                 }
 
@@ -143,7 +146,8 @@ block_params_3={
              'f1_params':r_params_c,
              'f2_params':w_params,
              'f3_params':q_params,
-             'mirror_x':False
+             'mirror_x':False,
+             'isopleth_values':[['x',3,'x']]
              }
 
 main_params={

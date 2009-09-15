@@ -47,6 +47,7 @@ block_params={
               'f2_params':N_params_2,
               'width':5.0,
               'height':10.0,
+              'isopleth_values':[[2.2,'x']],
               #'curve_const':0.01
                      }
 

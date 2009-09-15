@@ -5,7 +5,7 @@
 
     Equation: cos(a)=(sin(d)-sin(b)sin(h))/(cos(b)cos(h))
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,26 +40,27 @@ a_params={
         'title':'a',
         'title_x_shift':0.0,
         'title_y_shift':0.25,
-        'scale_type':'linear',
-        'tick_levels':1,
-        'tick_text_levels':1,
+        'scale_type':'linear smart',
+        'tick_levels':5,
+        'tick_text_levels':5,
         'tick_side':'right',
         'tag':'none',
         'grid':False,
-        'extra_params':[{
-            'u_min':40.0,
-            'u_max':90.0,
-            'scale_type':'linear',
-            'tick_levels':4,
-            'tick_text_levels':3,
-            'tick_side':'right'},
-            {
-            'u_min':10.0,
-            'u_max':40.0,
-            'scale_type':'linear',
-            'tick_levels':3,
-            'tick_text_levels':2,
-            'tick_side':'right'}]}
+#        'extra_params':[{
+#            'u_min':40.0,
+#            'u_max':90.0,
+#            'scale_type':'linear',
+#            'tick_levels':4,
+#            'tick_text_levels':3,
+#            'tick_side':'right'},
+#            {
+#            'u_min':10.0,
+#            'u_max':40.0,
+#            'scale_type':'linear',
+#            'tick_levels':3,
+#            'tick_text_levels':2,
+#            'tick_side':'right'}]
+        }
 
 
 d_params={
@@ -71,26 +72,26 @@ d_params={
         'title':'d',
         'title_x_shift':0.0,
         'title_y_shift':0.25,
-        'scale_type':'linear',
-        'tick_levels':1,
-        'tick_text_levels':1,
+        'scale_type':'linear smart',
+        'tick_levels':5,
+        'tick_text_levels':5,
         'tick_side':'right',
         'tag':'none',
         'grid':False,
-        'extra_params':[{
-            'u_min':0.0,
-            'u_max':40.0,
-            'scale_type':'linear',
-            'tick_levels':4,
-            'tick_text_levels':3,
-            'tick_side':'right'},
-            {
-            'u_min':40.0,
-            'u_max':80.0,
-            'scale_type':'linear',
-            'tick_levels':3,
-            'tick_text_levels':2,
-            'tick_side':'right'}]
+#        'extra_params':[{
+#            'u_min':0.0,
+#            'u_max':40.0,
+#            'scale_type':'linear',
+#            'tick_levels':4,
+#            'tick_text_levels':3,
+#            'tick_side':'right'},
+#            {
+#            'u_min':40.0,
+#            'u_max':80.0,
+#            'scale_type':'linear',
+#            'tick_levels':3,
+#            'tick_text_levels':2,
+#            'tick_side':'right'}]
         }
 
 
@@ -144,12 +145,13 @@ block_params={
                      'f2_params':bh_params,
                      'f3_params':d_params,
                      'transform_ini':False,
+                     'isopleth_values':[[50,[75,15],'x']]
                      }
 
 main_params={
               'filename':'ex_star_navi.pdf',
-              'paper_height':15.0,
-              'paper_width':15.0,
+              'paper_height':20.0,
+              'paper_width':20.0,
               'block_params':[block_params],
               'transformations':[('rotate',0.01),('polygon',),('scale paper',)]
               }

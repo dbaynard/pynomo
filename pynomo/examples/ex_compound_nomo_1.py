@@ -3,7 +3,7 @@
 
     Compound nomograph: (A+B)/E=F/(CD)
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ block_1_params={
              'f1_params':A_params,
              'f2_params':B_params,
              'f3_params':R1a_params,
+             'isopleth_values':[[1,7,'x']]
              }
 # type 4
 R1b_params={
@@ -112,7 +113,8 @@ block_2_params={
                 'f2_params':E_params,
                 'f3_params':F_params,
                 'f4_params':R2a_params,
-                'mirror_x':True
+                'mirror_x':True,
+                'isopleth_values':[['x',9,4,'x']]
                              }
 # type 2 N
 R2b_params={
@@ -133,6 +135,7 @@ C_params={
         'tick_levels':3,
         'tick_text_levels':1,
         'tick_side':'left',
+        'scale_type':'linear smart',
                 }
 
 D_params={
@@ -151,7 +154,8 @@ block_3_params={
              'f1_params':R2b_params,
              'f2_params':C_params,
              'f3_params':D_params,
-             'mirror_y':True
+             'mirror_y':True,
+             'isopleth_values':[['x',1,'x']]
              }
 
 main_params={

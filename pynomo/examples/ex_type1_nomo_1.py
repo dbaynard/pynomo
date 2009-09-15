@@ -58,6 +58,7 @@ block_1_params={
              'f1_params':N_params_1,
              'f2_params':N_params_2,
              'f3_params':N_params_3,
+             'isopleth_values':[[6,2,'x']],
              }
 
 main_params={
@@ -66,6 +67,7 @@ main_params={
               'paper_width':10.0,
               'block_params':[block_1_params],
               'transformations':[('rotate',0.01),('scale paper',)],
-              'title_str':r'$u_1+u_2+u_3=0$'
+              'title_str':r'$u_1+u_2+u_3=0$',
+              'debug':False,
               }
 Nomographer(main_params)

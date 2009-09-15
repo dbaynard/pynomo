@@ -40,6 +40,7 @@ block_params={
    'v_title':'v',
    'wd_title_opposite_tick':True,
    'wd_title_distance_center':2.5,
+   'isopleth_values':[[6.5,7,'x']],
  }
 
 

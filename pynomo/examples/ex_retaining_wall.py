@@ -12,7 +12,7 @@
           -----------------------------------------
 
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,6 +73,7 @@ block_params={
                      'f2_params':N_params_2,
                      'f3_params':N_params_3,
                      'transform_ini':True,
+                     'isopleth_values':[[0.8,'x',0.7]]
                      }
 
 main_params={

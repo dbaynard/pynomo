@@ -70,6 +70,7 @@ block_params={
              'f2_params':N_params_2,
              'f3_params':N_params_3,
              'transform_ini':False,
+             'isopleth_values':[[7,[0.75,0.5],'x']]
              }
 
 main_params={

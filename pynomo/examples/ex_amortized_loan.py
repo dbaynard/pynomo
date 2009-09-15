@@ -3,7 +3,7 @@
 
     Amortized loan calculator
 
-    Copyright (C) 2007-2008  Leif Roschier
+    Copyright (C) 2007-2009  Leif Roschier
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ block_1_params={
            'v_title':r'interest rate = ',
            'u_text_format':r"$%3.0f$ ",
            'v_text_format':r"$%3.0f$ \%% ",
+           'isopleth_values':[[21,5,'x']]
              }
 
 # this is non-obvious trick to find bottom edge coordinates of the grid in order
@@ -69,10 +70,11 @@ N_params_2={
         'title':'Loan',
         'tag':'none',
         'tick_side':'left',
-        'tick_levels':3,
-        'tick_text_levels':2,
+        'tick_levels':4,
+        'tick_text_levels':3,
         'title_draw_center':True,
-        'text_format':r"$%3.0f$ ",
+        #'text_format':r"$%3.0f$ ",
+        'scale_type':'linear smart',
                 }
 N_params_1={
         'u_min':0.2,
@@ -93,6 +95,7 @@ block_2_params={
              'f1_params':N_params_1,
              'f2_params':N_params_2,
              'f3_params':N_params_3,
+             'isopleth_values':[['x',200,'x']]
              }
 
 main_params={
@@ -101,7 +104,7 @@ main_params={
               'paper_width':20.0,
               'block_params':[block_1_params,block_2_params],
               'transformations':[('rotate',0.01),('scale paper',)],
-                'title_str':r'Amortized loan calculator    \copyright    Leif Roschier  2008',
+                'title_str':r'Amortized loan calculator    \copyright    Leif Roschier  2009',
                 'title_x': 17,
                 'title_y': 21,
                 'title_box_width': 5

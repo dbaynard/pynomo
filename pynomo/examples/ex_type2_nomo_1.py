@@ -37,7 +37,8 @@ N_params_2={
         'function':lambda u:u,
         'title':r'$u_2$',
         'tick_levels':3,
-        'tick_text_levels':1,
+        'tick_text_levels':2,
+        'scale_type':'linear smart',
                 }
 
 N_params_3={
@@ -57,6 +58,7 @@ block_1_params={
              'f1_params':N_params_1,
              'f2_params':N_params_2,
              'f3_params':N_params_3,
+             'isopleth_values':[[9,1.5,'x']],
              }
 
 main_params={

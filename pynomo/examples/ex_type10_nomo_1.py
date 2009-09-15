@@ -43,13 +43,15 @@ N_params_2={
                 }
 
 N_params_3={
-        'u_min':0.5,
+        'u_min':0.3,
         'u_max':4.0,
         'function_3':lambda u:u,
         'function_4':lambda u:u,
         'title':r'$w$',
-        'tick_levels':3,
-        'tick_text_levels':1,
+        'tick_levels':4,
+        'tick_text_levels':3,
+        'scale_type':'linear smart',
+        'title_draw_center':True,
                 }
 
 block_1_params={
@@ -59,6 +61,7 @@ block_1_params={
              'f1_params':N_params_1,
              'f2_params':N_params_2,
              'f3_params':N_params_3,
+             'isopleth_values':[[6,-4,'x']]
              }
 
 main_params={

@@ -414,8 +414,8 @@ class Nomo_Grid_Box(object):
         f=lambda x:x
         g=lambda x:func2(x,v)
         # find point of scale to meet point 1.0
-        x_top=fmin(func_top,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
-        x_bottom=fmin(func_bottom,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        x_top=scipy.optimize.fmin(func_top,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        x_bottom=scipy.optimize.fmin(func_bottom,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
         #print "x_top %f"%x_top
         #print "x_bottom %f" % x_bottom
         #print "g(x_top) %f"%g(x_top)

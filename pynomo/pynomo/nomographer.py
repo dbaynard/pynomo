@@ -338,7 +338,7 @@ class Nomographer:
                          'height':10.0,
                          'proportion':1.0,
                          'debug':False,
-                         'isopleth_values':None}
+                         'isopleth_values':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -353,7 +353,7 @@ class Nomographer:
                          'width':10.0,
                          'height':10.0,
                          'debug':False,
-                         'isopleth_values':None}
+                         'isopleth_values':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -370,7 +370,8 @@ class Nomographer:
                          'reference_padding':0.2,
                          'reference_titles':[],
                          'reference_color':color.rgb.black,
-                         'debug':False,}
+                         'debug':False,
+                         'isopleth_values':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -387,7 +388,8 @@ class Nomographer:
                          'float_axis':'F1 or F2',
                          'padding':0.9,
                          'reference_color':color.rgb.black,
-                         'debug':False,}
+                         'debug':False,
+                         'isopleth_values':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -419,6 +421,7 @@ class Nomographer:
            'w_tick_text_levels':0,
            'horizontal_guides':False,
             'debug':False,
+            'isopleth_values':[]
            }
         for key in params_default:
             if not params.has_key(key):
@@ -439,6 +442,7 @@ class Nomographer:
                          'curve_const':0.0,
                          'ladder_color':color.rgb.black,
                          'debug':False,
+                         'isopleth_values':[]
                          }
         for key in params_default:
             if not params.has_key(key):
@@ -454,7 +458,8 @@ class Nomographer:
                          'width_1':10.0,
                          'angle_u':45.0,
                          'angle_v':45.0,
-                         'debug':False,}
+                         'debug':False,
+                         'isopleth_values':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -467,7 +472,8 @@ class Nomographer:
                          'mirror_x':False,
                          'mirror_y':False,
                          'length':10.0,
-                         'debug':False,}
+                         'debug':False,
+                         'isopleth_values':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]
@@ -488,6 +494,7 @@ class Nomographer:
                          'u_texts_v_start':False,
                          'u_texts_v_stop':True,
                          'debug':False,
+                         'isopleth_values':[]
                          }
         for key in params_default:
             if not params.has_key(key):
@@ -502,7 +509,8 @@ class Nomographer:
                          'mirror_y':False,
                          'width':10.0,
                          'height':10.0,
-                         'debug':False}
+                         'debug':False,
+                         'isopleth_values':[]}
         for key in params_default:
             if not params.has_key(key):
                 params[key]=params_default[key]

@@ -1525,7 +1525,7 @@ class Nomo_Block_Type_6(Nomo_Block):
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
                                      tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
-                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dotted)
 
         # Linear smart
         if self.atom_F1.params['scale_type']=='linear smart':
@@ -1560,7 +1560,7 @@ class Nomo_Block_Type_6(Nomo_Block):
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
                                      tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
-                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dotted)
 
         # log smart
         if self.atom_F1.params['scale_type']=='log smart':
@@ -1607,7 +1607,7 @@ class Nomo_Block_Type_6(Nomo_Block):
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
                                      tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
-                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dotted)
 
         # log
         if self.atom_F1.params['scale_type']=='log':
@@ -1628,7 +1628,7 @@ class Nomo_Block_Type_6(Nomo_Block):
             self._draw_ladder_lines_(dx_units_0_1,dy_units_0_1,dx_units_0_2,dy_units_0_2,
                                      tick_0_list,f1,g1,f2,g2,canvas_given,style.linestyle.solid)
             self._draw_ladder_lines_(dx_units_1_1,dy_units_1_1,dx_units_1_2,dy_units_1_2,
-                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dashed)
+                                     tick_1_list,f1,g1,f2,g2,canvas_given,style.linestyle.dotted)
 
         # manual point or manual arrow
         if self.atom_F1.params['scale_type']=='manual point' or\
@@ -2386,7 +2386,7 @@ class Nomo_Atom:
             if temp>line_length_straigth:
                 line_length_straigth=temp
                 #print "length: %f"%line_length_straigth
-        sections=350.0 # about number of sections
+        sections=1000.0 # about number of sections
         section_length=line_length_straigth/sections
         u=start
         laskuri=1

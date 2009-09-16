@@ -87,17 +87,17 @@ phi_params={
         'title':r'Solar zenith angle $\phi$',
         'title_x_shift':0.0,
         'title_y_shift':0.25,
-        'scale_type':'linear',
-        'tick_levels':2,
-        'tick_text_levels':1,
+        'scale_type':'linear smart',
+        'tick_levels':4,
+        'tick_text_levels':2,
         'tick_side':'right',
         'tag':'phi',
         'grid':False,
-        'extra_params':[{'u_min':20.0,
-                         'u_max':90.0,
-                         'tick_levels':4,
-                         'tick_text_levels':2,
-                         }]
+#        'extra_params':[{'u_min':20.0,
+#                         'u_max':90.0,
+#                         'tick_levels':4,
+#                         'tick_text_levels':2,
+#                         }]
         }
 
 time_params={
@@ -156,21 +156,22 @@ block_params={
              'f2_params':lat_day_params,
              'f3_params':time_params,
              'transform_ini':True,
+             'isopleth_values':[['x',[60,times1[4]],14.0]],
              }
 
 # limiting functions are to avoid NaN in contour construction that uses optimization
 def limit_xx(x):
     x1=x
-    if x1>1.0:
-        x1=1.0
-    if x1<-1.0:
-        x1=-1.0
+#    if x1>1.0:
+#        x1=1.0
+#    if x1<-1.0:
+#        x1=-1.0
     return x1
 
 def limit_x(x):
     x1=x
-    if not x1>0.0:
-        x1=0.0001
+#    if not x1>0.0:
+#        x1=0.0001
     return x1
 
 const_A=0.33766
@@ -217,6 +218,7 @@ block_params_weather={
    'u_scale_opposite':True,
    'u_tag':'AA',
    'horizontal_guides':True,
+   'isopleth_values':[['x',9.0,'x']],
  }
 
 block_params_scene={
@@ -251,6 +253,7 @@ block_params_scene={
    'mirror_x':True,
    'horizontal_guides':True,
    'u_align_y_offset':-0.9,
+   'isopleth_values':[['x',2.0,'x']],
  }
 
 
@@ -357,6 +360,7 @@ block_params_camera={
              'f_params':[camera_params_1,camera_params_2,camera_params_3,
                          camera_params_4],
              'mirror_x':True,
+             'isopleth_values':[['x',100.0,'x',4.0]],
              }
 
 def old_EV(EV): # C2(EV100) in wiki
@@ -376,7 +380,8 @@ EV_para={
         }
 EV_block={
          'block_type':'type_8',
-         'f_params':EV_para
+         'f_params':EV_para,
+         'isopleth_values':[['x']],
             }
 
 # maximum focal length
@@ -440,6 +445,7 @@ FL_block_params={
              'f3_params':FL_fl_params,
              'mirror_x':True,
              'proportion':0.5,
+             'isopleth_values':[['x',1.0/(8.0/3.0),'x']],
              }
 
 
@@ -453,6 +459,6 @@ main_params={
               'title_x': 7,
               'title_y': 34,
               'title_box_width': 10,
-              'title_str':r'Photography exposure (Setala 1940) \copyright Leif Roschier  2008 '
+              'title_str':r'\LARGE Photography exposure (Setala 1940) \par \copyright Leif Roschier  2009 '
               }
 b=Nomographer(main_params)

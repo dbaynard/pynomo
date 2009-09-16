@@ -409,8 +409,21 @@ class Nomo_Grid_Box(object):
                 min_fu=fu
         # functions to find x-values in paper
         func2=v_func
-        func_top=lambda x:(func2(x,v)-max_fu)**2 # minimum at height
-        func_bottom=lambda x:(func2(x,v)-min_fu)**2 # minimum at 0.0
+        def func_top(x):
+            value=func2(x.astype(complex),v)
+            if value.imag>0:
+                return 1e10 # big number
+            else:
+                return (func2(x,v)-max_fu)**2
+        def func_bottom(x):
+            value=func2(x.astype(complex),v)
+            if value.imag>0:
+                return 1e10 # big number
+            else:
+                return (func2(x,v)-min_fu)**2
+
+        #func_top=lambda x:((func2(x.astype(complex),v)-max_fu)**2).real+1e8*((func2(x.astype(complex),v)-max_fu)**2).imag # minimum at height
+        #func_bottom=lambda x:((func2(x.astype(complex),v)-min_fu)**2).real+1e8*((func2(x.astype(complex),v)-min_fu)**2).imag # minimum at 0.0
         f=lambda x:x
         g=lambda x:func2(x,v)
         # find point of scale to meet point 1.0

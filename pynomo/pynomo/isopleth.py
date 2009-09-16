@@ -401,7 +401,7 @@ class Isopleth_Block(object):
         for atom_idx,atom in enumerate(self.atom_stack):
             for idx,dummy in enumerate(solutions):
                 if not isinstance(self.isopleth_values[idx][atom_idx],(int,float,tuple)):
-                    print "not all isopleths solvable?"
+                    print "not all isopleths solved yet..."
 
 
     def find_initial_solutions(self,solutions):
@@ -915,7 +915,7 @@ class Isopleth_Block_Type_5(Isopleth_Block):
                     closest_value=self.interpolate(x1s,y1s,x2s,y2s,x,y,value_0,value_1)
                     closest_value_0=value_0
                     closest_value_1=value_1
-        print closest_value,closest_value_0,closest_value_1
+        #print closest_value,closest_value_0,closest_value_1
         return closest_value
 
 class Isopleth_Block_Type_6(Isopleth_Block):

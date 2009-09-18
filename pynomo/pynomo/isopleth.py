@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import math
 from pyx import *
-import copy
+import copy, re
 from scipy.optimize import *
 from scipy import arange
 
@@ -26,10 +26,11 @@ class Isopleth_Wrapper(object):
     """
     class to hold all isopleths and control everything related to them
     """
-    def __init__(self):
+    def __init__(self,params):
         self.isopleth_list=[] # list of isopleth objects
         self.solutions=[] # list of dictionaries (solutions)
         self.ref_tag_number=1 # to separate type 3 ref scales
+        self.nomographer_params=params['isopleth_params'] #main params
 
     def add_isopleth_block(self,block,block_para):
         """
@@ -139,8 +140,9 @@ class Isopleth_Wrapper(object):
         for isopleth in self.isopleth_list:
             isopleth.calc_atoms()
         self._solve_()
-        for isopleth in self.isopleth_list:
-            isopleth.draw(canvas)
+        for idx,isopleth in enumerate(self.isopleth_list):
+            p=self.nomographer_params
+            isopleth.draw(canvas,p)
 
     def _solve_(self):
         """
@@ -362,7 +364,7 @@ class Isopleth_Block(object):
             return x2,y2,x3,y3
 
 
-    def draw(self,canvas):
+    def draw(self,canvas,draw_params=[{}]):
         """
         draws the isopleth
         """
@@ -372,16 +374,28 @@ class Isopleth_Block(object):
             # check for collinearity
 #            if not self.collinear(x1, y1, x2, y2, x3, y3):
 #                print "found points not collinear in isopleth..."
-            canvas.stroke(path.line(xx1,yy1,xx2,yy2),[color.cmyk.Black,
-                                                    style.linewidth.thick,
-                                                    style.linestyle.dashed])
-            self._draw_circle_(canvas,x1,y1,0.05)
-            self._draw_circle_(canvas,x2,y2,0.05)
-            self._draw_circle_(canvas,x3,y3,0.05)
-        for line_points in self.other_points:
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            draw_params_list=self.parse_isopleth_params(p)
+#            canvas.stroke(path.line(xx1,yy1,xx2,yy2),[color.cmyk.Black,
+#                                                    style.linewidth.thick,
+#                                                    style.linestyle.dashed])
+            canvas.stroke(path.line(xx1,yy1,xx2,yy2),draw_params_list)
+            circle_radius=self.parse_circle_size(p)
+            self._draw_circle_(canvas,x1,y1,circle_radius)
+            self._draw_circle_(canvas,x2,y2,circle_radius)
+            self._draw_circle_(canvas,x3,y3,circle_radius)
+        for idx,line_points in enumerate(self.other_points):
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            circle_radius=self.parse_circle_size(p)
             for points in line_points:
                 for (x,y) in points:
-                    self._draw_circle_(canvas,x,y,0.05)
+                    self._draw_circle_(canvas,x,y,circle_radius)
 
     def _draw_circle_(self,canvas,x,y,r):
         """
@@ -491,6 +505,254 @@ class Isopleth_Block(object):
         distance_2=self._calc_distance_points_(x2,y2,x3,y3)
         value=value_1+(value_2-value_1)*distance_1/(distance_1+distance_2)
         return value
+
+    def parse_linestyle(self,line_style):
+        """
+        parses linestyle
+        """
+        if not re.search("solid", line_style ,re.IGNORECASE)==None:
+            return style.linestyle.solid
+        if not re.search("dashed", line_style ,re.IGNORECASE)==None:
+            return style.linestyle.dashed
+        if not re.search("dotted", line_style ,re.IGNORECASE)==None:
+            return style.linestyle.dotted
+        if not re.search("dashdotted", line_style ,re.IGNORECASE)==None:
+            return style.linestyle.dashdotted
+        # no match return default
+        print "unknown linestyle: %s"%line_style
+        return style.linestyle.dashed
+
+    def parse_linewidth(self,line_width):
+        """
+        parses linewidth
+        """
+        if not re.search("THIN", line_width)==None:
+            return style.linewidth.THIN
+        if not re.search("THIn", line_width)==None:
+            return style.linewidth.THIn
+        if not re.search("THin", line_width)==None:
+            return style.linewidth.THin
+        if not re.search("Thin", line_width)==None:
+            return style.linewidth.Thin
+        if not re.search("thin", line_width)==None:
+            return style.linewidth.thin
+        if not re.search("thick", line_width)==None:
+            return style.linewidth.thick
+        if not re.search("Thick", line_width)==None:
+            return style.linewidth.Thick
+        if not re.search("THick", line_width)==None:
+            return style.linewidth.THick
+        if not re.search("THIck", line_width)==None:
+            return style.linewidth.THIck
+        if not re.search("THICk", line_width)==None:
+            return style.linewidth.THICk
+        if not re.search("THICK", line_width)==None:
+            return style.linewidth.THICK
+        if not re.search("normal", line_width,re.IGNORECASE)==None:
+            return style.linewidth.normal
+        # no match return default
+        print "unknown linewidth: %s"%line_width
+        return style.linewidth.normal
+
+    def parse_color(self,color_str):
+        """
+        parses color
+        """
+        if re.match("GreenYellow", color_str,re.IGNORECASE):
+            return color.cmyk.GreenYellow
+        if re.match("Yellow", color_str,re.IGNORECASE):
+            return color.cmyk.Yellow
+        if re.match("Goldenrod", color_str,re.IGNORECASE):
+            return color.cmyk.Goldenrod
+        if re.match("Dandelion", color_str,re.IGNORECASE):
+            return color.cmyk.Dandelion
+        if re.match("Apricot", color_str,re.IGNORECASE):
+            return color.cmyk.Apricot
+        if re.match("Peach", color_str,re.IGNORECASE):
+            return color.cmyk.Peach
+        if re.match("Melon", color_str,re.IGNORECASE):
+            return color.cmyk.Melon
+        if re.match("YellowOrange", color_str,re.IGNORECASE):
+            return color.cmyk.YellowOrange
+        if re.match("Orange", color_str,re.IGNORECASE):
+            return color.cmyk.Orange
+        if re.match("BurntOrange", color_str,re.IGNORECASE):
+            return color.cmyk.BurntOrange
+        if re.match("Bittersweet", color_str,re.IGNORECASE):
+            return color.cmyk.Bittersweet
+        if re.match("RedOrange", color_str,re.IGNORECASE):
+            return color.cmyk.RedOrange
+        if re.match("Mahogany", color_str,re.IGNORECASE):
+            return color.cmyk.Mahogany
+        if re.match("Maroon", color_str,re.IGNORECASE):
+            return color.cmyk.Maroon
+        if re.match("BrickRed", color_str,re.IGNORECASE):
+            return color.cmyk.BrickRed
+        if re.match("Red", color_str,re.IGNORECASE):
+            return color.cmyk.Red
+        if re.match("OrangeRed", color_str,re.IGNORECASE):
+            return color.cmyk.OrangeRed
+        if re.match("RubineRed", color_str,re.IGNORECASE):
+            return color.cmyk.RubineRed
+        if re.match("WildStrawberry", color_str,re.IGNORECASE):
+            return color.cmyk.WildStrawberry
+        if re.match("Salmon", color_str,re.IGNORECASE):
+            return color.cmyk.Salmon
+        if re.match("CarnationPink", color_str,re.IGNORECASE):
+            return color.cmyk.CarnationPink
+        if re.match("Magenta", color_str,re.IGNORECASE):
+            return color.cmyk.Magenta
+        if re.match("VioletRed", color_str,re.IGNORECASE):
+            return color.cmyk.VioletRed
+        if re.match("Rhodamine", color_str,re.IGNORECASE):
+            return color.cmyk.Rhodamine
+        if re.match("Mulberry", color_str,re.IGNORECASE):
+            return color.cmyk.Mulberry
+        if re.match("RedViolet", color_str,re.IGNORECASE):
+            return color.cmyk.RedViolet
+        if re.match("Fuchsia", color_str,re.IGNORECASE):
+            return color.cmyk.Fuchsia
+        if re.match("Lavender", color_str,re.IGNORECASE):
+            return color.cmyk.Lavender
+        if re.match("Thistle", color_str,re.IGNORECASE):
+            return color.cmyk.Thistle
+        if re.match("Orchid", color_str,re.IGNORECASE):
+            return color.cmyk.Orchid
+        if re.match("DarkOrchid", color_str,re.IGNORECASE):
+            return color.cmyk.DarkOrchid
+        if re.match("Purple", color_str,re.IGNORECASE):
+            return color.cmyk.Purple
+        if re.match("Plum", color_str,re.IGNORECASE):
+            return color.cmyk.Plum
+        if re.match("Violet", color_str,re.IGNORECASE):
+            return color.cmyk.Violet
+        if re.match("RoyalPurple", color_str,re.IGNORECASE):
+            return color.cmyk.RoyalPurple
+        if re.match("BlueViolet", color_str,re.IGNORECASE):
+            return color.cmyk.BlueViolet
+        if re.match("Periwinkle", color_str,re.IGNORECASE):
+            return color.cmyk.Periwinkle
+        if re.match("CadetBlue", color_str,re.IGNORECASE):
+            return color.cmyk.CadetBlue
+        if re.match("CornFlowerBlue", color_str,re.IGNORECASE):
+            return color.cmyk.CornFlowerBlue
+        if re.match("MidnightBlue", color_str,re.IGNORECASE):
+            return color.cmyk.MidnightBlue
+        if re.match("NavyBlue", color_str,re.IGNORECASE):
+            return color.cmyk.NavyBlue
+        if re.match("RoyalBlue", color_str,re.IGNORECASE):
+            return color.cmyk.RoyalBlue
+        if re.match("Blue", color_str,re.IGNORECASE):
+            return color.cmyk.Blue
+        if re.match("Cerulean", color_str,re.IGNORECASE):
+            return color.cmyk.Cerulean
+        if re.match("Cyan", color_str,re.IGNORECASE):
+            return color.cmyk.Cyan
+        if re.match("ProcessBlue", color_str,re.IGNORECASE):
+            return color.cmyk.ProcessBlue
+        if re.match("SkyBlue", color_str,re.IGNORECASE):
+            return color.cmyk.SkyBlue
+        if re.match("Turquoise", color_str,re.IGNORECASE):
+            return color.cmyk.Turquoise
+        if re.match("TealBlue", color_str,re.IGNORECASE):
+            return color.cmyk.TealBlue
+        if re.match("AquaMarine", color_str,re.IGNORECASE):
+            return color.cmyk.AquaMarine
+        if re.match("BlueGreen", color_str,re.IGNORECASE):
+            return color.cmyk.BlueGreen
+        if re.match("Emerald", color_str,re.IGNORECASE):
+            return color.cmyk.Emerald
+        if re.match("JungleGreen", color_str,re.IGNORECASE):
+            return color.cmyk.JungleGreen
+        if re.match("SeaGreen", color_str,re.IGNORECASE):
+            return color.cmyk.SeaGreen
+        if re.match("Green", color_str,re.IGNORECASE):
+            return color.cmyk.Green
+        if re.match("ForestGreen", color_str,re.IGNORECASE):
+            return color.cmyk.ForestGreen
+        if re.match("PineGreen", color_str,re.IGNORECASE):
+            return color.cmyk.PineGreen
+        if re.match("LimeGreen", color_str,re.IGNORECASE):
+            return color.cmyk.LimeGreen
+        if re.match("YellowGreen", color_str,re.IGNORECASE):
+            return color.cmyk.YellowGreen
+        if re.match("SpringGreen", color_str,re.IGNORECASE):
+            return color.cmyk.SpringGreen
+        if re.match("OliveGreen", color_str,re.IGNORECASE):
+            return color.cmyk.OliveGreen
+        if re.match("RawSienna", color_str,re.IGNORECASE):
+            return color.cmyk.RawSienna
+        if re.match("Sepia", color_str,re.IGNORECASE):
+            return color.cmyk.Sepia
+        if re.match("Brown", color_str,re.IGNORECASE):
+            return color.cmyk.Brown
+        if re.match("Tan", color_str,re.IGNORECASE):
+            return color.cmyk.Tan
+        if re.match("Gray", color_str,re.IGNORECASE):
+            return color.cmyk.Gray
+        if re.match("Black", color_str,re.IGNORECASE):
+            return color.cmyk.Black
+        if re.match("White", color_str,re.IGNORECASE):
+            return color.cmyk.White
+        #default
+        print "unknown color: %s"%color
+        return color.cmyk.Black
+
+    def parse_isopleth_params(self,params):
+        """
+        parses single definition. Definition is for example:
+          'isopleth_params':[{'color':'Black',
+                              'linestyle':'Dashed',
+                              'lineweight':'THick',
+                              'circle_size':0.05}]
+        """
+        # color
+        if params.has_key('color'):
+            color_param=self.parse_color(params['color'])
+        else:
+            color_param=self.parse_color('black')
+
+        # color rgb
+        if params.has_key('color_rgb'):
+            r=params['color_rgb'][0]
+            g=params['color_rgb'][1]
+            b=params['color_rgb'][2]
+            color_param=color.rgb(r,g,b)
+        # color cmyk
+        if params.has_key('color_cmyk'):
+            c=params['color_cmyk'][0]
+            m=params['color_cmyk'][1]
+            y=params['color_cmyk'][2]
+            k=params['color_cmyk'][3]
+            color_param=color.cmyk(c,m,y,k)
+        # transparent
+        transparent=False
+        if params.has_key('transparency'):
+            color_param_transparency=color.transparency(params['transparency'])
+            transparent=True
+        # linestyle
+        if params.has_key('linestyle'):
+            linestyle_param=self.parse_linestyle(params['linestyle'])
+        else:
+            linestyle_param=self.parse_linestyle('dashed')
+        # linewidth
+        if params.has_key('linewidth'):
+            linewidth_param=self.parse_linewidth(params['linewidth'])
+        else:
+            linewidth_param=self.parse_linewidth('thick')
+        if transparent:
+            return [color_param,linestyle_param,linewidth_param,color_param_transparency]
+        else:
+            return [color_param,linestyle_param,linewidth_param]
+
+    def parse_circle_size(self,params):
+        #
+        # circle radius
+        if params.has_key('circle_size'):
+            return params['circle_size']
+        else:
+            return 0.05
+
 
 class Isopleth_Block_Type_1(Isopleth_Block):
     """
@@ -643,24 +905,26 @@ class Isopleth_Block_Type_5(Isopleth_Block):
         else:
             return True # isopleth solvable
 
-    def draw(self,canvas):
+    def draw(self,canvas,draw_params=[{}]):
         """
         draws the isopleth
         """
         for idx,(x1,y1,x2,y2,x3,y3) in enumerate(self.draw_coordinates):
-            canvas.stroke(path.line(x1,y1,x2,y2),[color.cmyk.Blue,
-                                                    style.linewidth.thick,
-                                                    style.linestyle.dashed])
-            canvas.stroke(path.line(x2,y2,x3,y3),[color.cmyk.Blue,
-                                                    style.linewidth.thick,
-                                                    style.linestyle.dashed])
-            self._draw_circle_(canvas,x1,y1,0.05)
-            self._draw_circle_(canvas,x2,y2,0.05)
-            self._draw_circle_(canvas,x3,y3,0.05)
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            draw_params_list=self.parse_isopleth_params(p)
+            circle_radius=self.parse_circle_size(p)
+            canvas.stroke(path.line(x1,y1,x2,y2),draw_params_list)
+            canvas.stroke(path.line(x2,y2,x3,y3),draw_params_list)
+            self._draw_circle_(canvas,x1,y1,circle_radius)
+            self._draw_circle_(canvas,x2,y2,circle_radius)
+            self._draw_circle_(canvas,x3,y3,circle_radius)
         for line_points in self.other_points:
             for points in line_points:
                 for (x,y) in points:
-                    self._draw_circle_(canvas,x,y,0.05)
+                    self._draw_circle_(canvas,x,y,circle_radius)
 
     def solve(self,solutions):
         """
@@ -1005,25 +1269,29 @@ class Isopleth_Block_Type_6(Isopleth_Block):
             solution[atom2.params['tag']]=(x2,y2)
         return x1,y1,x2,y2
 
-    def draw(self,canvas):
+    def draw(self,canvas,draw_params=[{}]):
         """
         draws the isopleth
         """
         for idx,(x1,y1,x2,y2) in enumerate(self.draw_coordinates):
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            draw_params_list=self.parse_isopleth_params(p)
+            circle_radius=self.parse_circle_size(p)
             x_offset1=self.atom_stack[0].params['align_x_offset']
             y_offset1=self.atom_stack[0].params['align_y_offset']
             x_offset2=self.atom_stack[1].params['align_x_offset']
             y_offset2=self.atom_stack[1].params['align_y_offset']
             canvas.stroke(path.line(x1-x_offset1,y1-y_offset1,x2-x_offset2,y2-y_offset2),
-                          [color.cmyk.Blue,
-                           style.linewidth.thick,
-                           style.linestyle.dashed])
-            self._draw_circle_(canvas,x1,y1,0.05)
-            self._draw_circle_(canvas,x2,y2,0.05)
+                          draw_params_list)
+            self._draw_circle_(canvas,x1,y1,circle_radius)
+            self._draw_circle_(canvas,x2,y2,circle_radius)
         for line_points in self.other_points:
             for points in line_points:
                 for (x,y) in points:
-                    self._draw_circle_(canvas,x,y,0.05)
+                    self._draw_circle_(canvas,x,y,circle_radius)
 
 
 class Isopleth_Block_Type_7(Isopleth_Block_Type_1):
@@ -1094,22 +1362,27 @@ class Isopleth_Block_Type_8(Isopleth_Block):
             solution[self.atom_stack[0].params['tag']]=(x0,y0)
         return x0,y0
 
-    def draw(self,canvas):
+    def draw(self,canvas,draw_params=[{}]):
         """
         draws the isopleth
         """
         for idx,(x1,y1) in enumerate(self.draw_coordinates):
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            draw_params_list=self.parse_isopleth_params(p)
+            canvas.stroke(path.line(xx1,yy1,xx2,yy2),draw_params_list)
+            circle_radius=self.parse_circle_size(p)
             x_offset=self.atom_stack[0].params['align_x_offset']
             y_offset=self.atom_stack[0].params['align_y_offset']
             if x_offset!=0 or y_offset!=0:
-                canvas.stroke(path.line(x1,y1,x1-x_offset,y1-y_offset),[color.cmyk.Blue,
-                                                    style.linewidth.thick,
-                                                    style.linestyle.dashed])
-            self._draw_circle_(canvas,x1,y1,0.05)
+                canvas.stroke(path.line(x1,y1,x1-x_offset,y1-y_offset),draw_params_list)
+            self._draw_circle_(canvas,x1,y1,circle_radius)
         for line_points in self.other_points:
             for points in line_points:
                 for (x,y) in points:
-                    self._draw_circle_(canvas,x,y,0.05)
+                    self._draw_circle_(canvas,x,y,circle_radius)
 
 
 

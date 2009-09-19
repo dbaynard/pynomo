@@ -38,4 +38,4 @@ for filename in filelist:
         print '%3.1f s has elapsed for %s'%(toc-tic,filename)
         print "------------------------------------"
 toc_orig=time.time()
-print '%3.1f s has elapsed overall'%toc_orig-tic_orig
+print '%3.1f s has elapsed overall'%(toc_orig-tic_orig)

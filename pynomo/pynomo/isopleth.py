@@ -379,30 +379,33 @@ class Isopleth_Block(object):
             else:
                 p=draw_params[len(draw_params)-1]
             draw_params_list=self.parse_isopleth_params(p)
+            color_param=draw_params_list[0]
 #            canvas.stroke(path.line(xx1,yy1,xx2,yy2),[color.cmyk.Black,
 #                                                    style.linewidth.thick,
 #                                                    style.linestyle.dashed])
             canvas.stroke(path.line(xx1,yy1,xx2,yy2),draw_params_list)
             circle_radius=self.parse_circle_size(p)
-            self._draw_circle_(canvas,x1,y1,circle_radius)
-            self._draw_circle_(canvas,x2,y2,circle_radius)
-            self._draw_circle_(canvas,x3,y3,circle_radius)
+            self._draw_circle_(canvas,x1,y1,circle_radius,color_param)
+            self._draw_circle_(canvas,x2,y2,circle_radius,color_param)
+            self._draw_circle_(canvas,x3,y3,circle_radius,color_param)
         for idx,line_points in enumerate(self.other_points):
             if len(draw_params)>idx:
                 p=draw_params[idx]
             else:
                 p=draw_params[len(draw_params)-1]
             circle_radius=self.parse_circle_size(p)
+            draw_params_list=self.parse_isopleth_params(p)
+            color_param=draw_params_list[0]
             for points in line_points:
                 for (x,y) in points:
-                    self._draw_circle_(canvas,x,y,circle_radius)
+                    self._draw_circle_(canvas,x,y,circle_radius,color_param)
 
-    def _draw_circle_(self,canvas,x,y,r):
+    def _draw_circle_(self,canvas,x,y,r,circle_color=color.cmyk.Black):
         """
         draws marker circle
         """
         canvas.fill(path.circle(x, y, r), [color.rgb.white])
-        canvas.stroke(path.circle(x,y,r))
+        canvas.stroke(path.circle(x,y,r),[circle_color])
 
     def solve(self,solutions):
         """
@@ -411,11 +414,15 @@ class Isopleth_Block(object):
         pass
 
     def check_if_all_solutions_found(self,solutions):
+        """
+        this has right now no function
+        """
         all_found=True
         for atom_idx,atom in enumerate(self.atom_stack):
             for idx,dummy in enumerate(solutions):
                 if not isinstance(self.isopleth_values[idx][atom_idx],(int,float,tuple)):
-                    print "not all isopleths solved yet..."
+                    pass
+                    #print "not all isopleths solved yet..."
 
 
     def find_initial_solutions(self,solutions):
@@ -915,13 +922,21 @@ class Isopleth_Block_Type_5(Isopleth_Block):
             else:
                 p=draw_params[len(draw_params)-1]
             draw_params_list=self.parse_isopleth_params(p)
+            color_param=draw_params_list[0]
             circle_radius=self.parse_circle_size(p)
             canvas.stroke(path.line(x1,y1,x2,y2),draw_params_list)
             canvas.stroke(path.line(x2,y2,x3,y3),draw_params_list)
-            self._draw_circle_(canvas,x1,y1,circle_radius)
-            self._draw_circle_(canvas,x2,y2,circle_radius)
-            self._draw_circle_(canvas,x3,y3,circle_radius)
-        for line_points in self.other_points:
+            self._draw_circle_(canvas,x1,y1,circle_radius,color_param)
+            self._draw_circle_(canvas,x2,y2,circle_radius,color_param)
+            self._draw_circle_(canvas,x3,y3,circle_radius,color_param)
+        for idx,line_points in enumerate(self.other_points):
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            draw_params_list=self.parse_isopleth_params(p)
+            color_param=draw_params_list[0]
+            circle_radius=self.parse_circle_size(p)
             for points in line_points:
                 for (x,y) in points:
                     self._draw_circle_(canvas,x,y,circle_radius)
@@ -1279,6 +1294,7 @@ class Isopleth_Block_Type_6(Isopleth_Block):
             else:
                 p=draw_params[len(draw_params)-1]
             draw_params_list=self.parse_isopleth_params(p)
+            color_param=draw_params_list[0]
             circle_radius=self.parse_circle_size(p)
             x_offset1=self.atom_stack[0].params['align_x_offset']
             y_offset1=self.atom_stack[0].params['align_y_offset']
@@ -1286,12 +1302,19 @@ class Isopleth_Block_Type_6(Isopleth_Block):
             y_offset2=self.atom_stack[1].params['align_y_offset']
             canvas.stroke(path.line(x1-x_offset1,y1-y_offset1,x2-x_offset2,y2-y_offset2),
                           draw_params_list)
-            self._draw_circle_(canvas,x1,y1,circle_radius)
-            self._draw_circle_(canvas,x2,y2,circle_radius)
-        for line_points in self.other_points:
+            self._draw_circle_(canvas,x1,y1,circle_radius,color_param)
+            self._draw_circle_(canvas,x2,y2,circle_radius,color_param)
+        for idx,line_points in enumerate(self.other_points):
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            draw_params_list=self.parse_isopleth_params(p)
+            color_param=draw_params_list[0]
+            circle_radius=self.parse_circle_size(p)
             for points in line_points:
                 for (x,y) in points:
-                    self._draw_circle_(canvas,x,y,circle_radius)
+                    self._draw_circle_(canvas,x,y,circle_radius,color_param)
 
 
 class Isopleth_Block_Type_7(Isopleth_Block_Type_1):
@@ -1372,17 +1395,24 @@ class Isopleth_Block_Type_8(Isopleth_Block):
             else:
                 p=draw_params[len(draw_params)-1]
             draw_params_list=self.parse_isopleth_params(p)
-            canvas.stroke(path.line(xx1,yy1,xx2,yy2),draw_params_list)
+            color_param=draw_params_list[0]
             circle_radius=self.parse_circle_size(p)
             x_offset=self.atom_stack[0].params['align_x_offset']
             y_offset=self.atom_stack[0].params['align_y_offset']
             if x_offset!=0 or y_offset!=0:
                 canvas.stroke(path.line(x1,y1,x1-x_offset,y1-y_offset),draw_params_list)
-            self._draw_circle_(canvas,x1,y1,circle_radius)
-        for line_points in self.other_points:
+            self._draw_circle_(canvas,x1,y1,circle_radius,color_param)
+        for idx,line_points in enumerate(self.other_points):
+            if len(draw_params)>idx:
+                p=draw_params[idx]
+            else:
+                p=draw_params[len(draw_params)-1]
+            draw_params_list=self.parse_isopleth_params(p)
+            color_param=draw_params_list[0]
+            circle_radius=self.parse_circle_size(p)
             for points in line_points:
                 for (x,y) in points:
-                    self._draw_circle_(canvas,x,y,circle_radius)
+                    self._draw_circle_(canvas,x,y,circle_radius,color_param)
 
 
 

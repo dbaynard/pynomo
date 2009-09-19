@@ -137,7 +137,7 @@ class Nomo_Grid_Box(object):
         self._calc_bound_box_ini_()
         self._build_u_lines_(self.u_func)
         #debug by looking pdf
-        self._draw_debug_ini_()
+        ##self._draw_debug_ini_()
         # build scaled versions
         self._scale_and_mirror_()
         #self._draw_debug_ini_('after.pdf')

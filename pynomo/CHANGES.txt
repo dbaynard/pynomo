@@ -1,4 +1,10 @@
 PyNomo
+0.2.2
+=====
+- new scale (smart) scale types: 'smart linear', 'smart log'
+- isopleths easily defined
+- default number formatting ('text_format') is %4.4g
+
 
 0.2.1
 =====

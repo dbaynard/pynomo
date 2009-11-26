@@ -2494,7 +2494,7 @@ class Nomo_Atom:
                 base_stop=p['u_max']
             else:
                 base_stop=p['base_stop']
-            Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
+            self.nomo_axis_ref=Nomo_Axis(func_f=self.give_x,func_g=self.give_y,
                       start=p['u_min'],stop=p['u_max'],
                       turn=-1,title=p['title'],canvas=canvas,type=p['scale_type'],
                       tick_levels=p['tick_levels'],tick_text_levels=p['tick_text_levels'],
@@ -2631,7 +2631,7 @@ class Nomo_Atom_Grid(Nomo_Atom):
             Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
                         canvas=canvas,data=pp)
         # main nomogram
-        gridi=Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
+        self.grid_ref=Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
                         canvas=canvas,data=self.params)
         if self.params['debug']:
             print "##### SINGLE AXIS PARAMS #######"

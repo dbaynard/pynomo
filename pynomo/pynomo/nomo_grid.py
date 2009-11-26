@@ -53,6 +53,7 @@ class Nomo_Grid:
                              'text_prefix_v':'', # for example r'$\beta$='
                              'text_format_u':"$%4.4g$",
                              'text_format_v':"$%4.4g$",
+                             'iterator_factor':1.001,
                              }
         self.grid_data=data_default_values
         self.grid_data.update(data)
@@ -145,6 +146,8 @@ class Nomo_Grid:
         line.append(path.lineto(f(start), g(start)))
         u=start
         laskuri=1
+        up_factor=self.grid_data['iterator_factor']
+        down_factor=1.0/up_factor
         while True:
             if u<stop:
                 dx=(f(u+du)-f(u))
@@ -158,11 +161,11 @@ class Nomo_Grid:
                     delta_y=g(u+delta_u)-g(u)
                     delta_l=sqrt(delta_x**2+delta_y**2)
                     if delta_l>5.0*section_length:
-                        delta_u=delta_u*0.999
+                        delta_u=delta_u*down_factor #0.999
                         #print "delta_u pienenee:%f"%delta_u
                     else:
                         if delta_l<section_length/5.0:
-                            delta_u=delta_u*1.001
+                            delta_u=delta_u*up_factor #1.001
                             #print "delta_u kasvaa:%f"%delta_u
                     if delta_l<=5*section_length and delta_l>=0.2*section_length:
                         break

@@ -209,6 +209,7 @@ class Nomographer:
         if params['debug']:
             print "##### MAIN PARAMS #######"
             pprint.pprint(params)
+        self.wrapper=wrapper
 
     def _make_grid_(self,params,c):
         """

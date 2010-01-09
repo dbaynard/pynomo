@@ -35,32 +35,32 @@ class FourPoint(object):
         """
         trafo_1=self.find_trafo_to_unity_rectangle(x1,y1,x2,y2,x3,y3,x4,y4)
         trafo_2=self.find_trafo_to_unity_rectangle(x1d,y1d,x2d,y2d,x3d,y3d,x4d,y4d)
-        test1=array([[x1,y1,1.0],
-                     [x2,y2,1.0],
-                     [x3,y3,1.0]])
-        test2=array([[x1,y1,1.0],
-                     [x2,y2,1.0],
-                     [x4,y4,1.0]])
-        test1d=array([[x1d,y1d,1.0],
-                     [x2d,y2d,1.0],
-                     [x3d,y3d,1.0]])
-        test2d=array([[x1d,y1d,1.0],
-                     [x2d,y2d,1.0],
-                     [x4d,y4d,1.0]])
-        test1f=scipy.dot(test1,trafo_1)
-        test2f=scipy.dot(test2,trafo_1)
-        test1fd=scipy.dot(test1d,trafo_2)
-        test2fd=scipy.dot(test2d,trafo_2)
-        print test1f
-        print test2f
-        print test1fd
-        print test2fd
-        print "goal"
-        print x1d,y1d,x2d,y2d,x3d,y3d,x4d,y4d
+#        test1=array([[x1,y1,1.0],
+#                     [x2,y2,1.0],
+#                     [x3,y3,1.0]])
+#        test2=array([[x1,y1,1.0],
+#                     [x2,y2,1.0],
+#                     [x4,y4,1.0]])
+#        test1d=array([[x1d,y1d,1.0],
+#                     [x2d,y2d,1.0],
+#                     [x3d,y3d,1.0]])
+#        test2d=array([[x1d,y1d,1.0],
+#                     [x2d,y2d,1.0],
+#                     [x4d,y4d,1.0]])
+#        test1f=scipy.dot(test1,trafo_1)
+#        test2f=scipy.dot(test2,trafo_1)
+#        test1fd=scipy.dot(test1d,trafo_2)
+#        test2fd=scipy.dot(test2d,trafo_2)
+#        print test1f
+#        print test2f
+#        print test1fd
+#        print test2fd
+#        print "goal"
+#        print x1d,y1d,x2d,y2d,x3d,y3d,x4d,y4d
         self.trafo=scipy.dot(trafo_1,linalg.inv(trafo_2))
-        print "result"
-        print scipy.dot(test1,self.trafo)
-        print scipy.dot(test2,self.trafo)
+#        print "result"
+#        print scipy.dot(test1,self.trafo)
+#        print scipy.dot(test2,self.trafo)
         """
         o1,o2,o3,p1,p2,p3,q1,q2,q3=self.find_three_points_to_transform(x1,y1,x2,y2,x3,y3,x4,y4)
         self.transformation=self.find_transformation_points_to_rectangle(o1,o2,o3,p1,p2,p3,q1,q2,q3)

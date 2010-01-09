@@ -326,20 +326,20 @@ class Nomo_Wrapper:
                                                                       alpha2,beta2,gamma2,
                                                                       alpha3,beta3,gamma3)
                                             double_aligned=True
-                                            # DEBUG
-                                            u_start_1=min(atom1.params['u_min'],atom1.params['u_max'])
-                                            u_stop_1=max(atom1.params['u_min'],atom1.params['u_max'])
-                                            u_start_1d=min(atom1d.params['u_min'],atom2.params['u_max'])
-                                            u_stop_1d=max(atom1d.params['u_min'],atom2.params['u_max'])
-                                            print "test if same:"
-                                            print atom1.give_x(u_start_1)
-                                            print atom1d.give_x(u_start_1d)
-                                            print atom1.give_y(u_start_1)
-                                            print atom1d.give_y(u_start_1d)
-                                            print atom2.give_x(u_start_1)
-                                            print atom2d.give_x(u_start_1d)
-                                            print atom2.give_y(u_start_1)
-                                            print atom2d.give_y(u_start_1d)
+#                                            # DEBUG
+#                                            u_start_1=min(atom1.params['u_min'],atom1.params['u_max'])
+#                                            u_stop_1=max(atom1.params['u_min'],atom1.params['u_max'])
+#                                            u_start_1d=min(atom1d.params['u_min'],atom2.params['u_max'])
+#                                            u_stop_1d=max(atom1d.params['u_min'],atom2.params['u_max'])
+#                                            print "test if same:"
+#                                            print atom1.give_x(u_start_1)
+#                                            print atom1d.give_x(u_start_1d)
+#                                            print atom1.give_y(u_start_1)
+#                                            print atom1d.give_y(u_start_1d)
+#                                            print atom2.give_x(u_start_1)
+#                                            print atom2d.give_x(u_start_1d)
+#                                            print atom2.give_y(u_start_1)
+#                                            print atom2d.give_y(u_start_1d)
                                 #print idx2
                                 #print idx2
                                 if not double_aligned:
@@ -389,7 +389,7 @@ class Nomo_Wrapper:
         alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
         self._calc_trafo_(x1,y1,x2,y2,x3,y3,\
                           x1d,y1d,x2d,y2d,x3d,y3d)
-        print (alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3)
+        #print (alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3)
         return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
     def _find_trafo_4_atoms_(self,atom1a,atom1b,atom2a,atom2b):
@@ -427,7 +427,7 @@ class Nomo_Wrapper:
         #x3,y3,x4,y4,x3d,y3d,x4d,y4d=find_coords(atom1b,atom2b)
         x3,y3,x4,y4,x3d,y3d,x4d,y4d=find_coords(atom2b,atom1b)
         #DEBUG
-        if True:
+        if False:
             print "x1: %f y1: %f x2: %f y2: %f x1d: %f y1d: %f x2d: %f y2d: %f"%(x1,y1,x2,y2,x1d,y1d,x2d,y2d)
             print "x3: %f y3: %f x4: %f y4: %f x3d: %f y3d: %f x4d: %f y4d: %f"%(x3,y3,x4,y4,x3d,y3d,x4d,y4d)
             c = canvas.canvas()
@@ -455,7 +455,7 @@ class Nomo_Wrapper:
         alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
         FourPoint(x1,y1,x2,y2,x3,y3,x4,y4,\
                   x1d,y1d,x2d,y2d,x3d,y3d,x4d,y4d).give_trafo_mat()
-        print (alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3)
+        #print (alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3)
         return alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3
 
     def _calc_transformation_matrix_(self,x1,y1,x2,y2,x3,y3,x4,y4,

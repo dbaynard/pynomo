@@ -273,7 +273,7 @@ class Axis_Wrapper:
         """
         dx=abs(x2-x1)
         dy=abs(y1-y2)
-        if dx>0.0:
+        if dx>1e-9: #close to zero
             return dy/dx
         else:
             return 1e120 # = big number

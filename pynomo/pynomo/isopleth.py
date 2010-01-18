@@ -440,6 +440,18 @@ class Isopleth_Block(object):
                         x=atom.give_x(value)-atom.params['align_x_offset']
                         y=atom.give_y(value)-atom.params['align_y_offset']
                         solutions[idx][atom.params['tag']]=(x,y)
+            else:
+                if not atom.params['dtag']=='none':
+                    for idx,dummy in enumerate(solutions):
+                        # store only true (x,y) tuples
+                        if isinstance(self.isopleth_values[idx][atom_idx],(tuple)):
+                            solutions[idx][atom.params['dtag']]=self.isopleth_values[idx][atom_idx]
+                        if isinstance(self.isopleth_values[idx][atom_idx],(int,float)):
+                            value=self.isopleth_values[idx][atom_idx]
+                            x=atom.give_x(value)-atom.params['align_x_offset']
+                            y=atom.give_y(value)-atom.params['align_y_offset']
+                            solutions[idx][atom.params['dtag']]=(x,y)
+
 
     def update_solutions(self,solutions):
         """
@@ -449,7 +461,7 @@ class Isopleth_Block(object):
         for idx,solution in enumerate(solutions):
             for key in solution.keys():
                 for atom_idx,atom in enumerate(self.atom_stack):
-                    if atom.params['tag']==key:
+                    if atom.params['tag']==key or atom.params['dtag']==key:
                         if isinstance(self.isopleth_values[idx][atom_idx],str):
                             self.isopleth_values[idx][atom_idx]=solution[key]
                             solutions_updated=True

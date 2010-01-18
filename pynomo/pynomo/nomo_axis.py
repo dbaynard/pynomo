@@ -1356,6 +1356,9 @@ def find_log_ticks_smart(start,stop,f,g,turn=1,base_start=None,
     find_linear_ticks_smart(min_value,min(10**(min_decade+1),max_value),f,g,turn=1,base_start=None,\
                             base_stop=None,scale_max_0=10**(min_decade+1),\
                             distance_limit=distance_limit)
+    # added to include first min value if major decade
+    if abs(10**min_decade-min_value)/min_value<1e-6:
+        tick_0_list_final=tick_0_list_final+[10**(min_decade)]
     if (10**(min_decade+1))<=max_value:
         tick_0_list_final=tick_0_list_final+[10**(min_decade+1)]
     tick_1_list_final=tick_1_list_final+tick_0_list

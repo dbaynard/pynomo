@@ -320,6 +320,17 @@ class Nomo_Axis:
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
+        self.tick_0_list=tick_0_list
+        self.tick_1_list=tick_1_list
+        self.tick_2_list=tick_2_list
+        self.tick_3_list=tick_3_list
+        self.tick_4_list=tick_4_list
+
+        self.text_0_list=text_0_list
+        self.text_1_list=text_1_list
+        self.text_2_list=text_2_list
+        self.text_3_list=text_3_list
+        self.text_4_list=text_4_list
 
     def _make_linear_axis_smart_(self,start,stop,f,g,turn=1,base_start=None,base_stop=None):
         """
@@ -414,6 +425,17 @@ class Nomo_Axis:
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
+        self.tick_0_list=tick_0_list
+        self.tick_1_list=tick_1_list
+        self.tick_2_list=tick_2_list
+        self.tick_3_list=tick_3_list
+        self.tick_4_list=tick_4_list
+
+        self.text_0_list=text_0_list
+        self.text_1_list=text_1_list
+        self.text_2_list=text_2_list
+        self.text_3_list=text_3_list
+        self.text_4_list=text_4_list
 
     def _make_log_axis_smart_(self,start,stop,f,g,turn=1,base_start=None,base_stop=None):
         """
@@ -559,11 +581,18 @@ class Nomo_Axis:
         self.dx_units_2=dx_units_2
         self.dx_units_3=dx_units_3
         self.dx_units_4=dx_units_4
+
         self.tick_0_list=tick_0_list
         self.tick_1_list=tick_1_list
         self.tick_2_list=tick_2_list
         self.tick_3_list=tick_3_list
         self.tick_4_list=tick_4_list
+
+        self.text_0_list=text_0_list
+        self.text_1_list=text_1_list
+        self.text_2_list=text_2_list
+        self.text_3_list=text_3_list
+        self.text_4_list=text_4_list
 
         # tick level 0
         if self.tick_levels>0:
@@ -670,6 +699,17 @@ class Nomo_Axis:
         self.line=line
         self.thin_line=thin_line
         self.texts=texts
+        self.tick_0_list=tick_0_list
+        self.tick_1_list=tick_1_list
+        self.tick_2_list=tick_2_list
+        self.tick_3_list=tick_3_list
+        self.tick_4_list=tick_4_list
+
+        self.text_0_list=text_0_list
+        self.text_1_list=text_1_list
+        self.text_2_list=text_2_list
+        self.text_3_list=text_3_list
+        self.text_4_list=text_4_list
 
     def _make_texts_(self,tick_list,text_list,f,g,dx_units,dy_units,angles,
                      text_distance,text_size,manual_texts=[]):

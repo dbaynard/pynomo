@@ -326,11 +326,11 @@ class Nomo_Axis:
         self.tick_3_list=tick_3_list
         self.tick_4_list=tick_4_list
 
-        self.text_0_list=text_0_list
-        self.text_1_list=text_1_list
-        self.text_2_list=text_2_list
-        self.text_3_list=text_3_list
-        self.text_4_list=text_4_list
+        self.text_0_list=tick_0_list
+        self.text_1_list=tick_1_list
+        self.text_2_list=tick_2_list
+        self.text_3_list=tick_3_list
+        self.text_4_list=tick_4_list
 
     def _make_linear_axis_smart_(self,start,stop,f,g,turn=1,base_start=None,base_stop=None):
         """
@@ -705,11 +705,11 @@ class Nomo_Axis:
         self.tick_3_list=tick_3_list
         self.tick_4_list=tick_4_list
 
-        self.text_0_list=text_0_list
-        self.text_1_list=text_1_list
-        self.text_2_list=text_2_list
-        self.text_3_list=text_3_list
-        self.text_4_list=text_4_list
+        self.text_0_list=tick_0_list
+        self.text_1_list=tick_1_list
+        self.text_2_list=tick_2_list
+        self.text_3_list=tick_3_list
+        self.text_4_list=tick_4_list
 
     def _make_texts_(self,tick_list,text_list,f,g,dx_units,dy_units,angles,
                      text_distance,text_size,manual_texts=[]):

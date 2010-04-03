@@ -181,6 +181,8 @@ class Nomographer:
                                      height=block_para['height'])
                 wrapper.add_block(blocks[-1])
                 isopleths.add_isopleth_block(blocks[-1],block_para)
+            # always save a handle
+            blocks[-1].ref_block_params=block_para
         wrapper.align_blocks()
         wrapper.build_axes_wrapper() # build structure for transformations
         # do transformations

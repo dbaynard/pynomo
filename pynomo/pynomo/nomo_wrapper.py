@@ -584,6 +584,9 @@ class Nomo_Block(object):
         self.trafo_stack=[] # stack for transformation matrices for block
         self.axis_wrapper_stack=[] # stack of Axis_Wrapper objects in order to calculate
                                    # general block parameters like highest point, etc.
+        self.ref_block_texts=[] # handle for additional texts in block
+        self.ref_block_lines=[] # handle for additional lines in block
+        self.ref_block_params={} # handle for params that define the block
         self.add_transformation() # adds initial unit transformation
 
 
@@ -1438,6 +1441,9 @@ class Nomo_Block_Type_5(Nomo_Block):
             self._draw_v_text_(xt,yt,dx,dy,canvas,title,title_title,x_corr,y_corr,draw_line)
         canvas.stroke(u_line_list, [style.linewidth.normal,self.grid_box.params['u_axis_color']])
         canvas.stroke(v_line_list, [style.linewidth.normal,self.grid_box.params['v_axis_color']])
+        #take handle
+        self.ref_block_lines.append(u_line_list)
+        self.ref_block_lines.append(v_line_list)
         super(Nomo_Block_Type_5,self).draw(canvas=canvas)
         #self._draw_horizontal_guides_(canvas)
         #self._draw_vertical_guides_(canvas)
@@ -1486,10 +1492,19 @@ class Nomo_Block_Type_5(Nomo_Block):
         canvas.text(x-text_distance*dx_unit+x_corr,
                     y-text_distance*dy_unit+y_corr,
                     title_text,text_attr)
+        # take handle
+        self.ref_block_texts.append([title_text,x-text_distance*dx_unit+x_corr,
+                                    y-text_distance*dy_unit+y_corr,
+                                    text_attr])
         # draw line if needed
         if draw_line:
             canvas.stroke(path.line(x, y, x-text_distance*dx_unit+x_corr, y-text_distance*dy_unit+y_corr),
                            [style.linewidth.normal,para_v['axis_color']])
+        # take handle
+        line_handle=path.path()
+        line_handle.append(path.moveto(x,y))
+        line_handle.append(path.lineto(x-text_distance*dx_unit+x_corr, y-text_distance*dy_unit+y_corr))
+        self.ref_block_lines.append(line_handle)
 
     def _draw_box_around_(self,canvas):
         """
@@ -1511,6 +1526,8 @@ class Nomo_Block_Type_5(Nomo_Block):
         line.append(path.lineto(xt1, yt1))
         #canvas.stroke(line, [style.linewidth.thick])
         canvas.stroke(line)
+        # take handle
+        self.ref_block_lines.append(line)
 
     def _draw_horizontal_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """
@@ -1529,6 +1546,7 @@ class Nomo_Block_Type_5(Nomo_Block):
                 line.append(path.lineto(xt2, yt2))
             canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted,\
                                  p['u_axis_color']])
+            self.ref_block_lines.append(line)
 
     def _draw_vertical_guides_(self,canvas,axis_color=color.cmyk.Gray):
         """
@@ -1547,6 +1565,8 @@ class Nomo_Block_Type_5(Nomo_Block):
                 line.append(path.lineto(xt2, yt2))
             canvas.stroke(line, [style.linewidth.normal, style.linestyle.dotted,\
                                  p['wd_axis_color']])
+            #take handle
+            self.ref_block_lines.append(line)
 
 
     def _build_u_axis_(self):

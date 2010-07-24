@@ -283,13 +283,13 @@ class Nomo_Wrapper:
         aligns blocks w.r.t. each other according to 'tag' fields
         in Atom params dictionary
         """
-        # translate all blocks initially
-        for block in self.block_stack:
-            alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
-            self._return_initial_shift_()
-            block.add_transformation(alpha1,beta1,gamma1,
-                                     alpha2,beta2,gamma2,
-                                     alpha3,beta3,gamma3)
+#        # translate all blocks initially
+#        for block in self.block_stack:
+#            alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+#            self._return_initial_shift_()
+#            block.add_transformation(alpha1,beta1,gamma1,
+#                                     alpha2,beta2,gamma2,
+#                                     alpha3,beta3,gamma3)
 
         for idx1,block1 in enumerate(self.block_stack):
             for idx2,block2 in enumerate(self.block_stack):
@@ -1340,9 +1340,11 @@ class Nomo_Block_Type_5(Nomo_Block):
         sets block up
         """
         self._build_u_axis_()
-        #self._build_v_axis_()
         self._build_w_axis_()
         self._build_wd_axis_()
+        # build additional v-scale. Put isopleths off in main params, otherwise error
+        if self.grid_box.params['allow_additional_v_scale']:
+            self._build_v_axis_()
         self.set_reference_axes()
 
     def draw(self,canvas):
@@ -1438,7 +1440,8 @@ class Nomo_Block_Type_5(Nomo_Block):
                 xt,yt=xt_stop,yt_stop
             dx=xt_1-xt
             dy=yt_1-yt
-            self._draw_v_text_(xt,yt,dx,dy,canvas,title,title_title,x_corr,y_corr,draw_line)
+            if self.grid_box.params['allow_additional_v_scale']==False:
+                self._draw_v_text_(xt,yt,dx,dy,canvas,title,title_title,x_corr,y_corr,draw_line)
         canvas.stroke(u_line_list, [style.linewidth.normal,self.grid_box.params['u_axis_color']])
         canvas.stroke(v_line_list, [style.linewidth.normal,self.grid_box.params['v_axis_color']])
         #take handle
@@ -2406,7 +2409,7 @@ class Nomo_Block_Type_9(Nomo_Block):
         self.params2=params2
         self.params3=params3
 
-    def set_block(self,width=10.0,height=10.0):
+    def set_block(self,width=10.0,height=10.0,ignore_transforms=False):
         """
         sets original width, height
         """
@@ -2427,6 +2430,10 @@ class Nomo_Block_Type_9(Nomo_Block):
         height_orig=abs(max_y-min_y)
         x_factor=width/width_orig
         y_factor=height/height_orig
+        # if ignoring transforms
+        if ignore_transforms==True:
+            x_factor=1.0
+            y_factor=1.0
         # redefine scaled functions
         # F1
         if self.params1['grid']:

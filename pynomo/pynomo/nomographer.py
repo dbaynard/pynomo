@@ -163,7 +163,8 @@ class Nomographer:
                                               transform_ini=block_para['transform_ini'])
 
                 blocks[-1].set_block(width=block_para['width'],
-                                     height=block_para['height'])
+                                     height=block_para['height'],
+                                     ignore_transforms=block_para['ignore_transforms'])
                 wrapper.add_block(blocks[-1])
                 isopleths.add_isopleth_block(blocks[-1],block_para)
             # TYPE 10
@@ -199,8 +200,14 @@ class Nomographer:
             params['pre_func'](c)
         if params['draw_lines']:
             self._draw_lines_(params,c)
-        # draw isopleths
-        isopleths.draw(c)
+        if params['draw_isopleths']:
+            # draw isopleths
+            isopleths.draw(c)
+        else: # calculate points
+            for block in blocks:
+                for atom in block.atom_stack:
+                    # calculates lines (list of coordinates)
+                    atom.calc_line_and_sections()
         # draw the nomogram
         wrapper.draw_nomogram(c,params['post_func'])
         self.blocks=blocks  # save for debugging
@@ -325,6 +332,7 @@ class Nomographer:
                       'pre_func':None, # function(canvas) to draw first
                       'post_func':None, #  function(canvas) to draw last
                       'debug':False,
+                      'draw_isopleths':True, # draws isopleths
                       'isopleth_params':[{'color':'Black',
                                           'linestyle':'Dashed',
                                           'lineweight':'thick',
@@ -508,6 +516,7 @@ class Nomographer:
                          'u_texts_v_stop':True,
                          'debug':False,
                          'isopleth_values':[],
+                         'ignore_transforms':False,
                          }
         for key in params_default:
             if not params.has_key(key):

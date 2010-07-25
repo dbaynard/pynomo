@@ -27,7 +27,7 @@ class Nomo_Axis:
     """
     Main class to draw axis.
     """
-    def __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
+    def     __init__(self,func_f,func_g,start,stop,turn,title,canvas,type='linear',
                  text_style='normal',title_x_shift=0,title_y_shift=0.25,
                  tick_levels=4,tick_text_levels=3,
                  text_color=color.rgb.black, axis_color=color.rgb.black,
@@ -702,14 +702,14 @@ class Nomo_Axis:
         self.tick_0_list=tick_0_list
         self.tick_1_list=tick_1_list
         self.tick_2_list=tick_2_list
-        self.tick_3_list=tick_3_list
-        self.tick_4_list=tick_4_list
+        #self.tick_3_list=tick_3_list
+        #self.tick_4_list=tick_4_list
 
         self.text_0_list=tick_0_list
         self.text_1_list=tick_1_list
         self.text_2_list=tick_2_list
-        self.text_3_list=tick_3_list
-        self.text_4_list=tick_4_list
+        #self.text_3_list=tick_3_list
+        #self.text_4_list=tick_4_list
 
     def _make_texts_(self,tick_list,text_list,f,g,dx_units,dy_units,angles,
                      text_distance,text_size,manual_texts=[]):
@@ -1251,6 +1251,7 @@ def _determine_turn_(f,g,start,stop,side,turn_relative=False):
     """
     du=(stop-start)*1e-6
     dy=(g(start+du)-g(start))
+    turn=1.0 # just in case nothing found
     if dy<=0 and side=='left':
         turn=1.0
     if dy>0 and side=='left':

@@ -56,6 +56,8 @@ class Nomo_Grid_Box(object):
                                'wd_min':0.1,
                                'wd_max':1.0,
                                'manual_wd_scale':False,
+                               'v_min':0.1, #not used typically
+                               'v_max':1.0, #not used typically
                                'x_min':0.1,
                                'x_max':1.0,
                                'manual_x_scale':False, # if inital x_scale is set manually, use two values above
@@ -73,6 +75,7 @@ class Nomo_Grid_Box(object):
                                'scale_type_u':'manual line',
                                'scale_type_w':'linear',
                                'scale_type_wd':'linear',
+                               'scale_type_v':'manual line', # change in definition by own risk
                                'u_title':'',
                                'v_title':'',
                                'w_title':'',
@@ -127,6 +130,10 @@ class Nomo_Grid_Box(object):
                                'wd_axis_color':color.rgb.black,
                                'wd_text_color':color.rgb.black,
                                'wd_title_color':color.rgb.black,
+                               'allow_additional_v_scale':False, # to draw additional scale as atom
+                                                                  # isopleths do not work
+                               'v_scale_u_value':1.0, # this value sets additional v_scale
+                               'x_func':lambda u,v:u+v # gives x as a function of u and v
                                }
         self.params=params_default_values
         self.params.update(params)
@@ -205,14 +212,30 @@ class Nomo_Grid_Box(object):
             v_value=self.params['v_values'][idx1]
             #v_manual_axis_data[v_value]='%f'%x_max
             v_manual_axis_data[x_max]='%3.2f'%v_value
-
+        # in case one wants better v-scale
+        if self.params['allow_additional_v_scale']:
+            v_min=self.params['v_min']
+            v_max=self.params['v_max']
+            u_value=self.params['v_scale_u_value'] # this value has to be set manually
+            f_v=lambda v:self.x_func(u_value,v)
+            g_v=lambda u:self.u_func(u_value)
+        else: # assuming manual data
+            v_min=self.x_left
+            v_max=self.x_right
+            f_v=lambda u:u
+            g_v=lambda u:self.x_top
         self.params_v={
-            'u_min':self.x_left,
-            'u_max':self.x_right,
-            'F':lambda u:u, # x-coordinate
-            'G':lambda u:self.y_top, # y-coordinate
+#            'u_min':self.x_left,
+#            'u_max':self.x_right,
+#            'F':lambda u:u, # x-coordinate
+#            'G':lambda u:self.y_top, # y-coordinate
+            'u_min':v_min,
+            'u_max':v_max,
+            'F':f_v,
+            'G':g_v,
             'title':self.params['v_title'],
-            'scale_type':'manual line', #this have to be hard coded
+            #'scale_type':'manual line', #this have to be hard coded
+            'scale_type':self.params['scale_type_v'],
             'manual_axis_data':v_manual_axis_data,
             'tick_side':self.params['v_tick_side'],
             'tag':'none', # this axis should not be aligned
@@ -345,6 +368,7 @@ class Nomo_Grid_Box(object):
         # scale functions
         self.u_func=lambda u:self.params['u_func'](u)*y_factor
         self.v_func=lambda x,v:self.params['v_func'](x/x_factor,v)*y_factor
+        self.x_func=lambda u,v:self.params['x_func'](u,v)*x_factor
         self.x_left=self.x_left_ini*x_factor
         self.x_right=self.x_right_ini*x_factor
         self.y_bottom=self.y_bottom_ini*y_factor
@@ -533,17 +557,17 @@ class Nomo_Grid_Box(object):
         return x_left,x_right,y_bottom,y_top
 
 
-    def _build_box_(self):
-        """
-        box around structure
-        """
-        pass
-
-    def _build_diagonal_line(self):
-        """
-        diagonal line to make 90 degree angle
-        """
-        pass
+#    def _build_box_(self):
+#        """
+#        box around structure
+#        """
+#        pass
+#
+#    def _build_diagonal_line(self):
+#        """
+#        diagonal line to make 90 degree angle
+#        """
+#        pass
 
     def _draw_debug_ini_(self,filename='nomo_grid_test_debug.pdf'):
         """

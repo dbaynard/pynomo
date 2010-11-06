@@ -523,8 +523,8 @@ class Nomo_Wrapper:
         to form a triangle for both atoms to be aligned
         """
         # taking points from atom1
-        u_start=min(atom1.params['u_min'],atom1.params['u_max'])
-        u_stop=max(atom1.params['u_min'],atom1.params['u_max'])
+        u_start=min(atom2.params['u_min'],atom2.params['u_max'])
+        u_stop=max(atom2.params['u_min'],atom2.params['u_max'])
         diff=u_stop-u_start
         u_start=u_start+0.3*diff
         u_stop=u_stop-0.3*diff

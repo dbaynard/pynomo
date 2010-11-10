@@ -184,7 +184,8 @@ class Nomo_Wrapper:
             {'scale paper': self._do_scale_to_canvas_trafo_,
              'optimize':self._do_optimize_trafo_,
              'polygon':self._do_polygon_trafo_,
-             'rotate': self._do_rotate_trafo_}[method](params)
+             'rotate': self._do_rotate_trafo_,
+             'matrix': self._do_explicite_matrix_}[method](params)
         except KeyError:
             print "Wrong transformation identifier"
 
@@ -220,6 +221,12 @@ class Nomo_Wrapper:
         """
         self.axes_wrapper.rotate_canvas(params)
         #self.axes_wrapper._print_result_pdf_("dummy1_rotate.pdf")
+
+    def _do_explicite_matrix_(self,params):
+        """
+        Does explicite matrix transformation
+        """
+        self.axes_wrapper.matrix_trafo(params)
 
     def draw_nomogram(self,canvas,post_func=None):
         """

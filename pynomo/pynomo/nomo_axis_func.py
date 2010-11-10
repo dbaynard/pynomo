@@ -479,6 +479,16 @@ class Axes_Wrapper:
         """
         self._trafo_to_paper_()
 
+    def matrix_trafo(self,given_matrix):
+        """
+        adds explicite matrix transformation
+        """
+        gm = given_matrix
+        self._add_transformation_(alpha1=gm[0][0],beta1=gm[0][1],gamma1=gm[0][2],
+                                  alpha2=gm[1][0],beta2=gm[1][1],gamma2=gm[1][2],
+                                  alpha3=gm[2][0],beta3=gm[2][1],gamma3=gm[2][2])
+        self._set_transformation_to_all_axis_()
+
     def _plot_axes_(self,c):
         """
         prints axes for debugging purposes

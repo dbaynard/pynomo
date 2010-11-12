@@ -87,6 +87,8 @@ class Nomo_Axis:
                              'base_stop':None, # drive tick scaling
                              'tick_distance_smart':0.05, # tick minimum distance for smart axes
                              'text_distance_smart':0.25, # text minimum distance for smart axes
+                             'linewidth':style.linewidth.normal,
+                             'linewidth_thin':style.linewidth.thin,
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
@@ -1095,8 +1097,12 @@ class Nomo_Axis:
         arrow_color=self.axis_appear['arrow_color']
         text_color=self.axis_appear['text_color']
         axis_color=self.axis_appear['axis_color']
-        c.stroke(self.line, [style.linewidth.normal,axis_color])
-        c.stroke(self.thin_line, [style.linewidth.thin,axis_color])
+        linewidth=self.axis_appear['linewidth']
+        linewidth_thin=self.axis_appear['linewidth_thin']
+        #c.stroke(self.line, [style.linewidth.normal,axis_color])
+        #c.stroke(self.thin_line, [style.linewidth.thin,axis_color])
+        c.stroke(self.line, [linewidth,axis_color,style.linecap.butt])
+        c.stroke(self.thin_line, [linewidth_thin,axis_color,style.linecap.butt])
         if self.arrows is not None:
             for arrow in self.arrows:
                 c.stroke(arrow,

@@ -87,8 +87,9 @@ class Nomo_Axis:
                              'base_stop':None, # drive tick scaling
                              'tick_distance_smart':0.05, # tick minimum distance for smart axes
                              'text_distance_smart':0.25, # text minimum distance for smart axes
-                             'linewidth':style.linewidth.normal,
-                             'linewidth_thin':style.linewidth.thin,
+                             'linewidth_main':style.linewidth.normal,
+                             'linewidth_ticks':style.linewidth.normal,
+                             'linewidth_ticks_thin':style.linewidth.thin,
                              }
         self.axis_appear=axis_appear_default_values
         self.axis_appear.update(axis_appear)
@@ -257,6 +258,7 @@ class Nomo_Axis:
         with values u in range [start, stop].
         """
         # line lists
+        main_line = path.path(path.moveto(f(start), g(start)))
         line = path.path(path.moveto(f(start), g(start)))
         thin_line=path.path(path.moveto(f(start), g(start)))
         # text list
@@ -317,10 +319,11 @@ class Nomo_Axis:
                      self.axis_appear['text_distance_4'],
                      self.axis_appear['text_size_4'])
         # make main line
-        self._make_main_line_(start,stop,line,f,g)
+        self._make_main_line_(start,stop,main_line,f,g)
 
         self.line=line
         self.thin_line=thin_line
+        self.main_line=main_line
         self.texts=texts
         self.tick_0_list=tick_0_list
         self.tick_1_list=tick_1_list
@@ -342,6 +345,7 @@ class Nomo_Axis:
         # line lists
         line = path.path(path.moveto(f(start), g(start)))
         thin_line=path.path(path.moveto(f(start), g(start)))
+        main_line = path.path(path.moveto(f(start), g(start)))
         # text list
         texts=[]
         # let's find tick positions
@@ -422,10 +426,11 @@ class Nomo_Axis:
                      self.axis_appear['text_distance_4'],
                      self.axis_appear['text_size_4'])
         # make main line
-        self._make_main_line_(start,stop,line,f,g)
+        self._make_main_line_(start,stop,main_line,f,g)
 
         self.line=line
         self.thin_line=thin_line
+        self.main_line=main_line
         self.texts=texts
         self.tick_0_list=tick_0_list
         self.tick_1_list=tick_1_list
@@ -447,6 +452,7 @@ class Nomo_Axis:
         # line lists
         line = path.path(path.moveto(f(start), g(start)))
         thin_line=path.path(path.moveto(f(start), g(start)))
+        main_line = path.path(path.moveto(f(start), g(start)))
         # text list
         texts=[]
         # let's find tick positions
@@ -642,10 +648,11 @@ class Nomo_Axis:
                      self.axis_appear['text_distance_4'],
                      self.axis_appear['text_size_4'])
         # make main line
-        self._make_main_line_(start,stop,line,f,g)
+        self._make_main_line_(start,stop,main_line,f,g)
 
         self.line=line
         self.thin_line=thin_line
+        self.main_line=main_line
         self.texts=texts
 
 
@@ -657,6 +664,7 @@ class Nomo_Axis:
         # line lists
         line = path.path(path.moveto(f(start), g(start)))
         thin_line=path.path(path.moveto(f(start), g(start)))
+        main_line = path.path(path.moveto(f(start), g(start)))
         # text list
         texts=[]
         # let's find tick positions
@@ -696,10 +704,11 @@ class Nomo_Axis:
                      self.axis_appear['text_size_log_2'])
 
         # make main line
-        self._make_main_line_(start,stop,line,f,g)
+        self._make_main_line_(start,stop,main_line,f,g)
 
         self.line=line
         self.thin_line=thin_line
+        self.main_line=main_line
         self.texts=texts
         self.tick_0_list=tick_0_list
         self.tick_1_list=tick_1_list
@@ -950,6 +959,7 @@ class Nomo_Axis:
         texts=list([])
         line = path.path(path.moveto(f(self.start), g(self.start)))
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
+        main_line = path.path(path.moveto(f(self.start), g(self.start)))
         for number, label_string in manual_axis_data.iteritems():
             text_distance=1.0/4
             text_size=self.axis_appear['text_size_manual']
@@ -964,6 +974,7 @@ class Nomo_Axis:
             self.canvas.fill(path.circle(f(number), g(number), 0.02))
         self.line=line
         self.thin_line=thin_line
+        self.main_line=main_line
         self.texts=texts
 
     def _make_manual_axis_arrow_(self,manual_axis_data):
@@ -978,6 +989,7 @@ class Nomo_Axis:
         # line lists
         line = path.path(path.moveto(f(self.start), g(self.start)))
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
+        main_line = path.path(path.moveto(f(start), g(start)))
         arrows=[]
         # text list
         texts=[] # pyx structure
@@ -1013,6 +1025,7 @@ class Nomo_Axis:
 
         self.line=line
         self.thin_line=thin_line
+        self.main_line=main_line
         self.texts=texts
         self.arrows=arrows
 
@@ -1042,6 +1055,7 @@ class Nomo_Axis:
         section_length=line_length_straigth/sections
         line = path.path(path.moveto(f(self.start), g(self.start)))
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
+        main_line = path.path(path.moveto(f(min), g(min)))
         u=min
         while u<max:
             dx=(f(u+du)-f(u))*turn
@@ -1089,20 +1103,24 @@ class Nomo_Axis:
             line.append(path.moveto(f(number), g(number)))
             line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))
             #self.canvas.fill(path.circle(f(number), g(number), 0.02))
+        self._make_main_line_(min,max,main_line,f,g)
         self.line=line
         self.thin_line=thin_line
+        self.main_line=main_line
         self.texts=texts
 
     def draw_axis(self,c):
         arrow_color=self.axis_appear['arrow_color']
         text_color=self.axis_appear['text_color']
         axis_color=self.axis_appear['axis_color']
-        linewidth=self.axis_appear['linewidth']
-        linewidth_thin=self.axis_appear['linewidth_thin']
+        linewidth_ticks=self.axis_appear['linewidth_ticks']
+        linewidth_ticks_thin=self.axis_appear['linewidth_ticks_thin']
+        linewidth_main=self.axis_appear['linewidth_main']
         #c.stroke(self.line, [style.linewidth.normal,axis_color])
         #c.stroke(self.thin_line, [style.linewidth.thin,axis_color])
-        c.stroke(self.line, [linewidth,axis_color,style.linecap.butt])
-        c.stroke(self.thin_line, [linewidth_thin,axis_color,style.linecap.butt])
+        c.stroke(self.line, [linewidth_ticks,axis_color,style.linecap.butt])
+        c.stroke(self.thin_line, [linewidth_ticks_thin,axis_color,style.linecap.butt])
+        c.stroke(self.main_line, [linewidth_main,axis_color,style.linecap.butt])
         if self.arrows is not None:
             for arrow in self.arrows:
                 c.stroke(arrow,

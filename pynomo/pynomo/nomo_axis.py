@@ -1120,7 +1120,7 @@ class Nomo_Axis:
         #c.stroke(self.thin_line, [style.linewidth.thin,axis_color])
         c.stroke(self.line, [linewidth_ticks,axis_color,style.linecap.butt])
         c.stroke(self.thin_line, [linewidth_ticks_thin,axis_color,style.linecap.butt])
-        c.stroke(self.main_line, [linewidth_main,axis_color,style.linecap.butt])
+        c.stroke(self.main_line, [linewidth_main,axis_color,style.linecap.square])
         if self.arrows is not None:
             for arrow in self.arrows:
                 c.stroke(arrow,

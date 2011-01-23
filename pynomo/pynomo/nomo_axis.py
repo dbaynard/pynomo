@@ -33,6 +33,7 @@ class Nomo_Axis:
                  text_color=color.rgb.black, axis_color=color.rgb.black,
                  manual_axis_data={},axis_appear={},side='left',
                  base_start=None, base_stop=None):
+        self.titles=[] # holder for titles
         self.func_f=func_f
         self.func_g=func_g
         self.start=start
@@ -1148,6 +1149,9 @@ class Nomo_Axis:
         c.text(self.func_f(best_u)+self.title_x_shift,
                 self.func_g(best_u)+self.title_y_shift,
                 self.title,[text.halign.center,self.axis_appear['title_color']])
+        self.titles.append((self.title,self.func_f(best_u)+self.title_x_shift,
+                self.func_g(best_u)+self.title_y_shift,
+                [text.halign.center,self.axis_appear['title_color']]))
 
 #        # find out if start or stop has higher y-value
 #        if self.func_g(self.stop)>self.func_g(self.start):
@@ -1197,6 +1201,10 @@ class Nomo_Axis:
                center_y+text_distance*dx_unit,
                self.title,[text.halign.center,trafo.rotate(angle),
                            self.axis_appear['title_color']])
+        self.titles.append((self.title,center_x-text_distance*dy_unit,
+               center_y+text_distance*dx_unit,
+               [text.halign.center,trafo.rotate(angle),
+                           self.axis_appear['title_color']]))
         #text_attr=[text.valign.middle,text.halign.left,text.size.small,trafo.rotate(angle)]
         #texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
 
@@ -1239,6 +1247,9 @@ class Nomo_Axis:
                 c.text(self.func_f(best_u)+dx,
                         self.func_g(best_u)+dy,
                         text_str,[text.parbox(width)]+pyx_extra_defs)
+                self.titles.append((self.func_f(best_u)+dx,
+                        self.func_g(best_u)+dy,
+                        text_str,[text.parbox(width)]+pyx_extra_defs))
 
     def _put_text_(self,u):
         if self.text_style=='oldstyle':

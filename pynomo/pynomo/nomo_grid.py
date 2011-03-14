@@ -47,6 +47,8 @@ class Nomo_Grid:
                              'v_line_color':color.rgb.black,
                              'u_text_color':color.rgb.black,
                              'v_text_color':color.rgb.black,
+                             'u_line_width':style.linewidth.normal,
+                             'v_line_width':style.linewidth.normal,
                              'text_distance':0.25,
                              'circles':False, # if marker circles
                              'text_prefix_u':'', # for example r'$\alpha$='
@@ -71,17 +73,18 @@ class Nomo_Grid:
         start_texts=self.grid_data['u_texts_v_start']
         stop_texts=self.grid_data['u_texts_v_stop']
         line_color=self.grid_data['v_line_color']
+        line_width=self.grid_data['v_line_width']
         for idx,v in enumerate(self.grid_data['v_values']):
             f_here,g_here=self._make_u_funcs_(v)
             if not self.grid_data.has_key('v_texts'):
                 #print self.grid_data['text_prefix_v']
                 self._draw_line_(f_here,g_here,start,stop,
                                  r"%s%s"%(self.grid_data['text_prefix_v'],self.grid_data['text_format_v'])%v,line_color,
-                                 start_texts,stop_texts,self.grid_data['v_text_color'])
+                                 start_texts,stop_texts,self.grid_data['v_text_color'],line_width)
             else:
                 self._draw_line_(f_here,g_here,start,stop,
                                  self.grid_data['v_texts'][idx],line_color,
-                                 start_texts,stop_texts,self.grid_data['v_text_color'])
+                                 start_texts,stop_texts,self.grid_data['v_text_color'],line_width)
             #print "v=%f"%v
 
     def _draw_line_v_(self):
@@ -94,16 +97,17 @@ class Nomo_Grid:
         start_texts=self.grid_data['v_texts_u_start']
         stop_texts=self.grid_data['v_texts_u_stop']
         line_color=self.grid_data['u_line_color']
+        line_width=self.grid_data['u_line_width']
         for idx,u in enumerate(self.grid_data['u_values']):
             f_here,g_here=self._make_v_funcs_(u)
             if not self.grid_data.has_key('u_texts'):
                 self._draw_line_(f_here,g_here,start,stop,
                                   r"%s%s"%(self.grid_data['text_prefix_u'],self.grid_data['text_format_u'])%u,line_color,
-                                 start_texts,stop_texts,self.grid_data['u_text_color'])
+                                 start_texts,stop_texts,self.grid_data['u_text_color'],line_width)
             else:
                 self._draw_line_(f_here,g_here,start,stop,
                                  self.grid_data['u_texts'][idx],line_color,
-                                 start_texts,stop_texts,self.grid_data['u_text_color'])
+                                 start_texts,stop_texts,self.grid_data['u_text_color'],line_width)
             #print "u=%f"%u
 
     def _make_u_funcs_(self,v_value):
@@ -125,7 +129,7 @@ class Nomo_Grid:
         return f,g
 
     def _draw_line_(self,f,g,start,stop,title,axis_color=color.rgb.red,
-                    start_texts=False,stop_texts=True,text_color=color.rgb.black):
+                    start_texts=False,stop_texts=True,text_color=color.rgb.black, line_width=style.linewidth.normal):
         if start>0 and stop>0:
             du=max(start,stop)/min(start,stop)*1e-10
         else:
@@ -180,7 +184,7 @@ class Nomo_Grid:
                 sys.stdout.write('.')
                 break
 
-        self.canvas.stroke(line, [style.linewidth.normal, axis_color])
+        self.canvas.stroke(line, [line_width, axis_color])
         # start number
         if start_texts: # set texts to to start
             self._set_text_to_grid_(f, g, start, du, title,axis_color,text_color)

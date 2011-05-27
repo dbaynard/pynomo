@@ -219,6 +219,7 @@ class Nomographer:
             print "##### MAIN PARAMS #######"
             pprint.pprint(params)
         self.wrapper=wrapper
+        self.canvas=c
 
     def _make_grid_(self,params,c):
         """

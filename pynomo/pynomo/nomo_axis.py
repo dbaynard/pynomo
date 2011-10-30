@@ -1066,7 +1066,29 @@ class Nomo_Axis:
             u+=delta_u
             line.append(path.lineto(f(u), g(u)))
         # make lines and texts
-        for number, label_string in manual_axis_data.iteritems():
+        turn_original = turn
+        for number, label_def in manual_axis_data.iteritems():
+            turn=turn_original
+            x_corr=0.0 # shifts for labels
+            y_corr=0.0
+            draw_extra_line = False # no extra line
+            if type(label_def) is list:
+                title_raw=label_def[0]
+                ex_params=label_def[1]
+                if ex_params.has_key('x_corr'):
+                    x_corr=ex_params['x_corr']
+                if ex_params.has_key('y_corr'):
+                    y_corr=ex_params['y_corr']
+                if ex_params.has_key('draw_line'):
+                    draw_extra_line=ex_params['draw_line']
+                if ex_params.has_key('change_side'):
+                    if ex_params['change_side']==True: # change to opposite side
+                        turn=turn*(-1.0)
+                label_string=title_raw
+            else:
+                label_string = label_def
+
+
             dx=(f(number+du)-f(number))*turn
             dy=(g(number+du)-g(number))*turn
             dx_unit=dx/math.sqrt(dx**2+dy**2)
@@ -1100,9 +1122,11 @@ class Nomo_Axis:
                 text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angle)]
             if self.axis_appear['text_horizontal_align_center']==True:
                 text_attr=[text.valign.middle,text.halign.center,text_size,trafo.rotate(angle)]
-            texts.append((label_string,f(number)-text_distance*dy_unit,g(number)+text_distance*dx_unit,text_attr))
+            texts.append((label_string,f(number)-text_distance*dy_unit+x_corr,g(number)+text_distance*dx_unit+y_corr,text_attr))
             line.append(path.moveto(f(number), g(number)))
             line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))
+            if draw_extra_line:
+                line.append(path.lineto(f(number)-grid_length*dy_unit+x_corr, g(number)+grid_length*dx_unit+y_corr))
             #self.canvas.fill(path.circle(f(number), g(number), 0.02))
         self._make_main_line_(min,max,main_line,f,g)
         self.line=line

@@ -131,7 +131,9 @@ class Nomo_Grid:
     def _draw_line_(self,f,g,start,stop,title,axis_color=color.rgb.red,
                     start_texts=False,stop_texts=True,text_color=color.rgb.black, line_width=style.linewidth.normal):
         if start>0 and stop>0:
-            du=max(start,stop)/min(start,stop)*1e-10
+            du=(max(start,stop)-min(start,stop))*1e-10 # was 1e-10
+            #print "start:%g stop:%g"%(start,stop)
+            #print "testing du = %g"%du
         else:
             du=fabs(start-stop)*1e-5
         # approximate line length is found
@@ -152,8 +154,9 @@ class Nomo_Grid:
         laskuri=1
         up_factor=self.grid_data['iterator_factor']
         down_factor=1.0/up_factor
+        delta_u = du # initial
         while True:
-            if u<stop:
+            if (u+delta_u)<stop:
                 dx=(f(u+du)-f(u))
                 dy=(g(u+du)-g(u))
                 dl=sqrt(dx**2+dy**2)
@@ -161,6 +164,9 @@ class Nomo_Grid:
                 # let's calculate actual length
                 # and iterate until length is in factor 2 from target
                 while True:
+                    #u_delta_step = min(stop,u+delta_u) # in order to avoid going over range
+                    if (u+delta_u)>=stop: # stop if out of range
+                        break
                     delta_x=f(u+delta_u)-f(u)
                     delta_y=g(u+delta_u)-g(u)
                     delta_l=sqrt(delta_x**2+delta_y**2)
@@ -171,7 +177,9 @@ class Nomo_Grid:
                         if delta_l<section_length/5.0:
                             delta_u=delta_u*up_factor #1.001
                             #print "delta_u kasvaa:%f"%delta_u
-                    if delta_l<=5*section_length and delta_l>=0.2*section_length:
+                            #print "u+delta_u:%g, stop:%g"%(u+delta_u,stop)
+                    if delta_l<=5.0*section_length and delta_l>=0.2*section_length:
+                        #print "u:%g:x=%g, y=%g"%(u,f(u),g(u))
                         break
 
                 u+=delta_u

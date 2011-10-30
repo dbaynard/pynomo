@@ -208,6 +208,7 @@ class Nomographer:
                 for atom in block.atom_stack:
                     # calculates lines (list of coordinates)
                     atom.calc_line_and_sections()
+                    #pass
         # draw the nomogram
         wrapper.draw_nomogram(c,params['post_func'])
         self.blocks=blocks  # save for debugging

@@ -148,6 +148,9 @@ class Circ_Block(object):
         angle_offset=params['angle_offset_angle_value']
         scaling=params['circ_scaling']
         offset=-func(u_value)*scaling+angle_offset*math.pi/180.0
+        #offset=params['circ_sign']*(func(u_value)*scaling+angle_offset*math.pi/180.0)
+
+
 #        u_min=params['u_min']
 #        u_max=params['u_max']
 #        angle_min=params['angle_min']
@@ -184,7 +187,7 @@ class Circ_Block(object):
         """
         draws an arrow, F amd G are constant functions
         """
-        ccanvas.stroke(path.line(0.8*F(0), 0.8*G(0), 0.99*F(0), 0.99*G(0)),
+        ccanvas.stroke(path.line(0.8*F(0.0), 0.8*G(0.0), 0.99*F(0.0), 0.99*G(0.0)),
          [style.linewidth.thick, color.rgb.black,
           deco.earrow([deco.stroked([color.rgb.black]),
                        deco.filled([color.rgb.black])], size=0.3)])
@@ -438,7 +441,9 @@ class Circ_Block_Type_1(Circ_Block):
         self.func_G3 = lambda u:self.f3_params['radius']*math.sin(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
         self.arrow_F = lambda u:(self.f3_params['radius']-0.05)*math.cos(u+self.offset_f2+self.offset_f3)
         self.arrow_G = lambda u:(self.f3_params['radius']-0.25)*math.sin(u+self.offset_f2+self.offset_f3)
-        self.arrow_angle=(self.offset_f2+self.offset_f3)*180/math.pi
+        print "self.offset_f2 %g"%(self.offset_f2*180.0/3.1415)
+        print "self.offset_f3 %g"%(self.offset_f3*180.0/3.1415)
+        self.arrow_angle=(self.offset_f2+self.offset_f3)*180.0/math.pi
         self.arrow_radius=self.f3_params['radius']-0.05
     def draw(self,ccanvas,rot_angle=0.0):
         """

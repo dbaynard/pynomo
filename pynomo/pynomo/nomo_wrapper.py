@@ -2638,7 +2638,7 @@ class Nomo_Atom:
             g=self.give_y_ref
         if start>stop:
             start,stop=stop,start
-        du=math.fabs(stop-start)*1e-12
+        du=math.fabs(stop-start)*1e-6
         # approximate line length is found
         line_length_straigth=math.sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)
         random.seed(0.0) # so that mistakes always the same
@@ -2655,6 +2655,9 @@ class Nomo_Atom:
         laskuri=1
         self.line.append((f(start), g(start)))
         self.value_list.append(start)
+        #print "start: %g"%(start)
+        #print "stop: %g"%(stop)
+        #print "du: %g"%(du)
         while True:
             if u<stop:
                 self.line.append((f(u), g(u)))

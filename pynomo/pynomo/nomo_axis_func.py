@@ -54,6 +54,7 @@ class Axis_Wrapper:
         g=self.g
         start=self.start
         stop=self.stop
+        #du=fabs(start-stop)*1e-8
         du=fabs(start-stop)*1e-12
         # approximate line length is found
         line_length_straigth=sqrt((f(start)-f(stop))**2+(g(start)-g(stop))**2)

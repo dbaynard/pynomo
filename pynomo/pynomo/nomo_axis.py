@@ -768,7 +768,7 @@ class Nomo_Axis:
                                         f(u)+0.02*dy_units[idx],
                                         g(u)-0.02*dx_units[idx]))
 
-    def _make_main_line_(self,start,stop,main_line,f,g):
+    def _make_main_line_(self,start,stop,main_line,f,g,sections=350.0):
         """
         draws the major skeleton of axis
         """
@@ -785,7 +785,7 @@ class Nomo_Axis:
             if temp>line_length_straigth:
                 line_length_straigth=temp
                 #print "length: %f"%line_length_straigth
-        sections=350.0 # about number of sections
+        #sections=350.0 # about number of sections
         section_length=line_length_straigth/sections
         u=start
         laskuri=1
@@ -1072,6 +1072,9 @@ class Nomo_Axis:
             x_corr=0.0 # shifts for labels
             y_corr=0.0
             draw_extra_line = False # no extra line
+            range_tick = False # tick or range
+            range_end = 0.0
+            range_side = -1.0
             if type(label_def) is list:
                 title_raw=label_def[0]
                 ex_params=label_def[1]
@@ -1084,6 +1087,10 @@ class Nomo_Axis:
                 if ex_params.has_key('change_side'):
                     if ex_params['change_side']==True: # change to opposite side
                         turn=turn*(-1.0)
+                        range_side = 1.0
+                if ex_params.has_key('range_end'):
+                    range_end = ex_params['range_end']
+                    range_tick = True
                 label_string=title_raw
             else:
                 label_string = label_def
@@ -1122,9 +1129,29 @@ class Nomo_Axis:
                 text_attr=[text.valign.middle,text.halign.right,text_size,trafo.rotate(angle)]
             if self.axis_appear['text_horizontal_align_center']==True:
                 text_attr=[text.valign.middle,text.halign.center,text_size,trafo.rotate(angle)]
-            texts.append((label_string,f(number)-text_distance*dy_unit+x_corr,g(number)+text_distance*dx_unit+y_corr,text_attr))
-            line.append(path.moveto(f(number), g(number)))
-            line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))
+            if range_tick==False:
+                texts.append((label_string,f(number)-text_distance*dy_unit+x_corr,g(number)+text_distance*dx_unit+y_corr,text_attr))
+                line.append(path.moveto(f(number), g(number)))
+                line.append(path.lineto(f(number)-grid_length*dy_unit, g(number)+grid_length*dx_unit))
+            else: # range_tick == True
+                tick_list=[number,range_end]
+                dx_units,dy_units,angles=find_tick_directions(tick_list,f,g,self.side,number,range_end,full_angle=self.axis_appear['full_angle'],extra_angle=self.axis_appear['extra_angle'],turn_relative=self.axis_appear['turn_relative'])
+                # correction needed for some reason
+                dx_units[0],dx_units[1]=range_side*dx_units[0],range_side*dx_units[1]
+                dy_units[0],dy_units[1]=range_side*dy_units[0],range_side*dy_units[1]
+                #first tick
+                line.append(path.moveto(f(number), g(number)))
+                line.append(path.lineto(f(number)-grid_length*dy_units[0], g(number)+grid_length*dx_units[0]))
+                #second tick
+                line.append(path.moveto(f(range_end), g(range_end)))
+                line.append(path.lineto(f(range_end)-grid_length*dy_units[1], g(range_end)+grid_length*dx_units[1]))
+                # text
+                x0 = (f(number)+f(range_end))/2.0
+                y0 = (g(number)+g(range_end))/2.0
+                dx_unit = (dx_units[0]+dx_units[1])/2.0 # tick directions is average of range end directions
+                dy_unit = (dy_units[0]+dy_units[1])/2.0
+                texts.append((label_string,x0-text_distance*dy_unit+x_corr,y0+text_distance*dx_unit+y_corr,text_attr))
+                self._make_main_line_(number,range_end,main_line,f,g,sections=35.0)
             if draw_extra_line:
                 line.append(path.lineto(f(number)-grid_length*dy_unit+x_corr, g(number)+grid_length*dx_unit+y_corr))
             #self.canvas.fill(path.circle(f(number), g(number), 0.02))

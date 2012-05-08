@@ -284,8 +284,7 @@ class Nomo_Wrapper:
                 pyx_extra_defs=texts['pyx_extra_defs']
                 c.text(x,y,text_str,[text.parbox(width)]+pyx_extra_defs)
 
-
-    def align_blocks(self):
+    def align_blocks_old(self):
         """
         aligns blocks w.r.t. each other according to 'tag' fields
         in Atom params dictionary
@@ -357,6 +356,88 @@ class Nomo_Wrapper:
                                                                alpha2,beta2,gamma2,
                                                                alpha3,beta3,gamma3)
                                 atom2.params['aligned']=True # align only once
+        # let's make identity matrix that will be changed when optimized
+        for block in self.block_stack:
+            block.add_transformation()
+
+    def align_blocks(self):
+        """
+        aligns blocks w.r.t. each other according to 'tag' fields
+        in Atom params dictionary
+        """
+#        # translate all blocks initially
+#        for block in self.block_stack:
+#            alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+#            self._return_initial_shift_()
+#            block.add_transformation(alpha1,beta1,gamma1,
+#                                     alpha2,beta2,gamma2,
+#                                     alpha3,beta3,gamma3)
+
+        for idx1,block1 in enumerate(self.block_stack):
+            for idx2,block2 in enumerate(self.block_stack):
+                if idx2>idx1:
+                    for atom1 in block1.atom_stack:
+                        for atom2 in block2.atom_stack:
+                            if atom1.params['tag']==atom2.params['tag']\
+                            and not atom1.params['tag']=='none'\
+                            and block2.aligned==False: # align only once
+                                # let's see if need for double align
+                                double_aligned=False
+                                for atom2d in block2.atom_stack:
+                                    for idx3,dblock3 in enumerate(self.block_stack): # other blocks with potential dtags
+                                        for atom3d in dblock3.atom_stack:
+                                            if atom3d.params['dtag']==atom2d.params['dtag']\
+                                            and not atom3d.params['dtag']=='none'\
+                                            and idx3<=idx1\
+                                            and not idx3==idx2\
+                                            and double_aligned==False: # make sure not block1 or block2 are checked agains block1 dtag
+                                            #and not atom1d.params['tag']==atom1.params['tag']:
+                                            #and not atom2d.params['aligned']: # align only once
+                                                # do first pre-alignment
+    #                                            alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+    #                                            self._find_trafo_2_atoms_(atom1,atom2)
+    #                                            block2.add_transformation(alpha1,beta1,gamma1,
+    #                                                                      alpha2,beta2,gamma2,
+    #                                                                      alpha3,beta3,gamma3)
+                                                # double alignment
+                                                print "Double aligning with tags %s %s"%(atom1.params['tag'],atom3d.params['dtag'])
+    #                                            alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+    #                                            self._find_trafo_4_atoms_3_points_(atom1,atom1d,atom2,atom2d)
+    #                                            block2.add_transformation(alpha1,beta1,gamma1,
+    #                                                                      alpha2,beta2,gamma2,
+    #                                                                      alpha3,beta3,gamma3)
+                                                alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+                                                self._find_trafo_4_atoms_(atom1,atom3d,atom2,atom2d)
+                                                block2.add_transformation(alpha1,beta1,gamma1,
+                                                                          alpha2,beta2,gamma2,
+                                                                          alpha3,beta3,gamma3)
+                                                double_aligned=True
+                                                block2.aligned=True
+    #                                            # DEBUG
+    #                                            u_start_1=min(atom1.params['u_min'],atom1.params['u_max'])
+    #                                            u_stop_1=max(atom1.params['u_min'],atom1.params['u_max'])
+    #                                            u_start_1d=min(atom1d.params['u_min'],atom2.params['u_max'])
+    #                                            u_stop_1d=max(atom1d.params['u_min'],atom2.params['u_max'])
+    #                                            print "test if same:"
+    #                                            print atom1.give_x(u_start_1)
+    #                                            print atom1d.give_x(u_start_1d)
+    #                                            print atom1.give_y(u_start_1)
+    #                                            print atom1d.give_y(u_start_1d)
+    #                                            print atom2.give_x(u_start_1)
+    #                                            print atom2d.give_x(u_start_1d)
+    #                                            print atom2.give_y(u_start_1)
+    #                                            print atom2d.give_y(u_start_1d)
+                                    #print idx2
+                                    #print idx2
+                                if not double_aligned:
+                                    print "Aligning with tag %s"%atom1.params['tag']
+                                    alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
+                                    self._find_trafo_2_atoms_(atom1,atom2)
+                                    block2.add_transformation(alpha1,beta1,gamma1,
+                                                               alpha2,beta2,gamma2,
+                                                               alpha3,beta3,gamma3)
+                                #atom2.params['aligned']=True # align only once
+                                block2.aligned=True # align only once
         # let's make identity matrix that will be changed when optimized
         for block in self.block_stack:
             block.add_transformation()
@@ -595,6 +676,7 @@ class Nomo_Block(object):
         self.ref_block_lines=[] # handle for additional lines in block
         self.ref_block_params={} # handle for params that define the block
         self.add_transformation() # adds initial unit transformation
+        self.aligned=False # block is not aligned, and should be aligned only once
 
 
     def add_atom(self,atom):

@@ -451,10 +451,16 @@ class Nomo_Grid_Box(object):
         f=lambda x:x
         g=lambda x:func2(x,v)
         # find point of scale to meet point 1.0
-        x_top=scipy.optimize.fmin(func_top,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
-        x_bottom=scipy.optimize.fmin(func_bottom,[1.0],disp=0,ftol=1e-5,xtol=1e-5)[0]
-        #print "x_top %f"%x_top
-        #print "x_bottom %f" % x_bottom
+        x_guess_top=1.0
+        x_guess_bottom=1.0
+        if self.params['manual_x_scale']==True:
+            mean_x = (self.params['x_min']+self.params['x_max'])/2.0
+            x_guess_top = mean_x
+            x_guess_bottom = mean_x
+        x_top=scipy.optimize.fmin(func_top,[x_guess_top],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        x_bottom=scipy.optimize.fmin(func_bottom,[x_guess_bottom],disp=0,ftol=1e-5,xtol=1e-5)[0]
+        print "x_top %f"%x_top
+        print "x_bottom %f" % x_bottom
         #print "g(x_top) %f"%g(x_top)
         #print "g(x_bottom) %f" %g(x_bottom)
         if self.params['manual_x_scale']==True:
@@ -472,6 +478,9 @@ class Nomo_Grid_Box(object):
                 x_bottom=x_min_limit
         start=min(x_top,x_bottom)
         stop=max(x_top,x_bottom)
+        #if self.params['manual_x_scale']==True:
+        #    start=min(self.params['x_min'],self.params['x_max'])
+        #    stop=max(self.params['x_min'],self.params['x_max'])
         du=fabs(stop-start)*1e-12
         # approximate line length is found
         line_length_straigth=max_fu-min_fu
@@ -481,33 +490,44 @@ class Nomo_Grid_Box(object):
         line.append((f(start), g(start)))
         u=start
         count=1
+        #print "v:%g"%v
         while True:
             if u<stop:
+                count = 1
                 dx=(f(u+du)-f(u))
                 dy=(g(u+du)-g(u))
                 dl=sqrt(dx**2+dy**2)
-                delta_u=du*section_length/dl
+                if dl>0:
+                    delta_u=du*section_length/dl
+                else:
+                    delta_u=du
                 # let's calculate actual length
                 # and iterate until length is in factor 2 from target
                 while True:
+                    count=count+1
                     delta_x=f(u+delta_u)-f(u)
                     delta_y=g(u+delta_u)-g(u)
                     delta_l=sqrt(delta_x**2+delta_y**2)
                     if delta_l>2.0*section_length:
                         delta_u=delta_u*0.999
-                        #print "delta_u pienenee:%f"%delta_u
+                        #print "v:%g, delta_x:%g delta_y:%g delta_l:%g, section_length:%g, delta_u pienenee:%g"%(v,delta_x,delta_y,delta_l,section_length,delta_u)
                     else:
                         if delta_l<section_length/2.0:
                             delta_u=delta_u*1.001
-                            #print "delta_u kasvaa:%f"%delta_u
+                            #print "v:%g, delta_x:%g delta_y:%g delta_l:%g, section_length:%g, delta_u kasvaa:%g"%(v,delta_x,delta_y,delta_l,section_length,delta_u)
                     if delta_l<=2*section_length and delta_l>=0.5*section_length:
+                        #print "selvitty"
+                        break
+                    if count>1e3: # cancel if not solution
+                        print "Warning no solution found in contour"
                         break
 
                 u+=delta_u
                 #print u,stop
-                count=count+1
-                if u<stop:
+                if (u<stop and count<1e3):
                     line.append((f(u), g(u)))
+                else:
+                    u=stop # stop looping of contour
                 #print "count %f"%count
             else:
                 line.append((f(stop), g(stop)))
@@ -552,7 +572,8 @@ class Nomo_Grid_Box(object):
             self.x_right_ini=x_right
         self.y_top_ini=y_top
         self.y_bottom_ini=y_bottom
-        self.BB_width_ini=x_right-x_left
+        #self.BB_width_ini=x_right-x_left
+        self.BB_width_ini=abs(self.x_left_ini-self.x_right_ini)
         self.BB_height_ini=y_top-y_bottom
         return x_left,x_right,y_bottom,y_top
 

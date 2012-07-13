@@ -459,8 +459,8 @@ class Nomo_Grid_Box(object):
             x_guess_bottom = mean_x
         x_top=scipy.optimize.fmin(func_top,[x_guess_top],disp=0,ftol=1e-5,xtol=1e-5)[0]
         x_bottom=scipy.optimize.fmin(func_bottom,[x_guess_bottom],disp=0,ftol=1e-5,xtol=1e-5)[0]
-        print "x_top %f"%x_top
-        print "x_bottom %f" % x_bottom
+        #print "x_top %f"%x_top
+        #print "x_bottom %f" % x_bottom
         #print "g(x_top) %f"%g(x_top)
         #print "g(x_bottom) %f" %g(x_bottom)
         if self.params['manual_x_scale']==True:

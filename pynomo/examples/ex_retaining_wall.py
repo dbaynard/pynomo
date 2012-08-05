@@ -38,7 +38,7 @@ N_params_1={
         'f':lambda u:2*(u*u-1.0),
         'g':lambda u:3*u*(u+1.0),
         'h':lambda u:(-u*(u-1.0)),
-        'title':'p',
+        'title':'L',
         'tick_side':'left',
         'tick_levels':4,
         'tick_text_levels':2,
@@ -62,7 +62,7 @@ N_params_3={
         'f':lambda w:2.0*(2.0*w+1.0),
         'g':lambda w:3.0*(w+1.0),
         'h':lambda w:(-(w+1.0)*(2.0*w+1.0)),
-        'title':'L',
+        'title':'p',
         'tick_side':'left',
         'tick_levels':4,
         'tick_text_levels':2

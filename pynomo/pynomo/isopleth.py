@@ -418,11 +418,13 @@ class Isopleth_Block(object):
         this has right now no function
         """
         all_found=True
+        """
         for atom_idx,atom in enumerate(self.atom_stack):
             for idx,dummy in enumerate(solutions):
                 if not isinstance(self.isopleth_values[idx][atom_idx],(int,float,tuple)):
                     pass
                     #print "not all isopleths solved yet..."
+                    """
 
 
     def find_initial_solutions(self,solutions):

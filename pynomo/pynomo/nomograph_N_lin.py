@@ -15,7 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from numpy import *
 from pyx import *
-from nomo_axis import *
+from .nomo_axis import *
 from copy import *
 from math import log
 
@@ -38,7 +38,7 @@ class Nomograph_N_lin:
         self.gamma3=1.0
         try:
             {'4': self._make_4_,
-             '5': self._make_5_}[`N`]()
+             '5': self._make_5_}[repr(N)]()
         except KeyError:
             self._make_N_()
             #print "N=%i is not defined" % N
@@ -143,7 +143,7 @@ class Nomograph_N_lin:
         fn2x_table[2]=1.0
         fn2x_table[N]=x_max*1.0
         fn2x_table[N-1]=x_max-1.0
-        f_mid=range(3,(N-1),1) # function numbers between reflection axes
+        f_mid=list(range(3,(N-1),1)) # function numbers between reflection axes
         x_mid=[(f-3)*2.0+3.0 for f in f_mid]
         for idx,x in enumerate(x_mid):
             fn2x_table[f_mid[idx]]=x*1.0
@@ -186,7 +186,7 @@ class Nomograph_N_lin:
         """
         return maximum y value of all fn axes
         """
-        Ns=range(self.N)
+        Ns=list(range(self.N))
         max1=max([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
         max2=max([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
         return max(max1,max2)
@@ -195,7 +195,7 @@ class Nomograph_N_lin:
         """
         return minimum y value of all fn axes
         """
-        Ns=range(self.N)
+        Ns=list(range(self.N))
         min1=min([self.y_func[n+1](self.functions['u_max'][n]) for n in Ns])
         min2=min([self.y_func[n+1](self.functions['u_min'][n]) for n in Ns])
         return min(min1,min2)

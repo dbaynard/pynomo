@@ -17,12 +17,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from nomo_axis import *
-from nomo_axis_func import *
-from nomo_grid_box import *
-from nomo_grid import *
-from nomograph3 import *
-from math_utilities import *
+from .nomo_axis import *
+from .nomo_axis_func import *
+from .nomo_grid_box import *
+from .nomo_grid import *
+from .nomograph3 import *
+from .math_utilities import *
 from numpy import *
 import scipy
 from pyx import *
@@ -187,7 +187,7 @@ class Nomo_Wrapper:
              'rotate': self._do_rotate_trafo_,
              'matrix': self._do_explicite_matrix_}[method](params)
         except KeyError:
-            print "Wrong transformation identifier"
+            print("Wrong transformation identifier")
 
         #self.alpha1,self.beta1,self.gamma1,\
         #self.alpha2,self.beta2,self.gamma2,\
@@ -275,7 +275,7 @@ class Nomo_Wrapper:
         if len(self.params['extra_texts'])>0:
             for texts in self.params['extra_texts']:
                 for key in text_default:
-                    if not texts.has_key(key):
+                    if key not in texts:
                         texts[key]=text_default[key]
                 x=texts['x']
                 y=texts['y']
@@ -320,7 +320,7 @@ class Nomo_Wrapper:
 #                                                                      alpha2,beta2,gamma2,
 #                                                                      alpha3,beta3,gamma3)
                                             # double alignment
-                                            print "double aligning with tags %s %s"%(atom1.params['tag'],atom1d.params['dtag'])
+                                            print("double aligning with tags %s %s"%(atom1.params['tag'],atom1d.params['dtag']))
 #                                            alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
 #                                            self._find_trafo_4_atoms_3_points_(atom1,atom1d,atom2,atom2d)
 #                                            block2.add_transformation(alpha1,beta1,gamma1,
@@ -349,7 +349,7 @@ class Nomo_Wrapper:
                                 #print idx2
                                 #print idx2
                                 if not double_aligned:
-                                    print "Aligning with tag %s"%atom1.params['tag']
+                                    print("Aligning with tag %s"%atom1.params['tag'])
                                     alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
                                     self._find_trafo_2_atoms_(atom1,atom2)
                                     block2.add_transformation(alpha1,beta1,gamma1,
@@ -400,7 +400,7 @@ class Nomo_Wrapper:
     #                                                                      alpha2,beta2,gamma2,
     #                                                                      alpha3,beta3,gamma3)
                                                 # double alignment
-                                                print "Double aligning with tags %s %s"%(atom1.params['tag'],atom3d.params['dtag'])
+                                                print("Double aligning with tags %s %s"%(atom1.params['tag'],atom3d.params['dtag']))
     #                                            alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
     #                                            self._find_trafo_4_atoms_3_points_(atom1,atom1d,atom2,atom2d)
     #                                            block2.add_transformation(alpha1,beta1,gamma1,
@@ -430,7 +430,7 @@ class Nomo_Wrapper:
                                     #print idx2
                                     #print idx2
                                 if not double_aligned:
-                                    print "Aligning with tag %s"%atom1.params['tag']
+                                    print("Aligning with tag %s"%atom1.params['tag'])
                                     alpha1,beta1,gamma1,alpha2,beta2,gamma2,alpha3,beta3,gamma3=\
                                     self._find_trafo_2_atoms_(atom1,atom2)
                                     block2.add_transformation(alpha1,beta1,gamma1,
@@ -516,8 +516,8 @@ class Nomo_Wrapper:
         x3,y3,x4,y4,x3d,y3d,x4d,y4d=find_coords(atom2b,atom1b)
         #DEBUG
         if False:
-            print "x1: %f y1: %f x2: %f y2: %f x1d: %f y1d: %f x2d: %f y2d: %f"%(x1,y1,x2,y2,x1d,y1d,x2d,y2d)
-            print "x3: %f y3: %f x4: %f y4: %f x3d: %f y3d: %f x4d: %f y4d: %f"%(x3,y3,x4,y4,x3d,y3d,x4d,y4d)
+            print("x1: %f y1: %f x2: %f y2: %f x1d: %f y1d: %f x2d: %f y2d: %f"%(x1,y1,x2,y2,x1d,y1d,x2d,y2d))
+            print("x3: %f y3: %f x4: %f y4: %f x3d: %f y3d: %f x4d: %f y4d: %f"%(x3,y3,x4,y4,x3d,y3d,x4d,y4d))
             c = canvas.canvas()
             c.fill(path.circle(x1, y1, 0.02))
             c.text(x1, y1,'1')
@@ -1189,7 +1189,7 @@ class Nomo_Block_Type_3(Nomo_Block):
         fn2x_table[2]=1.0
         fn2x_table[N]=x_max*1.0
         fn2x_table[N-1]=x_max-1.0
-        f_mid=range(3,(N-1),1) # function numbers between reflection axes
+        f_mid=list(range(3,(N-1),1)) # function numbers between reflection axes
         x_mid=[(f-3)*2.0+3.0 for f in f_mid]
         for idx,x in enumerate(x_mid):
             fn2x_table[f_mid[idx]]=x*1.0
@@ -1233,7 +1233,7 @@ class Nomo_Block_Type_3(Nomo_Block):
             if len(self.reference_titles)>=idx:
                 ref_para['title']=self.reference_titles[idx-1]
             else:
-                ref_para['title']='R$_'+`idx`+'$'
+                ref_para['title']='R$_'+repr(idx)+'$'
             self.ref_params.append(ref_para)
 
     def _makeDoX_(self,value):
@@ -1498,11 +1498,11 @@ class Nomo_Block_Type_5(Nomo_Block):
                     if isinstance(self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]],list):
                         title_raw=self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]][0]
                         ex_params=self.grid_box.params['v_manual_axis_data'][self.params['v_values'][index]][1]
-                        if ex_params.has_key('x_corr'):
+                        if 'x_corr' in ex_params:
                             x_corr=ex_params['x_corr']
-                        if ex_params.has_key('y_corr'):
+                        if 'y_corr' in ex_params:
                             y_corr=ex_params['y_corr']
-                        if ex_params.has_key('draw_line'):
+                        if 'draw_line' in ex_params:
                             draw_line=ex_params['draw_line']
             else:
                 title_raw=self.params['v_values'][index]
@@ -1973,7 +1973,7 @@ class Nomo_Block_Type_6(Nomo_Block):
         # manual point or manual arrow
         if self.atom_F1.params['scale_type']=='manual point' or\
         self.atom_F1.params['scale_type']=='manual arrow':
-            tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
+            tick_0_list=list(self.atom_F1.params['manual_axis_data'].keys())
             tick_0_list.sort()
 
             dx_units_0_1,dy_units_0_1,angles_0_1=\
@@ -1987,7 +1987,7 @@ class Nomo_Block_Type_6(Nomo_Block):
 
         # manual line
         if self.atom_F1.params['scale_type']=='manual line':
-            tick_0_list=self.atom_F1.params['manual_axis_data'].keys()
+            tick_0_list=list(self.atom_F1.params['manual_axis_data'].keys())
             tick_0_list.sort()
 
             dx_units_0_1,dy_units_0_1,angles_0_1=\
@@ -2117,9 +2117,9 @@ class Nomo_Block_Type_8(Nomo_Block):
         """
         defines function F1
         """
-        if params.has_key('function_y'):
+        if 'function_y' in params:
             params['function']=params['function_y']
-        if not params.has_key('function_x'):
+        if 'function_x' not in params:
             params['function_x']=lambda u:1.0
         params['F']=lambda u:params['function_x'](u)*self.x_mirror
         params['G']=lambda u:params['function'](u)*self.y_mirror
@@ -2694,7 +2694,7 @@ class Nomo_Atom:
         # let's make default values for extra params
         for idx,iter_params in enumerate(self.params['extra_params']):
             for key in self.params_default:
-                if not iter_params.has_key(key):
+                if key not in iter_params:
                     self.params['extra_params'][idx][key]=self.params_default[key]
         self.set_trafo() # initialize
         self.f = self.params['F'] # x-coord func
@@ -2876,7 +2876,7 @@ class Nomo_Atom:
             tick_levels=0,tick_text_levels=0,
             side=p['tick_side'],axis_appear=p)
         if p['debug']:
-            print "##### SINGLE AXIS PARAMS #######"
+            print("##### SINGLE AXIS PARAMS #######")
             pprint.pprint(p)
 
 
@@ -2924,7 +2924,7 @@ class Nomo_Atom_Grid(Nomo_Atom):
         self.params['u_max']=self.params['u_stop']
         for idx,iter_params in enumerate(self.params['extra_params']):
             for key in self.params_default:
-                if not iter_params.has_key(key):
+                if key not in iter_params:
                     self.params['extra_params'][idx][key]=self.params_default[key]
         self.set_trafo() # initialize
         self.f=self.params['F_grid']
@@ -2983,7 +2983,7 @@ class Nomo_Atom_Grid(Nomo_Atom):
         self.grid_ref=Nomo_Grid(func_f=self.give_x_grid,func_g=self.give_y_grid,
                         canvas=canvas,data=self.params)
         if self.params['debug']:
-            print "##### SINGLE AXIS PARAMS #######"
+            print("##### SINGLE AXIS PARAMS #######")
             pprint.pprint(self.params)
 
 if __name__=='__main__':

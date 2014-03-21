@@ -21,7 +21,7 @@ from pyx import *
 from math import *
 from scipy import *
 from numpy import *
-from nomo_axis import *
+from .nomo_axis import *
 import random
 import sys
 
@@ -76,7 +76,7 @@ class Nomo_Grid:
         line_width=self.grid_data['v_line_width']
         for idx,v in enumerate(self.grid_data['v_values']):
             f_here,g_here=self._make_u_funcs_(v)
-            if not self.grid_data.has_key('v_texts'):
+            if 'v_texts' not in self.grid_data:
                 #print self.grid_data['text_prefix_v']
                 self._draw_line_(f_here,g_here,start,stop,
                                  r"%s%s"%(self.grid_data['text_prefix_v'],self.grid_data['text_format_v'])%v,line_color,
@@ -100,7 +100,7 @@ class Nomo_Grid:
         line_width=self.grid_data['u_line_width']
         for idx,u in enumerate(self.grid_data['u_values']):
             f_here,g_here=self._make_v_funcs_(u)
-            if not self.grid_data.has_key('u_texts'):
+            if 'u_texts' not in self.grid_data:
                 self._draw_line_(f_here,g_here,start,stop,
                                   r"%s%s"%(self.grid_data['text_prefix_u'],self.grid_data['text_format_u'])%u,line_color,
                                  start_texts,stop_texts,self.grid_data['u_text_color'],line_width)

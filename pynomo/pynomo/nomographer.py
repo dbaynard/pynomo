@@ -13,8 +13,8 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from nomo_wrapper import *
-from isopleth import *
+from .nomo_wrapper import *
+from .isopleth import *
 
 class Nomographer:
     """
@@ -214,10 +214,10 @@ class Nomographer:
         self.blocks=blocks  # save for debugging
         for block in params['block_params']:
             if block['debug']:
-                print "##### SINGLE BLOCK PARAMS #######"
+                print("##### SINGLE BLOCK PARAMS #######")
                 pprint.pprint(block)
         if params['debug']:
-            print "##### MAIN PARAMS #######"
+            print("##### MAIN PARAMS #######")
             pprint.pprint(params)
         self.wrapper=wrapper
         self.canvas=c
@@ -288,17 +288,17 @@ class Nomographer:
         """
         for line_defs in params['line_params']:
             # line style
-            if line_defs.has_key('line_style'):
+            if 'line_style' in line_defs:
                 line_style=line_defs['line_style']
             else:
                 line_style=self.line_defs_default['line_style']
             # circle size
-            if line_defs.has_key('circle_size'):
+            if 'circle_size' in line_defs:
                 circle_size=line_defs['circle_size']
             else:
                 circle_size=self.line_defs_default['circle_size']
             # circle color
-            if line_defs.has_key('circle_color'):
+            if 'circle_color' in line_defs:
                 circle_color=line_defs['circle_color']
             else:
                 circle_color=self.line_defs_default['circle_color']
@@ -341,7 +341,7 @@ class Nomographer:
                                           'circle_size':0.05}],  # isopleth values
                       }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_1_params_(self,params):
@@ -358,7 +358,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_2_params_(self,params):
@@ -374,7 +374,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_3_params_(self,params):
@@ -393,7 +393,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_4_params_(self,params):
@@ -412,7 +412,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_5_params_(self,params):
@@ -445,7 +445,7 @@ class Nomographer:
             'isopleth_values':[],
            }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_6_params_(self,params):
@@ -466,7 +466,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_7_params_(self,params):
@@ -483,7 +483,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_8_params_(self,params):
@@ -498,7 +498,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_9_params_(self,params):
@@ -521,7 +521,7 @@ class Nomographer:
                          'ignore_transforms':False,
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_block_type_10_params_(self,params):
@@ -537,7 +537,7 @@ class Nomographer:
                          'isopleth_values':[],
                          }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
     def _check_axis_params_(self,params):
@@ -567,7 +567,7 @@ class Nomographer:
             'grid':False
             }
         for key in params_default:
-            if not params.has_key(key):
+            if key not in params:
                 params[key]=params_default[key]
 
 if __name__=='__main__':

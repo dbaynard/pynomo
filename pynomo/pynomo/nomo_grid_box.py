@@ -26,7 +26,7 @@ optimize explicitely
 """
 from scipy.optimize import *
 from numpy import *
-from nomo_axis import *
+from .nomo_axis import *
 import time
 
 
@@ -519,7 +519,7 @@ class Nomo_Grid_Box(object):
                         #print "selvitty"
                         break
                     if count>1e3: # cancel if not solution
-                        print "Warning no solution found in contour"
+                        print("Warning no solution found in contour")
                         break
 
                 u+=delta_u
@@ -627,7 +627,7 @@ if __name__=='__main__':
     tic = time.time()
     test=Nomo_Grid_Box(params=params)
     toc = time.time()
-    print toc-tic,' has elapsed'
+    print(toc-tic,' has elapsed')
 
 
 

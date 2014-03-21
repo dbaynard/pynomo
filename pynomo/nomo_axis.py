@@ -503,8 +503,8 @@ class Nomo_Axis:
             # make the ticks
             start_decade=start_decade+1
             stop_decade=stop_decade+1
-            print "start_decade value %f"%-10**start_decade
-            print "stop_decade value %f"%10**stop_decade
+            print("start_decade value %f"%-10**start_decade)
+            print("stop_decade value %f"%10**stop_decade)
             tick_0_list_n,tick_1_list_n,tick_2_list_n,tick_3_list_n,tick_4_list_n=\
             find_log_ticks_negative_smart(start,-10**(start_decade)*1.0001,f,g,turn=1,base_start=None,
                                     base_stop=None,
@@ -961,7 +961,7 @@ class Nomo_Axis:
         line = path.path(path.moveto(f(self.start), g(self.start)))
         thin_line=path.path(path.moveto(f(self.start), g(self.start)))
         main_line = path.path(path.moveto(f(self.start), g(self.start)))
-        for number, label_string in manual_axis_data.iteritems():
+        for number, label_string in manual_axis_data.items():
             text_distance=1.0/4
             text_size=self.axis_appear['text_size_manual']
             if self.side=='left':
@@ -1002,7 +1002,7 @@ class Nomo_Axis:
 #            tick_list.append(number)
 #            text_strings.append(label_string)
 
-        keys = manual_axis_data.keys()
+        keys = list(manual_axis_data.keys())
         keys.sort()
         for key in keys:
             tick_list.append(key)
@@ -1067,7 +1067,7 @@ class Nomo_Axis:
             line.append(path.lineto(f(u), g(u)))
         # make lines and texts
         turn_original = turn
-        for number, label_def in manual_axis_data.iteritems():
+        for number, label_def in manual_axis_data.items():
             turn=turn_original
             x_corr=0.0 # shifts for labels
             y_corr=0.0
@@ -1078,17 +1078,17 @@ class Nomo_Axis:
             if type(label_def) is list:
                 title_raw=label_def[0]
                 ex_params=label_def[1]
-                if ex_params.has_key('x_corr'):
+                if 'x_corr' in ex_params:
                     x_corr=ex_params['x_corr']
-                if ex_params.has_key('y_corr'):
+                if 'y_corr' in ex_params:
                     y_corr=ex_params['y_corr']
-                if ex_params.has_key('draw_line'):
+                if 'draw_line' in ex_params:
                     draw_extra_line=ex_params['draw_line']
-                if ex_params.has_key('change_side'):
+                if 'change_side' in ex_params:
                     if ex_params['change_side']==True: # change to opposite side
                         turn=turn*(-1.0)
                         range_side = 1.0
-                if ex_params.has_key('range_end'):
+                if 'range_end' in ex_params:
                     range_end = ex_params['range_end']
                     range_tick = True
                 label_string=title_raw
@@ -1287,7 +1287,7 @@ class Nomo_Axis:
         if len(self.axis_appear['extra_titles'])>0:
             for texts in self.axis_appear['extra_titles']:
                 for key in text_default:
-                    if not texts.has_key(key):
+                    if key not in texts:
                         texts[key]=text_default[key]
                 dx=texts['dx']
                 dy=texts['dy']

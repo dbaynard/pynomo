@@ -17,7 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from nomo_axis import *
+from .nomo_axis import *
 
 class Circ_Scale:
     """
@@ -384,7 +384,7 @@ class Circ_Block_Type_1(Circ_Block):
                          }
         params_default_f1.update(params_default_f1_0)
         for key in params_default_f1:
-            if not self.f1_params.has_key(key):
+            if key not in self.f1_params:
                 self.f1_params[key]=params_default_f1[key]
 #        if self.f1_params['angle_tick_direction']=='inner':
 #            self.side_f1='left'
@@ -400,7 +400,7 @@ class Circ_Block_Type_1(Circ_Block):
                          }
         params_default_f2.update(params_default_f2_0)
         for key in params_default_f2:
-            if not self.f2_params.has_key(key):
+            if key not in self.f2_params:
                 self.f2_params[key]=params_default_f2[key]
 #        if self.f2_params['angle_tick_direction']=='inner':
 #            self.side_f2='left'
@@ -416,7 +416,7 @@ class Circ_Block_Type_1(Circ_Block):
                          }
         params_default_f3.update(params_default_f3_0)
         for key in params_default_f3:
-            if not self.f3_params.has_key(key):
+            if key not in self.f3_params:
                 self.f3_params[key]=params_default_f3[key]
 #        if self.f3_params['angle_tick_direction']=='inner':
 #            self.side_f3='left'
@@ -441,8 +441,8 @@ class Circ_Block_Type_1(Circ_Block):
         self.func_G3 = lambda u:self.f3_params['radius']*math.sin(self.f3_params['circ_sign']*self.f3_params['function'](u)*self.scaling+self.offset_f3)
         self.arrow_F = lambda u:(self.f3_params['radius']-0.05)*math.cos(u+self.offset_f2+self.offset_f3)
         self.arrow_G = lambda u:(self.f3_params['radius']-0.25)*math.sin(u+self.offset_f2+self.offset_f3)
-        print "self.offset_f2 %g"%(self.offset_f2*180.0/3.1415)
-        print "self.offset_f3 %g"%(self.offset_f3*180.0/3.1415)
+        print("self.offset_f2 %g"%(self.offset_f2*180.0/3.1415))
+        print("self.offset_f3 %g"%(self.offset_f3*180.0/3.1415))
         self.arrow_angle=(self.offset_f2+self.offset_f3)*180.0/math.pi
         self.arrow_radius=self.f3_params['radius']-0.05
     def draw(self,ccanvas,rot_angle=0.0):

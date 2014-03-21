@@ -21,8 +21,8 @@ This is example how to use lower level functions to build a nomograph.
 Also Latex is used with oldstyle fonts that should be installed.
 """
 
-from nomo_axis import *
-from nomograph3 import *
+from .nomo_axis import *
+from .nomograph3 import *
 
 def f1(u):
     return 2*(u*u-1)
